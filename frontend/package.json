@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "React conversion of FutureLabs healthcare application",
   "main": "src/index.js",
-  "homepage": "https://shehshaaz.github.io/futurelabb",
+  "homepage": ".",
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
