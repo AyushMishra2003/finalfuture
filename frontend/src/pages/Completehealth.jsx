@@ -651,11 +651,11 @@ const Completehealth = () => {
         position: "fixed",
         top: 0,
         right: 0,
-        bottom: 0,
         width: "100%",
         maxWidth: "500px",
+        height: "100dvh",
         background: "white",
-        zIndex: 50,
+        zIndex: 9999,
         boxShadow: "-10px 0 25px rgba(0,0,0,0.1)",
         transform: isDrawerOpen ? "translateX(0)" : "translateX(100%)",
         transition: "transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
@@ -816,6 +816,7 @@ const Completehealth = () => {
         {/* Drawer Footer - Sticky */}
         <div style={{
           padding: "20px 24px",
+          paddingBottom: "max(20px, env(safe-area-inset-bottom))",
           borderTop: "1px solid #f1f5f9",
           background: "white",
           boxShadow: "0 -4px 6px -1px rgba(0, 0, 0, 0.05)"
