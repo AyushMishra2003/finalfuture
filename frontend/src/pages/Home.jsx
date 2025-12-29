@@ -9,7 +9,7 @@ import PromotionalCard from "../components/PromotionalCard";
 import TestimonialsSlider from "../components/TestimonialsSlider";
 import PincodeChecker from "./Pincode";
 import Carousel from "react-bootstrap/Carousel";
-
+import PremiumCarousel from "../components/PremiumCarousel";
 
 const Home = () => {
   // Helper function to get correct image URL
@@ -48,7 +48,9 @@ const Home = () => {
   const [direction, setDirection] = useState("right"); // 'left' or 'right'
 
 
+  const [selectedPackage, setSelectedPackage] = useState(null);
   const [showDetails, setShowDetails] = useState(false);
+  const [savingCurrent, setSavingCurrent] = useState(0);
 
 
   // special offers carousel
@@ -227,29 +229,9 @@ const Home = () => {
     );
   };
 
-  const [current, setCurrent] = useState(0);
-  const total = packages.length;
-
-  const nextSlide = () => {
-    if (current < total - 1) {
-      setDirection("right");
-      setAnimationClass("slide-out-left");
-      setTimeout(() => {
-        setCurrent((prev) => prev + 1);
-        setAnimationClass("slide-in-right");
-      }, 250);
-    }
-  };
-
-  const prevSlide = () => {
-    if (current > 0) {
-      setDirection("left");
-      setAnimationClass("slide-out-right");
-      setTimeout(() => {
-        setCurrent((prev) => prev - 1);
-        setAnimationClass("slide-in-left");
-      }, 250);
-    }
+  const handleViewDetails = (pkg) => {
+    setSelectedPackage(pkg);
+    setShowDetails(true);
   };
 
   useEffect(() => {
@@ -388,6 +370,18 @@ const Home = () => {
   for (let i = 0; i < categories.length; i += 4) {
     chunkedCategories.push(categories.slice(i, i + 4));
   }
+
+  const nextSavingSlide = () => {
+    if (savingCurrent < chunkedCategories.length - 1) {
+      setSavingCurrent((prev) => prev + 1);
+    }
+  };
+
+  const prevSavingSlide = () => {
+    if (savingCurrent > 0) {
+      setSavingCurrent((prev) => prev - 1);
+    }
+  };
 
   const chunkedAds = [];
   for (let i = 0; i < ads.length; i += 4) {
@@ -754,7 +748,7 @@ const Home = () => {
               <div
                 className="d-flex transition-container"
                 style={{
-                  transform: `translateX(-${current * 100}%)`,
+                  transform: `translateX(-${savingCurrent * 100}%)`,
                   transition: 'transform 0.5s ease-in-out'
                 }}
               >
@@ -832,7 +826,7 @@ const Home = () => {
 
             {/* Carousel Navigation Arrows */}
             <div className="d-flex justify-content-center align-items-center mt-4 w-100" style={{ minHeight: "60px" }}>
-              <button
+              {/* <button
                 className="btn btn-primary rounded-circle shadow me-3"
                 style={{
                   width: "45px",
@@ -843,28 +837,30 @@ const Home = () => {
                   backgroundColor: "rgba(0, 0, 0, 0.9)",
                   border: "none",
                 }}
-                onClick={prevSlide}
-                disabled={current === 0}
+                onClick={prevSavingSlide}
+                disabled={savingCurrent === 0}
               >
                 <i className="bi bi-chevron-left text-white" style={{ fontSize: "1.2rem" }}></i>
-              </button>
+              </button> */}
 
               {/* Page Indicator */}
               <div className="d-flex align-items-center mx-3">
                 {chunkedCategories.map((_, index) => (
                   <span
                     key={index}
-                    className={`rounded-circle mx-1 ${index === current ? 'bg-primary' : 'bg-secondary'}`}
+                    className={`rounded-circle mx-1 ${index === savingCurrent ? 'bg-primary' : 'bg-secondary'}`}
                     style={{
                       width: "10px",
                       height: "10px",
-                      opacity: index === current ? 1 : 0.5,
+                      opacity: index === savingCurrent ? 1 : 0.5,
+                      cursor: "pointer",
                     }}
+                    onClick={() => setSavingCurrent(index)}
                   ></span>
                 ))}
               </div>
 
-              <button
+              {/* <button
                 className="btn rounded-circle shadow"
                 style={{
                   width: "36px",
@@ -875,8 +871,8 @@ const Home = () => {
                   backgroundColor: "rgba(122, 173, 162, 1)",
                   border: "none",
                 }}
-                onClick={nextSlide}
-                disabled={current === chunkedCategories.length - 1}
+                onClick={nextSavingSlide}
+                disabled={savingCurrent === chunkedCategories.length - 1}
               >
                 <i
                   className="bi bi-chevron-right text-primary"
@@ -887,7 +883,7 @@ const Home = () => {
                   }}
                 ></i>
 
-              </button>
+              </button> */}
 
             </div>
           </div>
@@ -1073,549 +1069,24 @@ const Home = () => {
           </div>
 
           {/* Carousel */}
-          <div className={`position-relative text-center ${showDetails ? 'show-details-active' : ''}`}>
-            <div
-              className="special-offer-layout-container"
-              style={{
-                minHeight: "520px",
-              }}
-            >
-              {/* Single Card Display with Animation */}
-              <div
-                key={packages[current].id}
-                className="card shadow-sm border-0 text-center position-relative special-offer-card mx-auto animate-slide"
-                style={{
-                  borderRadius: "20px",
-                  overflow: "hidden",
-                  background: "#fff",
-                  boxShadow: "0 12px 25px rgba(0,0,0,0.3)",
-
-                  maxHeight: "560px",
-                  width: "100%",
-                  maxWidth: "330px",
-                }}
-              >
-                {/* Discount Badge */}
-                <span
-                  className="position-absolute bg-danger text-white fw-bold px-2 py-1 rounded-end"
-                  style={{ top: "10px", left: "0", fontSize: "0.8rem" }}
-                >
-                  56% OFF
-                </span>
-
-                {/* Image */}
-                <div className="offer-image-wrapper">
-
-                  <img
-                    src={packages[current].image}
-                    alt={packages[current].title}
-                    className="card-img-center w-100 h-100 object-fit-cover"
-                    style={{
-                      borderTopLeftRadius: "20px",
-                      borderTopRightRadius: "20px",
-                    }}
-                  />
-                </div>
-
-                {/* Content */}
-                <div className="card-body py-3 px-3 d-flex flex-column text-center">
-                  <h6 className="fw-bold text-danger mb-1" style={{ fontSize: "1.1rem" }}>{packages[current].title}</h6>
-                  <p className="text-secondary mb-1" style={{ fontSize: "0.95rem" }}>{packages[current].tests}</p>
-
-                  <div className="mb-3">
-                    <button
-                      className="btn btn-outline-primary btn-sm rounded-pill fw-semibold"
-                      onClick={() => setShowDetails(!showDetails)}
-                    >
-                      {showDetails ? "Hide Details" : "Know More"}
-                    </button>
-                  </div>
-
-                  <div
-                    className="fw-bold text-danger mb-1"
-                    style={{ fontSize: "1.3rem" }}
-                  >
-                    {packages[current].price}
-                  </div>
-                  <div className="text-muted small mb-1">Exclusive Offer</div>
-                  <div className="text-decoration-line-through text-secondary small mb-3">
-                    {packages[current].oldPrice}
-                  </div>
-                </div>
-
-                {/* Add to Cart */}
-                <button
-                  className="w-100 text-center py-3 fw-bold text-white border-0"
-                  style={{
-                    backgroundColor: "#007A5E",
-                    borderBottomLeftRadius: "20px",
-                    borderBottomRightRadius: "20px",
-                    fontSize: "1rem",
-                    cursor: "pointer",
-                    transition: "all 0.3s ease",
-                  }}
-                  onClick={() => {
-                    // Add to localStorage cart
-                    const cart = JSON.parse(localStorage.getItem("cart")) || [];
-                    const newItem = {
-                      _id: `special-offer-${packages[current].id}`,
-                      name: packages[current].title,
-                      category: "Special Offers",
-                      price: parseInt(packages[current].price.replace(/[₹,]/g, "")),
-                      originalPrice: parseInt(packages[current].oldPrice.replace(/[₹,]/g, "")),
-                      description: packages[current].tests,
-                      discountPercentage: 56,
-                      homeSampleCollection: true,
-                      reportsIn: "24-48 hours"
-                    };
-
-                    // Check if item already exists
-                    const existingIndex = cart.findIndex(item => item._id === newItem._id);
-                    if (existingIndex === -1) {
-                      cart.push(newItem);
-                      localStorage.setItem("cart", JSON.stringify(cart));
-
-                      // Trigger storage event for cart count update
-                      window.dispatchEvent(new Event("storage"));
-
-                      alert("Item added to cart successfully!");
-                    } else {
-                      alert("This item is already in your cart!");
-                    }
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = "#006B52";
-                    e.currentTarget.style.transform = "scale(1.02)";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = "#007A5E";
-                    e.currentTarget.style.transform = "scale(1)";
-                  }}
-                >
-                  <i className="bi bi-cart-fill me-2"></i>ADD TO CART
-                </button>
-              </div>
-
-              {/* Detail Card Container - only visible when showDetails is true */}
-              <div className={`detail-wrapper ${showDetails ? 'show' : ''}`}>
-                <DetailCard pkg={packages[current]} onClose={() => setShowDetails(false)} />
-              </div>
-            </div>
+          <div className="position-relative w-100">
+            <PremiumCarousel
+              items={packages}
+              onAddToCart={(item) => handleAddToCart(item.id)}
+              onViewDetails={handleViewDetails}
+            />
           </div>
 
-          {/* Special Offers Inline CSS */}
-          <style>{`
-            .special-offer-layout-container {
-              display: flex;
-              flex-direction: row;
-              align-items: center;
-              justify-content: center;
-              gap: 20px;
-              transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-              max-width: 900px;
-              margin: 0 auto;
-              position: relative;
-            }
-
-            .special-offer-card {
-              flex: 0 0 330px;
-              transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-              z-index: 2;
-            }
-
-            .detail-wrapper {
-              flex: 0 0 0px;
-              opacity: 0;
-              overflow: hidden;
-              transform: translateX(-30px) scale(0.95);
-              transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-              z-index: 1;
-              height: 520px;
-              display: flex;
-              align-items: stretch;
-            }
-
-            .detail-wrapper.show {
-              flex: 0 0 350px;
-              opacity: 1;
-              transform: translateX(0) scale(1);
-            }
-
-            .detail-card {
-              background: linear-gradient(135deg, #ffffff 0%, #f0fdfa 100%);
-              border: 1px solid #e0f2f1 !important;
-              border-radius: 20px !important;
-              text-align: left !important;
-              width: 100%;
-            }
-
-            .show-details-active .special-offer-card {
-               box-shadow: 0 15px 35px rgba(0,162,173,0.3) !important;
-            }
-            
-            .bg-light-teal {
-              background-color: #f0f9f9;
-            }
-
-            .scrollable-details {
-              max-height: 250px;
-              overflow-y: auto;
-              scrollbar-width: thin;
-              scrollbar-color: #00a2ad #f0fdfa;
-            }
-
-            .detail-info-box {
-              border: 1px solid #e0f2f1;
-              text-align: center;
-              height: 100%;
-              display: flex;
-              flex-direction: column;
-              justify-content: center;
-              align-items: center;
-            }
-
-            .x-small {
-              font-size: 0.7rem;
-            }
-
-            @media (max-width: 768px) {
-              .special-offer-layout-container {
-                flex-direction: column !important;
-                align-items: center !important;
-                gap: 15px !important;
-                min-height: auto !important;
-              }
-
-              .special-offer-card {
-                flex: 0 0 auto !important;
-              }
-
-              .detail-wrapper.show {
-                flex: 0 0 auto !important;
-                width: 100% !important;
-                max-width: 330px !important;
-                height: auto !important;
-                transform: translateY(0) scale(1) !important;
-              }
-
-              .detail-wrapper {
-                transform: translateY(-20px) scale(0.95) !important;
-                height: 0;
-              }
-              
-              .scrollable-details {
-                max-height: none !important;
-              }
-            }
-          `}</style>
-
-          {/* Navigation Arrows */}
-          <button
-            className="btn btn-primary rounded-circle shadow position-absolute"
-            style={{
-              left: "10px",
-              top: "50%",
-              transform: "translateY(-50%)",
-              width: "50px",
-              height: "50px",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              zIndex: 10,
-            }}
-            onClick={prevSlide}
-            disabled={current === 0}
-          >
-            <i className="bi bi-chevron-left text-white" style={{ fontSize: "1.5rem" }}></i>
-          </button>
-
-          <button
-            className="btn btn-primary rounded-circle shadow position-absolute"
-            style={{
-              right: "10px",
-              top: "50%",
-              transform: "translateY(-50%)",
-              width: "50px",
-              height: "50px",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              zIndex: 10,
-            }}
-            onClick={nextSlide}
-            disabled={current === packages.length - 1}
-          >
-            <i className="bi bi-chevron-right text-white" style={{ fontSize: "1.5rem" }}></i>
-          </button>
-        </div>
-
-        {/* Page Indicators Below Card */}
-        <div className="d-flex justify-content-center mt-3 w-100">
-          {packages.map((_, index) => (
-            <span
-              key={index}
-              className={`rounded-circle mx-1 ${index === current ? 'bg-primary' : 'bg-secondary'}`}
-              style={{
-                width: "12px",
-                height: "12px",
-                opacity: index === current ? 1 : 0.4,
-                cursor: "pointer",
-                transition: "all 0.3s ease",
-              }}
-              onClick={() => {
-                setDirection(index > current ? "right" : "left");
-                setAnimationClass(index > current ? "slide-out-left" : "slide-out-right");
-                setTimeout(() => {
-                  setCurrent(index);
-                  setAnimationClass(index > current ? "slide-in-right" : "slide-in-left");
-                }, 250);
-              }}
-            ></span>
-          ))}
+          {/* Details Modal */}
+          {showDetails && selectedPackage && (
+            <div className="position-fixed top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-center p-3" style={{ zIndex: 1050, background: "rgba(255, 255, 255, 0.7)", backdropFilter: "blur(1px)" }}>
+              <div className="position-relative w-100" style={{ maxWidth: "450px" }}>
+                <DetailCard pkg={selectedPackage} onClose={() => setShowDetails(false)} />
+              </div>
+            </div>
+          )}
         </div>
       </section>
-
-      <style>{`
-        /* Slide Animation */
-        @keyframes slideInRight {
-          from {
-            transform: translateX(100%);
-            opacity: 0;
-          }
-          to {
-            transform: translateX(0);
-            opacity: 1;
-          }
-        }
-        
-        @keyframes slideInLeft {
-          from {
-            transform: translateX(-100%);
-            opacity: 0;
-          }
-          to {
-            transform: translateX(0);
-            opacity: 1;
-          }
-        }
-        
-        @keyframes slideOutLeft {
-          from {
-            transform: translateX(0);
-            opacity: 1;
-          }
-          to {
-            transform: translateX(-100%);
-            opacity: 0;
-          }
-        }
-        
-        @keyframes slideOutRight {
-          from {
-            transform: translateX(0);
-            opacity: 1;
-          }
-          to {
-            transform: translateX(100%);
-            opacity: 0;
-          }
-        }
-        
-        .animate-slide {
-          animation: slideInRight 0.5s ease-out forwards;
-        }
-        
-        .animate-slide.slide-out-left {
-          animation: slideOutLeft 0.5s ease-out forwards;
-        }
-        
-        .animate-slide.slide-out-right {
-          animation: slideOutRight 0.5s ease-out forwards;
-        }
-        
-        .animate-slide.slide-in-left {
-          animation: slideInLeft 0.5s ease-out forwards;
-        }
-
-        /* Hover Animation */
-        .special-offer-card:hover {
-          transform: scale(1.02) !important;
-          box-shadow: 0 15px 30px rgba(0,0,0,0.4) !important;
-        }
-
-        /* Navigation Arrow Styles */
-        .btn-primary.rounded-circle {
-          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
-          border: 3px solid white !important;
-          box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4) !important;
-          transition: all 0.3s ease !important;
-          animation: arrowPulse 2s ease-in-out infinite;
-        }
-
-        .btn-primary.rounded-circle:hover:not(:disabled) {
-          transform: translateY(-50%) scale(1.15) !important;
-          box-shadow: 0 6px 25px rgba(102, 126, 234, 0.6) !important;
-          animation: none;
-        }
-
-        .btn-primary.rounded-circle:active:not(:disabled) {
-          transform: translateY(-50%) scale(1.05) !important;
-        }
-
-        .btn-primary.rounded-circle:disabled {
-          background: linear-gradient(135deg, #ccc 0%, #999 100%) !important;
-          opacity: 0.5;
-          cursor: not-allowed;
-          animation: none;
-        }
-
-        .btn-primary.rounded-circle i {
-          transition: transform 0.3s ease;
-        }
-
-        .btn-primary.rounded-circle:hover:not(:disabled) i {
-          transform: scale(1.2);
-        }
-
-        /* Pulse Animation for Arrows */
-        @keyframes arrowPulse {
-          0%, 100% {
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
-          }
-          50% {
-            box-shadow: 0 4px 20px rgba(102, 126, 234, 0.7);
-          }
-        }
-
-        /* Tablet */
-        @media (max-width: 992px) {
-          .special-offer-card {
-            max-width: 300px !important;
-            max-height: 360px;
-          }
-          
-          .special-offer-card .card-body {
-            padding: 1rem !important;
-          }
-          
-          .special-offer-card .card-body h6 {
-            font-size: 1rem !important;
-          }
-          
-          .special-offer-card .card-body p {
-            font-size: 0.9rem !important;
-          }
-          
-          .special-offer-card .card-body button {
-            padding: 5px 18px !important;
-            font-size: 0.85rem !important;
-          }
-          
-          .special-offer-card .card-body .fw-bold {
-            font-size: 1.2rem !important;
-          }
-          
-          .special-offer-card .card-body .small {
-            font-size: 0.8rem !important;
-          }
-          
-          .special-offer-card .card-img-top {
-            height: 140px !important;
-          }
-        }
-
-        /* Mobile */
-        @media (max-width: 768px) {
-          .special-offer-card {
-            max-width: 280px !important;
-            max-height: 350px;
-          }
-          
-          .special-offer-card .card-img-top {
-            height: 130px !important;
-          }
-          
-          .special-offer-card .card-body h6 {
-            font-size: 0.95rem !important;
-          }
-          
-          .special-offer-card .card-body p {
-            font-size: 0.85rem !important;
-          }
-          
-          .special-offer-card .card-body button {
-            padding: 4px 16px !important;
-            font-size: 0.8rem !important;
-          }
-          
-          .special-offer-card .card-body .fw-bold {
-            font-size: 1.1rem !important;
-          }
-          
-          .special-offer-card .card-body .small {
-            font-size: 0.75rem !important;
-          }
-          
-          .btn-primary.rounded-circle {
-            width: 40px !important;
-            height: 40px !important;
-          }
-        }
-        
-        /* Small Mobile */
-        @media (max-width: 576px) {
-          .special-offer-card {
-            max-width: calc(100vw - 60px) !important;
-            max-height: 330px;
-          }
-          
-          .special-offer-card .card-img-top {
-            height: 120px !important;
-          }
-          
-          .special-offer-card .card-body {
-            padding: 0.75rem !important;
-          }
-          
-          .special-offer-card .card-body h6 {
-            font-size: 0.9rem !important;
-          }
-          
-          .special-offer-card .card-body p {
-            font-size: 0.8rem !important;
-          }
-          
-          .special-offer-card .card-body button {
-            padding: 3px 14px !important;
-            font-size: 0.75rem !important;
-          }
-          
-          .special-offer-card .card-body .fw-bold {
-            font-size: 1rem !important;
-          }
-          
-          .special-offer-card .card-body .small {
-            font-size: 0.7rem !important;
-          }
-          
-          .btn-primary.rounded-circle {
-            width: 36px !important;
-            height: 36px !important;
-          }
-          
-          /* Ensure carousel doesn't overflow on small screens */
-          .position-relative.overflow-hidden {
-            overflow: hidden !important;
-          }
-        }
-        
-        /* Extra small devices */
-        @media (max-width: 400px) {
-          .special-offer-card {
-            max-width: calc(100vw - 40px) !important;
-          }
-        }
-      `}</style>
 
 
 

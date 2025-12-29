@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { ShoppingCart, Star, Tag, TrendingUp, Heart } from "react-feather";
+import { ShoppingCart, Star, Tag, TrendingUp, Heart, ChevronLeft, ChevronRight, Check } from "react-feather";
+import { motion, AnimatePresence } from "framer-motion";
 
 const SpecialOffers = () => {
   // Special offers data (same as in Home.jsx)
@@ -99,6 +100,8 @@ const SpecialOffers = () => {
     },
   ]);
 
+  const [activeIndex, setActiveIndex] = useState(0);
+
   // Get badge class based on badge color
   const getBadgeClass = (badgeColor) => {
     switch (badgeColor) {
@@ -128,8 +131,26 @@ const SpecialOffers = () => {
     );
   };
 
+  const nextSlide = () => {
+    setActiveIndex((prev) => (prev + 1) % specialOffers.length);
+  };
+
+  const prevSlide = () => {
+    setActiveIndex((prev) => (prev - 1 + specialOffers.length) % specialOffers.length);
+  };
+
+  // Get visible cards (3 at a time)
+  const getVisibleCards = () => {
+    const visible = [];
+    for (let i = 0; i < 3; i++) {
+      const index = (activeIndex + i) % specialOffers.length;
+      visible.push(specialOffers[index]);
+    }
+    return visible;
+  };
+
   return (
-    <div className="special-offers-page py-5">
+    <div className="special-offers-page py-5 overflow-hidden">
       <div className="container">
         {/* Page Header */}
         <div className="row mb-5">
@@ -138,147 +159,130 @@ const SpecialOffers = () => {
               <span className="gradient-text">🎉 Special Offers</span>
             </h1>
             <p className="lead text-muted mb-4">
-              Limited time deals on health checkups & lab tests - Save up to
-              35%!
+              Limited time deals on health checkups & lab tests
             </p>
-            <div className="d-flex justify-content-center">
-              <div className="badge bg-light text-dark me-2">
-                <Tag className="me-1" size={16} />
-                {specialOffers.length} Deals
-              </div>
-              <div className="badge bg-light text-dark">
-                <TrendingUp className="me-1" size={16} />
-                Updated Daily
-              </div>
-            </div>
           </div>
         </div>
 
-        {/* Offers Grid */}
-        <div className="row">
-          {specialOffers.map((offer) => (
-            <div key={offer.id} className="col-lg-6 col-md-6 col-sm-12 mb-4">
-              <div className="card h-100 border-0 shadow-sm special-offer-card">
-                <div className="card-body d-flex flex-column">
-                  {/* Badge and Header */}
-                  <div className="d-flex justify-content-between align-items-start mb-3">
-                    <div>
-                      <span
-                        className={`badge ${getBadgeClass(
-                          offer.badgeColor
-                        )} mb-2`}
-                      >
+        {/* Carousel Container */}
+        <div className="position-relative mb-5">
+          {/* Cards Row */}
+          <motion.div
+            className="row g-3 g-md-4"
+            key={activeIndex}
+            initial={{ opacity: 0, x: 50 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -50 }}
+            transition={{ duration: 0.4 }}
+          >
+            {getVisibleCards().map((offer, idx) => (
+              <div key={offer.id} className="col-12 col-md-6 col-lg-4">
+                <div className="card border-0 shadow-sm h-100 special-offer-card bg-white">
+                  <div className="card-body p-4 d-flex flex-column">
+                    {/* Header */}
+                    <div className="d-flex justify-content-between align-items-start mb-3">
+                      <span className={`badge ${getBadgeClass(offer.badgeColor)}`}>
                         {offer.badge}
                       </span>
-                      <h5 className="card-title mb-1">{offer.title}</h5>
                       {offer.popular && (
-                        <div className="d-flex align-items-center">
-                          <Star
-                            size={14}
-                            className="text-warning me-1"
-                            fill="#ffc107"
-                          />
-                          <small className="text-muted">Most Popular</small>
-                        </div>
+                        <Star size={16} className="text-warning" fill="#ffc107" />
                       )}
                     </div>
-                    <button
-                      className="btn btn-outline-danger btn-sm"
-                      title="Add to wishlist"
-                    >
-                      <Heart size={16} />
-                    </button>
-                  </div>
 
-                  {/* Description */}
-                  <p className="card-text text-muted mb-3 flex-grow-1">
-                    {offer.description}
-                  </p>
+                    <h4 className="card-title fw-bold mb-2">{offer.title}</h4>
+                    <p className="text-muted small mb-3">{offer.description}</p>
 
-                  {/* Features */}
-                  <div className="mb-3">
-                    <ul className="list-unstyled mb-0">
-                      {offer.features.slice(0, 3).map((feature, index) => (
-                        <li key={index} className="mb-1">
-                          <span className="text-success me-2">✓</span>
-                          <small>{feature}</small>
-                        </li>
-                      ))}
-                      {offer.features.length > 3 && (
-                        <li className="text-muted">
-                          <small>
-                            + {offer.features.length - 3} more tests
-                          </small>
-                        </li>
-                      )}
-                    </ul>
-                  </div>
-
-                  {/* Pricing */}
-                  <div className="mt-auto">
-                    <div className="d-flex justify-content-between align-items-center mb-3">
-                      <div>
-                        <span className="h4 text-primary mb-0">
-                          ₹{offer.discountedPrice}
-                        </span>
-                        <div className="d-flex align-items-center">
-                          <del className="text-muted small me-2">
-                            ₹{offer.originalPrice}
-                          </del>
-                          <span className="badge bg-success">
-                            {offer.discount}% OFF
-                          </span>
-                        </div>
-                      </div>
-                      <div className="text-end">
-                        <div className="text-muted small">You Save</div>
-                        <div className="text-success fw-bold">
-                          ₹{offer.originalPrice - offer.discountedPrice}
-                        </div>
-                      </div>
+                    {/* Features */}
+                    <div className="mb-4 bg-light p-3 rounded flex-grow-1">
+                      <ul className="list-unstyled mb-0">
+                        {offer.features.slice(0, 3).map((f, i) => (
+                          <li key={i} className="mb-2 d-flex align-items-center small">
+                            <Check size={14} className="text-success me-2" />
+                            {f}
+                          </li>
+                        ))}
+                        {offer.features.length > 3 && (
+                          <li className="text-muted small fst-italic ms-3">
+                            + {offer.features.length - 3} more...
+                          </li>
+                        )}
+                      </ul>
                     </div>
 
-                    {/* Action Buttons */}
-                    <div className="d-grid gap-2 d-md-flex justify-content-md-between">
+                    {/* Pricing */}
+                    <div className="mb-4">
+                      <div className="d-flex align-items-end mb-1">
+                        <h2 className="text-primary fw-bold mb-0 me-2">₹{offer.discountedPrice}</h2>
+                        <span className="text-muted text-decoration-line-through mb-1">₹{offer.originalPrice}</span>
+                      </div>
+                      <small className="text-success fw-bold">Save {offer.discount}%</small>
+                    </div>
+
+                    {/* Buttons */}
+                    <div className="d-grid gap-2">
+                      <button
+                        className="btn btn-primary fw-bold d-flex align-items-center justify-content-center"
+                        onClick={() => addToCart(offer.id)}
+                      >
+                        <ShoppingCart size={18} className="me-2" />
+                        Select Package
+                      </button>
                       <Link
-                        to={`/product?id=${offer.id}&category=Special Offers`}
-                        className="btn btn-outline-primary flex-fill me-md-2 mb-2 mb-md-0"
+                        to={`/product?id=${offer.id}`}
+                        className="btn btn-outline-primary fw-bold"
                       >
                         View Details
                       </Link>
-                      <button
-                        className="btn btn-primary flex-fill d-flex align-items-center justify-content-center"
-                        onClick={() => addToCart(offer.id)}
-                      >
-                        <ShoppingCart size={16} className="me-1" />
-                        Add to Cart
-                      </button>
                     </div>
                   </div>
                 </div>
               </div>
-            </div>
+            ))}
+          </motion.div>
+
+          {/* Navigation Arrows */}
+          <button
+            className="btn btn-white shadow-sm position-absolute top-50 start-0 translate-middle-y ms-n3 ms-md-n4 rounded-circle p-2"
+            onClick={prevSlide}
+            style={{ width: '48px', height: '48px', zIndex: 10 }}
+          >
+            <ChevronLeft className="text-dark" />
+          </button>
+
+          <button
+            className="btn btn-white shadow-sm position-absolute top-50 end-0 translate-middle-y me-n3 me-md-n4 rounded-circle p-2"
+            onClick={nextSlide}
+            style={{ width: '48px', height: '48px', zIndex: 10 }}
+          >
+            <ChevronRight className="text-dark" />
+          </button>
+        </div>
+
+        {/* Pagination Dots - Below Cards with Gap */}
+        <div className="d-flex justify-content-center gap-2 mb-5">
+          {specialOffers.map((_, idx) => (
+            <motion.button
+              key={idx}
+              onClick={() => setActiveIndex(idx)}
+              className="btn p-0 rounded-circle border-0"
+              animate={{
+                width: idx === activeIndex ? 24 : 8,
+                height: 8,
+                backgroundColor: idx === activeIndex ? "#0d6efd" : "#dee2e6"
+              }}
+              transition={{ duration: 0.3 }}
+              aria-label={`Go to slide ${idx + 1}`}
+            />
           ))}
         </div>
 
-        {/* Call to Action */}
+
+        {/* CTA */}
         <div className="row mt-5">
-          <div className="col-12">
-            <div className="card bg-gradient-primary text-white rounded-3">
-              <div className="card-body p-4 text-center">
-                <h3 className="card-title mb-3">
-                  Don't Miss These Limited Time Offers!
-                </h3>
-                <p className="card-text mb-4">
-                  These special offers are only available for a limited time.
-                  Book your health checkup today and save up to 35% on
-                  comprehensive health packages.
-                </p>
-                <Link to="/checkups" className="btn btn-light btn-lg">
-                  View All Health Packages
-                </Link>
-              </div>
-            </div>
+          <div className="col-12 text-center">
+            <Link to="/checkups" className="btn btn-outline-primary rounded-pill px-5">
+              Explore All Health Packages
+            </Link>
           </div>
         </div>
       </div>

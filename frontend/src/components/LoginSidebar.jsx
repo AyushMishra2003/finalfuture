@@ -146,7 +146,7 @@ const LoginSidebar = () => {
         <div className="login-form-container p-4">
           <div className="login-banner mb-4 text-center">
             <img
-              src={`${process.env.PUBLIC_URL}/images/verification.png`}
+              src={`${process.env.PUBLIC_URL}/images/logo/WhatsApp Image 2025-08-19 at 17.38.25_562bb83d.jpg`}
               alt="Login Banner"
               className="img-fluid"
               style={{ maxWidth: "200px", height: "auto" }}

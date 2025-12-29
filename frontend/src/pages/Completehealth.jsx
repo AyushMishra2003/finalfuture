@@ -15,6 +15,7 @@ import {
   Bell,
   User,
   ChevronDown,
+  ChevronUp,
   CheckCircle,
   Clock,
   MapPin,
@@ -29,6 +30,9 @@ import {
   Award,
   ArrowRight,
   TrendingUp,
+  Droplet,
+  Brain,
+  Pill,
 } from "lucide-react";
 import apiService from "../utils/api";
 
@@ -44,6 +48,290 @@ const Completehealth = () => {
   const [services, setServices] = useState([]);
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
+  const [bookedItems, setBookedItems] = useState({}); // Track booked items: { testId: patientCount }
+  const [expandedCategories, setExpandedCategories] = useState([]); // Track expanded test categories
+
+  // Comprehensive Test Database
+  const testDatabase = {
+    "Liver Function": {
+      icon: Activity,
+      color: "#ef4444",
+      tests: [
+        {
+          name: "SGOT (AST)",
+          description: "Measures the enzyme Aspartate Aminotransferase in blood",
+          importance: "Elevated levels indicate liver damage, heart problems, or muscle injury"
+        },
+        {
+          name: "SGPT (ALT)",
+          description: "Measures the enzyme Alanine Aminotransferase primarily found in liver",
+          importance: "High levels are a specific indicator of liver inflammation or damage"
+        },
+        {
+          name: "Alkaline Phosphatase (ALP)",
+          description: "Enzyme found in liver, bones, and bile ducts",
+          importance: "Helps detect liver disease, bile duct obstruction, and bone disorders"
+        },
+        {
+          name: "Total Bilirubin",
+          description: "Measures total amount of bilirubin in blood",
+          importance: "High levels cause jaundice and indicate liver dysfunction or bile duct problems"
+        },
+        {
+          name: "Direct Bilirubin",
+          description: "Measures conjugated bilirubin processed by the liver",
+          importance: "Elevated levels suggest bile duct obstruction or liver disease"
+        },
+        {
+          name: "Indirect Bilirubin",
+          description: "Measures unconjugated bilirubin before liver processing",
+          importance: "High levels may indicate hemolytic anemia or Gilbert's syndrome"
+        },
+        {
+          name: "Total Protein",
+          description: "Measures combined albumin and globulin levels",
+          importance: "Abnormal levels indicate liver disease, kidney disease, or nutritional problems"
+        },
+        {
+          name: "Albumin",
+          description: "Main protein made by the liver",
+          importance: "Low levels indicate chronic liver disease, malnutrition, or kidney problems"
+        },
+        {
+          name: "Globulin",
+          description: "Group of proteins made by liver and immune system",
+          importance: "Abnormal levels suggest liver disease, immune disorders, or infections"
+        },
+        {
+          name: "A/G Ratio",
+          description: "Ratio of Albumin to Globulin",
+          importance: "Helps diagnose liver disease, kidney disease, and immune disorders"
+        }
+      ]
+    },
+    "Kidney Function": {
+      icon: Droplet,
+      color: "#3b82f6",
+      tests: [
+        {
+          name: "Creatinine",
+          description: "Waste product from muscle metabolism filtered by kidneys",
+          importance: "Elevated levels indicate impaired kidney function or kidney disease"
+        },
+        {
+          name: "Urea",
+          description: "Waste product from protein breakdown",
+          importance: "High levels suggest kidney dysfunction, dehydration, or high protein diet"
+        },
+        {
+          name: "Uric Acid",
+          description: "Waste product from purine metabolism",
+          importance: "High levels cause gout and kidney stones; indicates kidney problems"
+        },
+        {
+          name: "BUN (Blood Urea Nitrogen)",
+          description: "Measures nitrogen portion of urea in blood",
+          importance: "Elevated BUN indicates kidney disease, dehydration, or heart failure"
+        },
+        {
+          name: "Sodium",
+          description: "Essential electrolyte for fluid balance and nerve function",
+          importance: "Abnormal levels affect hydration, blood pressure, and kidney function"
+        },
+        {
+          name: "Potassium",
+          description: "Electrolyte crucial for heart and muscle function",
+          importance: "Imbalance can cause dangerous heart rhythm problems"
+        },
+        {
+          name: "Chloride",
+          description: "Electrolyte that helps maintain fluid and acid-base balance",
+          importance: "Abnormal levels indicate kidney disease or metabolic disorders"
+        }
+      ]
+    },
+    "Lipid Profile": {
+      icon: Heart,
+      color: "#f59e0b",
+      tests: [
+        {
+          name: "Total Cholesterol",
+          description: "Measures all cholesterol in blood",
+          importance: "High levels increase risk of heart disease and stroke"
+        },
+        {
+          name: "HDL (Good Cholesterol)",
+          description: "High-Density Lipoprotein removes excess cholesterol",
+          importance: "Higher levels protect against heart disease; low HDL increases risk"
+        },
+        {
+          name: "LDL (Bad Cholesterol)",
+          description: "Low-Density Lipoprotein deposits cholesterol in arteries",
+          importance: "High levels cause plaque buildup and increase heart attack risk"
+        },
+        {
+          name: "Triglycerides",
+          description: "Most common type of fat in blood from food and body",
+          importance: "High levels increase risk of heart disease and pancreatitis"
+        },
+        {
+          name: "VLDL",
+          description: "Very Low-Density Lipoprotein carries triglycerides",
+          importance: "Elevated levels contribute to plaque buildup in arteries"
+        },
+        {
+          name: "TC/HDL Ratio",
+          description: "Ratio of Total Cholesterol to HDL",
+          importance: "Important cardiac risk indicator; lower ratio is better"
+        }
+      ]
+    },
+    "Thyroid Profile": {
+      icon: Zap,
+      color: "#8b5cf6",
+      tests: [
+        {
+          name: "T3 Total",
+          description: "Triiodothyronine hormone regulating metabolism",
+          importance: "Abnormal levels indicate hyperthyroidism or hypothyroidism"
+        },
+        {
+          name: "T4 Total",
+          description: "Thyroxine hormone produced by thyroid gland",
+          importance: "Measures thyroid function; affects metabolism, energy, and mood"
+        },
+        {
+          name: "TSH (Ultrasensitive)",
+          description: "Thyroid Stimulating Hormone from pituitary gland",
+          importance: "Most sensitive test for thyroid disorders; guides treatment"
+        }
+      ]
+    },
+    "Blood Sugar": {
+      icon: Activity,
+      color: "#10b981",
+      tests: [
+        {
+          name: "Fasting Blood Sugar",
+          description: "Glucose level after 8-12 hours fasting",
+          importance: "Screens for diabetes and prediabetes; monitors blood sugar control"
+        },
+        {
+          name: "PP Blood Sugar",
+          description: "Post-Prandial glucose 2 hours after meal",
+          importance: "Shows how body processes sugar after eating; detects diabetes"
+        },
+        {
+          name: "HbA1c",
+          description: "Average blood sugar over past 2-3 months",
+          importance: "Gold standard for diabetes diagnosis and long-term control monitoring"
+        }
+      ]
+    },
+    "Complete Blood Count": {
+      icon: Beaker,
+      color: "#ec4899",
+      tests: [
+        {
+          name: "Hemoglobin",
+          description: "Protein in red blood cells carrying oxygen",
+          importance: "Low levels indicate anemia; high levels suggest dehydration or lung disease"
+        },
+        {
+          name: "RBC Count",
+          description: "Number of red blood cells per volume of blood",
+          importance: "Abnormal counts indicate anemia, dehydration, or blood disorders"
+        },
+        {
+          name: "WBC Count",
+          description: "Number of white blood cells fighting infection",
+          importance: "High counts suggest infection; low counts indicate immune problems"
+        },
+        {
+          name: "Platelet Count",
+          description: "Cells responsible for blood clotting",
+          importance: "Low counts cause bleeding; high counts increase clotting risk"
+        },
+        {
+          name: "PCV (Hematocrit)",
+          description: "Percentage of blood volume occupied by red cells",
+          importance: "Helps diagnose anemia, dehydration, and blood disorders"
+        },
+        {
+          name: "MCV",
+          description: "Mean Corpuscular Volume - average red cell size",
+          importance: "Helps classify type of anemia and guide treatment"
+        },
+        {
+          name: "MCH",
+          description: "Mean Corpuscular Hemoglobin per red cell",
+          importance: "Indicates amount of oxygen-carrying hemoglobin in each cell"
+        },
+        {
+          name: "MCHC",
+          description: "Mean Corpuscular Hemoglobin Concentration",
+          importance: "Measures hemoglobin concentration; helps diagnose anemia types"
+        },
+        {
+          name: "RDW",
+          description: "Red Cell Distribution Width - variation in cell size",
+          importance: "Helps differentiate between types of anemia"
+        },
+        {
+          name: "Neutrophils",
+          description: "Most abundant white blood cells fighting bacteria",
+          importance: "High levels indicate bacterial infection; low levels increase infection risk"
+        },
+        {
+          name: "Lymphocytes",
+          description: "White blood cells fighting viruses and making antibodies",
+          importance: "High in viral infections; low in immune deficiency"
+        },
+        {
+          name: "Monocytes",
+          description: "Large white blood cells removing dead cells and fighting infection",
+          importance: "Elevated in chronic infections and inflammatory conditions"
+        },
+        {
+          name: "Eosinophils",
+          description: "White blood cells fighting parasites and allergies",
+          importance: "High levels indicate allergies, asthma, or parasitic infections"
+        },
+        {
+          name: "Basophils",
+          description: "Least common white blood cells involved in allergic reactions",
+          importance: "Elevated in allergic reactions and certain blood disorders"
+        }
+      ]
+    },
+    "Iron Deficiency": {
+      icon: Pill,
+      color: "#dc2626",
+      tests: [
+        {
+          name: "Serum Iron",
+          description: "Measures iron circulating in blood",
+          importance: "Low levels indicate iron deficiency anemia"
+        },
+        {
+          name: "TIBC",
+          description: "Total Iron Binding Capacity",
+          importance: "High TIBC suggests iron deficiency; helps diagnose anemia"
+        },
+        {
+          name: "Transferrin Saturation",
+          description: "Percentage of transferrin protein carrying iron",
+          importance: "Low saturation indicates iron deficiency"
+        },
+        {
+          name: "Ferritin",
+          description: "Protein storing iron in body",
+          importance: "Best indicator of total body iron stores; low means deficiency"
+        }
+      ]
+    }
+  };
+
 
   // Categories for Hero Buttons
   const categories = [
@@ -249,6 +537,12 @@ const Completehealth = () => {
   };
 
   const handleAddToCart = (test) => {
+    // Update booked items state
+    setBookedItems(prev => ({
+      ...prev,
+      [test.id]: (prev[test.id] || 0) + 1
+    }));
+
     // Add to cart logic
     const newItem = { ...test, quantity: 1 };
     setCart([...cart, newItem]);
@@ -260,6 +554,15 @@ const Completehealth = () => {
     setToastMessage(`${test.title} added to cart!`);
     setShowToast(true);
     setTimeout(() => setShowToast(false), 3000);
+  };
+
+  // Toggle test category expansion
+  const toggleCategory = (categoryName) => {
+    setExpandedCategories(prev =>
+      prev.includes(categoryName)
+        ? prev.filter(cat => cat !== categoryName)
+        : [...prev, categoryName]
+    );
   };
 
   const activeTest = selectedTest || {};
@@ -756,24 +1059,213 @@ const Completehealth = () => {
                 <h3 style={{ fontSize: "16px", fontWeight: "700", color: "#1e293b", marginBottom: "16px", display: "flex", alignItems: "center", gap: "8px" }}>
                   <FileText size={18} color="#10b981" /> Tests Included ({activeTest.testCount})
                 </h3>
-                <div style={{ border: "1px solid #e2e8f0", borderRadius: "12px", overflow: "hidden" }}>
-                  {activeTest.features?.map((feature, i) => (
-                    <div key={i} style={{
-                      padding: "12px 16px",
-                      borderBottom: "1px solid #e2e8f0",
-                      fontSize: "14px",
-                      color: "#334155",
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "10px"
-                    }}>
-                      <div style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#10b981" }} />
-                      {feature}
-                    </div>
-                  ))}
-                  <div style={{ padding: "12px 16px", background: "#f8fafc", fontSize: "13px", color: "#64748b", fontStyle: "italic" }}>
-                    And more detailed parameters...
-                  </div>
+
+                {/* Expandable Test Categories */}
+                <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+                  {activeTest.features?.map((categoryName, categoryIndex) => {
+                    const categoryData = testDatabase[categoryName];
+                    const isExpanded = expandedCategories.includes(categoryName);
+
+                    // If category not in database, show simple version
+                    if (!categoryData) {
+                      return (
+                        <div key={categoryIndex} style={{
+                          border: "1px solid #e2e8f0",
+                          borderRadius: "12px",
+                          overflow: "hidden",
+                          background: "white"
+                        }}>
+                          <div style={{
+                            padding: "14px 16px",
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "10px",
+                            background: "#f8fafc"
+                          }}>
+                            <div style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#10b981" }} />
+                            <span style={{ fontSize: "14px", fontWeight: "600", color: "#334155" }}>
+                              {categoryName}
+                            </span>
+                            <span style={{
+                              marginLeft: "auto",
+                              fontSize: "11px",
+                              fontWeight: "600",
+                              color: "#10b981",
+                              background: "#d1fae5",
+                              padding: "3px 8px",
+                              borderRadius: "12px"
+                            }}>
+                              Included
+                            </span>
+                          </div>
+                        </div>
+                      );
+                    }
+
+                    const CategoryIcon = categoryData.icon;
+
+                    return (
+                      <div key={categoryIndex} style={{
+                        border: "2px solid #e2e8f0",
+                        borderRadius: "14px",
+                        overflow: "hidden",
+                        background: "white",
+                        transition: "all 0.3s ease",
+                        boxShadow: isExpanded ? "0 4px 12px rgba(0,0,0,0.08)" : "0 1px 3px rgba(0,0,0,0.05)"
+                      }}>
+                        {/* Category Header - Clickable */}
+                        <div
+                          onClick={() => toggleCategory(categoryName)}
+                          style={{
+                            padding: "16px",
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "12px",
+                            cursor: "pointer",
+                            background: isExpanded ? `${categoryData.color}10` : "#f8fafc",
+                            transition: "all 0.3s ease",
+                            userSelect: "none"
+                          }}
+                          onMouseEnter={(e) => {
+                            if (!isExpanded) e.currentTarget.style.background = "#f1f5f9";
+                          }}
+                          onMouseLeave={(e) => {
+                            if (!isExpanded) e.currentTarget.style.background = "#f8fafc";
+                          }}
+                        >
+                          {/* Icon */}
+                          <div style={{
+                            width: "36px",
+                            height: "36px",
+                            borderRadius: "10px",
+                            background: `${categoryData.color}15`,
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            flexShrink: 0
+                          }}>
+                            <CategoryIcon size={20} color={categoryData.color} />
+                          </div>
+
+                          {/* Category Name */}
+                          <div style={{ flex: 1 }}>
+                            <div style={{ fontSize: "15px", fontWeight: "700", color: "#1e293b", marginBottom: "2px" }}>
+                              {categoryName}
+                            </div>
+                            <div style={{ fontSize: "12px", color: "#64748b" }}>
+                              {categoryData.tests.length} test{categoryData.tests.length > 1 ? 's' : ''}
+                            </div>
+                          </div>
+
+                          {/* Badge */}
+                          <span style={{
+                            fontSize: "11px",
+                            fontWeight: "600",
+                            color: "#10b981",
+                            background: "#d1fae5",
+                            padding: "4px 10px",
+                            borderRadius: "12px",
+                            whiteSpace: "nowrap"
+                          }}>
+                            Included
+                          </span>
+
+                          {/* Expand Icon */}
+                          <div style={{
+                            width: "28px",
+                            height: "28px",
+                            borderRadius: "8px",
+                            background: isExpanded ? categoryData.color : "#e2e8f0",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            transition: "all 0.3s ease",
+                            flexShrink: 0
+                          }}>
+                            {isExpanded ? (
+                              <ChevronUp size={18} color="white" />
+                            ) : (
+                              <ChevronDown size={18} color="#64748b" />
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Expanded Content - Individual Tests */}
+                        <div style={{
+                          maxHeight: isExpanded ? "2000px" : "0",
+                          overflow: "hidden",
+                          transition: "max-height 0.5s cubic-bezier(0.4, 0, 0.2, 1)",
+                        }}>
+                          <div style={{ padding: "0 16px 16px 16px" }}>
+                            {categoryData.tests.map((test, testIndex) => (
+                              <div key={testIndex} style={{
+                                padding: "14px",
+                                marginTop: "10px",
+                                background: "#f8fafc",
+                                borderRadius: "10px",
+                                border: "1px solid #e2e8f0",
+                                transition: "all 0.2s ease"
+                              }}
+                                onMouseEnter={(e) => {
+                                  e.currentTarget.style.background = "#f1f5f9";
+                                  e.currentTarget.style.borderColor = categoryData.color;
+                                }}
+                                onMouseLeave={(e) => {
+                                  e.currentTarget.style.background = "#f8fafc";
+                                  e.currentTarget.style.borderColor = "#e2e8f0";
+                                }}
+                              >
+                                {/* Test Name */}
+                                <div style={{
+                                  fontSize: "14px",
+                                  fontWeight: "700",
+                                  color: "#1e293b",
+                                  marginBottom: "8px",
+                                  display: "flex",
+                                  alignItems: "center",
+                                  gap: "8px"
+                                }}>
+                                  <div style={{
+                                    width: "6px",
+                                    height: "6px",
+                                    borderRadius: "50%",
+                                    background: categoryData.color
+                                  }} />
+                                  {test.name}
+                                </div>
+
+                                {/* Description */}
+                                <div style={{
+                                  fontSize: "13px",
+                                  color: "#475569",
+                                  lineHeight: "1.5",
+                                  marginBottom: "8px",
+                                  paddingLeft: "14px"
+                                }}>
+                                  <strong style={{ color: "#64748b" }}>What it measures:</strong> {test.description}
+                                </div>
+
+                                {/* Importance */}
+                                <div style={{
+                                  fontSize: "13px",
+                                  color: "#334155",
+                                  lineHeight: "1.5",
+                                  paddingLeft: "14px",
+                                  borderLeft: `3px solid ${categoryData.color}`,
+                                  background: "white",
+                                  padding: "8px 12px",
+                                  borderRadius: "6px",
+                                  marginTop: "8px"
+                                }}>
+                                  <strong style={{ color: categoryData.color }}>Why it matters:</strong> {test.importance}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
 
@@ -835,7 +1327,7 @@ const Completehealth = () => {
                 onClick={() => handleAddToCart(activeTest)}
                 style={{
                   flex: 1,
-                  background: "#1e293b",
+                  background: bookedItems[activeTest.id] ? "linear-gradient(135deg, #FF8C00 0%, #FF7A00 100%)" : "linear-gradient(135deg, #10b981 0%, #059669 100%)",
                   color: "white",
                   border: "none",
                   padding: "16px",
@@ -847,18 +1339,21 @@ const Completehealth = () => {
                   alignItems: "center",
                   justifyContent: "center",
                   gap: "10px",
-                  transition: "all 0.2s"
+                  transition: "all 0.3s ease"
                 }}
                 onMouseOver={(e) => {
                   e.currentTarget.style.transform = "translateY(-2px)";
-                  e.currentTarget.style.boxShadow = "0 10px 15px -3px rgba(30, 41, 59, 0.3)";
+                  e.currentTarget.style.boxShadow = bookedItems[activeTest.id] ? "0 10px 15px -3px rgba(255, 140, 0, 0.4)" : "0 10px 15px -3px rgba(16, 185, 129, 0.4)";
                 }}
                 onMouseOut={(e) => {
                   e.currentTarget.style.transform = "translateY(0)";
                   e.currentTarget.style.boxShadow = "none";
                 }}
               >
-                Book This Test <ArrowRight size={18} />
+                {bookedItems[activeTest.id]
+                  ? `${bookedItems[activeTest.id]} Patient${bookedItems[activeTest.id] > 1 ? 's' : ''} Booked`
+                  : 'Book This Test'}
+                <ArrowRight size={18} />
               </button>
             </div>
           )}
