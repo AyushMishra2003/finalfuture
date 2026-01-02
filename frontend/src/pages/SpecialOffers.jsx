@@ -1,7 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Link } from "react-router-dom";
-import { ShoppingCart, Star, Tag, TrendingUp, Heart, ChevronLeft, ChevronRight, Check } from "react-feather";
-import { motion, AnimatePresence } from "framer-motion";
+import SpecialOffersCarousel from "../components/SpecialOffersCarousel";
 
 const SpecialOffers = () => {
   // Special offers data (same as in Home.jsx)
@@ -100,28 +99,6 @@ const SpecialOffers = () => {
     },
   ]);
 
-  const [activeIndex, setActiveIndex] = useState(0);
-
-  // Get badge class based on badge color
-  const getBadgeClass = (badgeColor) => {
-    switch (badgeColor) {
-      case "premium":
-        return "bg-warning text-dark";
-      case "trending":
-        return "bg-info text-white";
-      case "new":
-        return "bg-success text-white";
-      case "recommended":
-        return "bg-primary text-white";
-      case "popular":
-        return "bg-danger text-white";
-      case "exclusive":
-        return "bg-dark text-white";
-      default:
-        return "bg-secondary text-white";
-    }
-  };
-
   // Add to cart function (placeholder)
   const addToCart = (offerId) => {
     console.log(`Added offer ${offerId} to cart`);
@@ -129,24 +106,6 @@ const SpecialOffers = () => {
     alert(
       `Added ${specialOffers.find((o) => o.id === offerId)?.title} to cart!`
     );
-  };
-
-  const nextSlide = () => {
-    setActiveIndex((prev) => (prev + 1) % specialOffers.length);
-  };
-
-  const prevSlide = () => {
-    setActiveIndex((prev) => (prev - 1 + specialOffers.length) % specialOffers.length);
-  };
-
-  // Get visible cards (3 at a time)
-  const getVisibleCards = () => {
-    const visible = [];
-    for (let i = 0; i < 3; i++) {
-      const index = (activeIndex + i) % specialOffers.length;
-      visible.push(specialOffers[index]);
-    }
-    return visible;
   };
 
   return (
@@ -165,115 +124,8 @@ const SpecialOffers = () => {
         </div>
 
         {/* Carousel Container */}
-        <div className="position-relative mb-5">
-          {/* Cards Row */}
-          <motion.div
-            className="row g-3 g-md-4"
-            key={activeIndex}
-            initial={{ opacity: 0, x: 50 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -50 }}
-            transition={{ duration: 0.4 }}
-          >
-            {getVisibleCards().map((offer, idx) => (
-              <div key={offer.id} className="col-12 col-md-6 col-lg-4">
-                <div className="card border-0 shadow-sm h-100 special-offer-card bg-white">
-                  <div className="card-body p-4 d-flex flex-column">
-                    {/* Header */}
-                    <div className="d-flex justify-content-between align-items-start mb-3">
-                      <span className={`badge ${getBadgeClass(offer.badgeColor)}`}>
-                        {offer.badge}
-                      </span>
-                      {offer.popular && (
-                        <Star size={16} className="text-warning" fill="#ffc107" />
-                      )}
-                    </div>
-
-                    <h4 className="card-title fw-bold mb-2">{offer.title}</h4>
-                    <p className="text-muted small mb-3">{offer.description}</p>
-
-                    {/* Features */}
-                    <div className="mb-4 bg-light p-3 rounded flex-grow-1">
-                      <ul className="list-unstyled mb-0">
-                        {offer.features.slice(0, 3).map((f, i) => (
-                          <li key={i} className="mb-2 d-flex align-items-center small">
-                            <Check size={14} className="text-success me-2" />
-                            {f}
-                          </li>
-                        ))}
-                        {offer.features.length > 3 && (
-                          <li className="text-muted small fst-italic ms-3">
-                            + {offer.features.length - 3} more...
-                          </li>
-                        )}
-                      </ul>
-                    </div>
-
-                    {/* Pricing */}
-                    <div className="mb-4">
-                      <div className="d-flex align-items-end mb-1">
-                        <h2 className="text-primary fw-bold mb-0 me-2">₹{offer.discountedPrice}</h2>
-                        <span className="text-muted text-decoration-line-through mb-1">₹{offer.originalPrice}</span>
-                      </div>
-                      <small className="text-success fw-bold">Save {offer.discount}%</small>
-                    </div>
-
-                    {/* Buttons */}
-                    <div className="d-grid gap-2">
-                      <button
-                        className="btn btn-primary fw-bold d-flex align-items-center justify-content-center"
-                        onClick={() => addToCart(offer.id)}
-                      >
-                        <ShoppingCart size={18} className="me-2" />
-                        Select Package
-                      </button>
-                      <Link
-                        to={`/product?id=${offer.id}`}
-                        className="btn btn-outline-primary fw-bold"
-                      >
-                        View Details
-                      </Link>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </motion.div>
-
-          {/* Navigation Arrows */}
-          <button
-            className="btn btn-white shadow-sm position-absolute top-50 start-0 translate-middle-y ms-n3 ms-md-n4 rounded-circle p-2"
-            onClick={prevSlide}
-            style={{ width: '48px', height: '48px', zIndex: 10 }}
-          >
-            <ChevronLeft className="text-dark" />
-          </button>
-
-          <button
-            className="btn btn-white shadow-sm position-absolute top-50 end-0 translate-middle-y me-n3 me-md-n4 rounded-circle p-2"
-            onClick={nextSlide}
-            style={{ width: '48px', height: '48px', zIndex: 10 }}
-          >
-            <ChevronRight className="text-dark" />
-          </button>
-        </div>
-
-        {/* Pagination Dots - Below Cards with Gap */}
-        <div className="d-flex justify-content-center gap-2 mb-5">
-          {specialOffers.map((_, idx) => (
-            <motion.button
-              key={idx}
-              onClick={() => setActiveIndex(idx)}
-              className="btn p-0 rounded-circle border-0"
-              animate={{
-                width: idx === activeIndex ? 24 : 8,
-                height: 8,
-                backgroundColor: idx === activeIndex ? "#0d6efd" : "#dee2e6"
-              }}
-              transition={{ duration: 0.3 }}
-              aria-label={`Go to slide ${idx + 1}`}
-            />
-          ))}
+        <div className="position-relative mb-5 special-offers-container">
+          <SpecialOffersCarousel offers={specialOffers} onAddToCart={addToCart} />
         </div>
 
 

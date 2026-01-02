@@ -15,7 +15,7 @@ const Header = () => {
   // Check login status and fetch user details
   useEffect(() => {
     const checkLoginStatus = async () => {
-      const token = localStorage.getItem("userToken");
+      const token = localStorage.getItem("userToken") || localStorage.getItem("token");
       if (token) {
         setIsLoggedIn(true);
         // Try to get name from local storage first
@@ -52,6 +52,7 @@ const Header = () => {
 
   const handleLogout = () => {
     localStorage.removeItem("userToken");
+    localStorage.removeItem("token");
     localStorage.removeItem("userId");
     localStorage.removeItem("userName");
     setIsLoggedIn(false);

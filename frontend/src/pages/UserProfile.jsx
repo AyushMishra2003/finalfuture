@@ -27,7 +27,7 @@ const UserProfile = () => {
     }, []);
 
     const fetchProfile = async () => {
-        const token = localStorage.getItem('userToken');
+        const token = localStorage.getItem('userToken') || localStorage.getItem('token');
         if (!token) {
             setLoading(false);
             return;
@@ -114,7 +114,8 @@ const UserProfile = () => {
         }
     };
 
-    if (!localStorage.getItem('userToken')) {
+    const token = localStorage.getItem('userToken') || localStorage.getItem('token');
+    if (!token) {
         return <Navigate to="/" replace />;
     }
 

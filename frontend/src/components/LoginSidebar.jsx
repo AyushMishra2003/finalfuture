@@ -63,7 +63,9 @@ const LoginSidebar = () => {
 
       const data = await response.json();
       if (data.success) {
-        localStorage.setItem("userToken", data.token);
+        const token = data.token;
+        localStorage.setItem("userToken", token);
+        localStorage.setItem("token", token);
         localStorage.setItem("userId", data.data.id); // Fixed: was data.userId, should be data.data.id
         localStorage.setItem("userName", data.data.name || "User");
         localStorage.setItem("userPhone", data.data.phone);

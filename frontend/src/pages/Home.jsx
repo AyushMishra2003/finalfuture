@@ -167,9 +167,14 @@ const Home = () => {
         <div className="card border-0 shadow-lg detail-card h-100">
           <div className="card-header bg-transparent border-0 d-flex justify-content-between align-items-center pt-3 px-3">
             <h5 className="fw-bold text-primary mb-0">Package Details</h5>
-            <button className="btn btn-sm btn-light rounded-circle" onClick={onClose}>
-              <i className="bi bi-x-large"></i>
-            </button>
+           <button
+  onClick={onClose}
+  className="btn-close-custom"
+  aria-label="Close"
+>
+  ×
+</button>
+
           </div>
           <div className="card-body px-3 py-2 scrollable-details">
             <h6 className="fw-bold mb-3">{pkg.title}</h6>
@@ -282,15 +287,15 @@ const Home = () => {
           adsData: adsData?.data?.length || 0,
         });
 
-        setCategories(lessPriceData?.data || []);
-        setAds(adsData?.data || []);
-        setWomenAge(womenAgeData?.data || []);
-        setWomenCare(womenCareData?.data || []);
-        setMenAge(menAgeData?.data || []);
-        setMenCare(menCareData?.data || []);
-        setLifestyle(lifeStyleData?.data || []);
-        setSpecialCare(specialPackageData?.data || []);
-        setSingleTest(singleTestData?.data || []);
+        setCategories(lessPriceData?.data?.length > 0 ? lessPriceData.data : mockData.categories || []);
+        setAds(adsData?.data?.length > 0 ? adsData.data : mockData.ads || []);
+        setWomenAge(womenAgeData?.data?.length > 0 ? womenAgeData.data : mockData.womenCare || []);
+        setWomenCare(womenCareData?.data?.length > 0 ? womenCareData.data : mockData.womenCare || []);
+        setMenAge(menAgeData?.data?.length > 0 ? menAgeData.data : mockData.menCare || []);
+        setMenCare(menCareData?.data?.length > 0 ? menCareData.data : mockData.menCare || []);
+        setLifestyle(lifeStyleData?.data?.length > 0 ? lifeStyleData.data : mockData.lifestyle || []);
+        setSpecialCare(specialPackageData?.data?.length > 0 ? specialPackageData.data : mockData.specialCare || []);
+        setSingleTest(singleTestData?.data?.length > 0 ? singleTestData.data : mockData.singleTest || []);
 
         console.log("Data set successfully");
       } catch (error) {
@@ -340,7 +345,15 @@ const Home = () => {
   };
 
   const handleAddToCart = async (testId) => {
-    const userId = localStorage.getItem("userId");
+    let userId = localStorage.getItem("userId");
+
+    // Clear legacy mock data if present
+    if (userId && userId.toString().startsWith('mock-')) {
+      localStorage.removeItem('userId');
+      localStorage.removeItem('token');
+      localStorage.removeItem('userToken');
+      userId = null;
+    }
 
     if (!userId) {
       alert("Please login to add items to cart");
@@ -1212,7 +1225,7 @@ const Home = () => {
       {/* Testimonials Slider */}
       <TestimonialsSlider />
 
-      <style jsx>{`
+      <style>{`
         .hover-lift {
           transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
         }

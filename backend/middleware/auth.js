@@ -42,7 +42,27 @@ exports.protect = asyncHandler(async (req, res, next) => {
         // Verify token
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
+        // Handle admin user from manual token generation
+        if (decoded.id === 'admin-user-id') {
+            req.user = {
+                id: 'admin-user-id',
+                _id: 'admin-user-id',
+                name: 'Admin User',
+                email: 'admin@futurelabs.com',
+                phone: 'admin',
+                role: 'admin'
+            };
+            return next();
+        }
+
         req.user = await User.findById(decoded.id);
+
+        if (!req.user) {
+            return res.status(401).json({
+                success: false,
+                error: 'User not found'
+            });
+        }
 
         next();
     } catch (err) {

@@ -16,6 +16,16 @@ const Cart = () => {
   const userId = localStorage.getItem("userId");
 
   useEffect(() => {
+    // Clear legacy mock data if present
+    const storedUserId = localStorage.getItem("userId");
+    if (storedUserId && storedUserId.toString().startsWith('mock-')) {
+      localStorage.removeItem('userId');
+      localStorage.removeItem('token');
+      localStorage.removeItem('userToken');
+      // Redirect to login or refresh
+      navigate('/login');
+      return;
+    }
     fetchCartItems();
   }, []);
 
@@ -73,7 +83,7 @@ const Cart = () => {
       return;
     }
 
-    const token = localStorage.getItem('userToken');
+    const token = localStorage.getItem('userToken') || localStorage.getItem('token');
     if (!token) {
       alert("Please login to proceed with checkout");
       navigate('/login'); // Assuming /login route exists or use appropriate redirect
@@ -89,7 +99,7 @@ const Cart = () => {
       const orderData = {
         orderItems: cartItems.map(item => ({
           name: item.name,
-          qty: 1, // Default to 1
+          quantity: 1, // Default to 1
           price: item.price,
           test: item._id
         })),
@@ -104,7 +114,19 @@ const Cart = () => {
 
       if (response.data.success) {
         setCurrentOrder(response.data.data);
-        setShowPayment(true);
+        const totalMRP = calculateOriginalTotal();
+        const savings = calculateSavings();
+
+        // Instead of inline payment, navigate to Payment Page with state
+        navigate('/payment', {
+          state: {
+            orderId: response.data.data._id,
+            amount: response.data.data.totalPrice,
+            items: cartItems,
+            totalMRP: totalMRP,
+            discount: savings
+          }
+        });
       }
     } catch (error) {
       console.error("Error creating order:", error);
@@ -115,6 +137,7 @@ const Cart = () => {
   const handleContinueShopping = () => {
     navigate("/create-package");
   };
+
 
   if (loading) {
     return (
@@ -221,7 +244,7 @@ const Cart = () => {
 
                 <div className="cart-items-list">
                   {cartItems.map((item, index) => (
-                    <div key={item._id || index} className="cart-item-card">
+                    <div key={`${item._id || 'item'}-${index}`} className="cart-item-card">
                       <div className="cart-item-content">
                         <div className="cart-item-info">
                           <h3 className="cart-item-name">{item.name}</h3>

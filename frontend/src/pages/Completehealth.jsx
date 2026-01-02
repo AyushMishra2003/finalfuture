@@ -543,13 +543,36 @@ const Completehealth = () => {
       [test.id]: (prev[test.id] || 0) + 1
     }));
 
-    // Add to cart logic
-    const newItem = { ...test, quantity: 1 };
-    setCart([...cart, newItem]);
+    // Get existing cart from localStorage
+    const existingCart = JSON.parse(localStorage.getItem('cart')) || [];
+
+    // Create cart item with mapped properties to match Cart.jsx expectations
+    const newItem = {
+      _id: test.id,
+      name: test.title,
+      price: test.price,
+      originalPrice: test.mrp,
+      category: test.category,
+      description: test.description,
+      testCount: test.testCount,
+      reportTime: test.reportTime,
+      quantity: 1
+    };
+
+    const updatedCart = [...existingCart, newItem];
+
+    // Save to localStorage
+    localStorage.setItem('cart', JSON.stringify(updatedCart));
+
+    // Update local state
+    setCart(updatedCart);
 
     // Dispatch custom event for Header cart count update
-    const event = new CustomEvent('cartUpdated', { detail: { count: cart.length + 1 } });
+    const event = new CustomEvent('cartUpdated', { detail: { count: updatedCart.length } });
     window.dispatchEvent(event);
+
+    // Also dispatch storage event for cross-component sync
+    window.dispatchEvent(new Event("storage"));
 
     setToastMessage(`${test.title} added to cart!`);
     setShowToast(true);

@@ -88,9 +88,18 @@ app.get('/api/v1/health', (req, res) => {
     });
 });
 
-// Catch-all handler: Send back React's index.html file for any non-API routes
+// Catch-all handler: Send back React's index.html file for any non-API routes (production only)
 app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, '../frontend/build/index.html'));
+    // Only serve build file in production
+    if (process.env.NODE_ENV === 'production') {
+        res.sendFile(path.join(__dirname, '../frontend/build/index.html'));
+    } else {
+        // In development, return 404 for unknown routes
+        res.status(404).json({
+            status: 'error',
+            message: `Route ${req.originalUrl} not found`
+        });
+    }
 });
 
 // Error handling middleware

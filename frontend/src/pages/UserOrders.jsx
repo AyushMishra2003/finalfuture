@@ -10,7 +10,7 @@ const UserOrders = () => {
 
     useEffect(() => {
         const fetchOrders = async () => {
-            const token = localStorage.getItem('userToken');
+            const token = localStorage.getItem('userToken') || localStorage.getItem('token');
             if (!token) return;
 
             try {
@@ -33,7 +33,8 @@ const UserOrders = () => {
         fetchOrders();
     }, []);
 
-    if (!localStorage.getItem('userToken')) {
+    const token = localStorage.getItem('userToken') || localStorage.getItem('token');
+    if (!token) {
         return <Navigate to="/" replace />;
     }
 

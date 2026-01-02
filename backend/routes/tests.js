@@ -22,10 +22,10 @@ router.route('/')
 router.route('/category/:category')
     .get(getTestsByCategory);
 
-router.route('/selected/Special Care Packages')
+router.route('/selected/Special%20Care%20Packages')
     .get(getSelectedSpecialCare);
 
-router.route('/selected/Single Test')
+router.route('/selected/Single%20Test')
     .get(getSelectedSingleTests);
 
 router.route('/category/Exclusive')

@@ -59,41 +59,38 @@ const PremiumCarousel = ({ items = [], onAddToCart, onViewDetails, autoPlayInter
             scale: 1,
             zIndex: 30,
             opacity: 1,
-            filter: "blur(0px) brightness(1)",
-            boxShadow: "0px 25px 50px -12px rgba(0, 0, 0, 0.5)",
+            filter: "blur(0px)",
             rotateY: 0,
         },
         left: {
-            x: "-55%", // Partially visible
+            x: "-55%",
             scale: 0.85,
             zIndex: 20,
             opacity: 0.6,
-            filter: "blur(2px) brightness(0.7)",
-            boxShadow: "0px 10px 20px rgba(0,0,0,0.2)",
-            rotateY: 15, // Subtle 3D effect
+            filter: "blur(2px)",
+            rotateY: 15,
         },
         right: {
-            x: "55%", // Partially visible
+            x: "55%",
             scale: 0.85,
             zIndex: 20,
             opacity: 0.6,
-            filter: "blur(2px) brightness(0.7)",
-            boxShadow: "0px 10px 20px rgba(0,0,0,0.2)",
-            rotateY: -15, // Subtle 3D effect
+            filter: "blur(2px)",
+            rotateY: -15,
         },
         hidden: {
             opacity: 0,
-            scale: 0,
+            scale: 0.8,
             zIndex: 0,
-            filter: "blur(2px)",
         }
     };
+
 
     return (
         <div
             className="premium-carousel-container w-100 position-relative d-flex justify-content-center align-items-center bg-lightdark bg-opacity-10 rounded-5 my-4"
             style={{
-                height: "500px",
+                height: "600px",
                 overflow: "hidden",
                 perspective: "1200px", // Increased perspective for cinematic feel
             }}
@@ -202,36 +199,99 @@ const PremiumCarousel = ({ items = [], onAddToCart, onViewDetails, autoPlayInter
                 })}
             </div>
 
-            {/* Mobile Indicators - Minimal & Centered */}
-            <div className="position-absolute bottom-0 start-50 translate-middle-x mb-2 d-flex gap-2 z-30">
-                {items.map((_, idx) => (
-                    <motion.div
-                        key={idx}
-                        className="rounded-pill cursor-pointer border border-white border-opacity-50"
-                        animate={{
-                            backgroundColor: idx === activeIndex ? "#FFFFFF" : "rgba(255,255,255,0.3)",
-                            width: idx === activeIndex ? 30 : 8,
-                            opacity: idx === activeIndex ? 1 : 0.6,
-                        }}
-                        style={{ height: 6, boxShadow: "0 2px 4px rgba(0, 0, 0, 0.43)" }}
-                        onClick={() => setActiveIndex(idx)}
-                    />
-                ))}
+            {/* Mobile Indicators - Positioned below card on mobile */}
+            {/* Pagination Wrapper */}
+            <div className="pagination-wrapper">
+                <div className="pagination-dots d-flex gap-2">
+                    {items.map((_, idx) => (
+                        <motion.div
+                            key={idx}
+                            className="rounded-pill cursor-pointer border border-lightdark border-opacity-50"
+                            animate={{
+                                backgroundColor: idx === activeIndex ? "#007A5E" : "#4e4e4e",
+                                width: idx === activeIndex ? 30 : 8,
+                                opacity: idx === activeIndex ? 1 : 0.5,
+                            }}
+                            style={{
+                                height: 6,
+                                boxShadow: "0 2px 4px rgba(0, 0, 0, 0.43)",
+                            }}
+                            onClick={() => setActiveIndex(idx)}
+                        />
+                    ))}
+                </div>
             </div>
 
             {/* Responsive Styles Injection */}
             <style>{`
-                .text-shadow { text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
-                .ls-tight { letter-spacing: -0.5px; }
+    .text-shadow {
+        text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+    }
 
-                @media (max-width: 768px) {
-                    .premium-carousel-container {
-                        height: 480px !important;
-                        perspective: none !important;
-                    }
-                    /* Simplified Mobile View */
-                }
-            `}</style>
+    .ls-tight {
+        letter-spacing: -0.5px;
+    }
+
+    /* Desktop Pagination Positioning */
+    @media (min-width: 769px) {
+        .pagination-wrapper {
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 40;
+            width: auto;
+        }
+    }
+
+  /* ===== MOBILE FIX ===== */
+@media (max-width: 768px) {
+    .premium-carousel-container {
+        height: auto !important;
+        perspective: none !important;
+        padding-bottom: 24px !important;
+        flex-direction: column;
+    }
+
+    /* Hide side cards on mobile */
+    .premium-carousel-container .position-absolute {
+        display: none;
+    }
+
+    /* Show ONLY active card */
+    .premium-carousel-container .position-absolute[style*="z-index: 30"] {
+        display: block !important;
+        position: relative !important;
+        left: auto !important;
+        transform: none !important;
+        margin: 0 auto;
+        opacity: 1 !important;
+        filter: none !important;
+    }
+
+    /* Card size for mobile */
+    .premium-carousel-container .position-absolute[style*="z-index: 30"] {
+        width: 92% !important;
+        max-width: 360px;
+        height: 440px;
+    }
+
+    /* Pagination UNDER card */
+    .pagination-wrapper {
+        width: 100%;
+        display: flex;
+        justify-content: center;
+        margin-top: 16px;
+        position: relative;
+    }
+
+    .pagination-dots {
+        position: static !important;
+    }
+}
+
+`}</style>
+
         </div>
     );
 };

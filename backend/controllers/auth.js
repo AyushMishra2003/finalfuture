@@ -73,6 +73,81 @@ exports.login = async (req, res, next) => {
     }
 };
 
+// @desc    Admin Login
+// @route   POST /api/v1/auth/admin/login
+// @access  Public
+exports.adminLogin = async (req, res, next) => {
+    try {
+        const { username, password } = req.body;
+
+        console.log('Admin login attempt:', { username });
+
+        // Validate username & password
+        if (!username || !password) {
+            return res.status(400).json({
+                success: false,
+                error: 'Please provide username and password'
+            });
+        }
+
+        // Check for admin user (username: admin, password: admin123)
+        if (username === 'admin' && password === 'admin123') {
+            try {
+                // Try to find or create admin user in database
+                let adminUser = await User.findOne({ phone: 'admin' });
+
+                if (!adminUser) {
+                    console.log('Creating new admin user in database');
+                    adminUser = await User.create({
+                        name: 'Admin User',
+                        phone: 'admin',
+                        email: 'admin@futurelabs.com',
+                        password: 'admin123',
+                        role: 'admin',
+                        isVerified: true
+                    });
+                }
+
+                console.log('Admin user found/created:', adminUser._id);
+                return sendTokenResponse(adminUser, 200, res);
+            } catch (dbError) {
+                // If database fails, generate token manually
+                console.error('Database error in admin login, using manual token generation:', dbError.message);
+
+                const jwt = require('jsonwebtoken');
+                const token = jwt.sign(
+                    { id: 'admin-user-id', role: 'admin' },
+                    process.env.JWT_SECRET || 'your-secret-key',
+                    { expiresIn: '30d' }
+                );
+
+                return res.status(200).json({
+                    success: true,
+                    token,
+                    data: {
+                        id: 'admin-user-id',
+                        name: 'Admin User',
+                        email: 'admin@futurelabs.com',
+                        phone: 'admin',
+                        role: 'admin'
+                    }
+                });
+            }
+        } else {
+            return res.status(401).json({
+                success: false,
+                error: 'Invalid admin credentials'
+            });
+        }
+    } catch (err) {
+        console.error('Admin login error:', err);
+        res.status(500).json({
+            success: false,
+            error: 'Server error: ' + err.message
+        });
+    }
+};
+
 // @desc    Logout user
 // @route   GET /api/v1/auth/logout
 // @access  Private

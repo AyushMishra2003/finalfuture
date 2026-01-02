@@ -2,6 +2,7 @@ const express = require('express');
 const {
     register,
     login,
+    adminLogin,
     logout,
     generateOTP,
     verifyOTP,
@@ -14,6 +15,7 @@ const router = express.Router();
 
 router.post('/register', register);
 router.post('/login', login);
+router.post('/admin/login', adminLogin);
 router.get('/logout', logout);
 router.post('/otp/generate', generateOTP);
 router.post('/otp/verify', verifyOTP);

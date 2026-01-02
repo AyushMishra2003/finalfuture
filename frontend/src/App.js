@@ -25,6 +25,7 @@ import SendOtpBhashSMSTest from './pages/SendOtpBhashSMSTest';
 import UserProfile from './pages/UserProfile';
 import UserOrders from './pages/UserOrders';
 import PaymentCallback from './pages/PaymentCallback';
+import PaymentPage from './pages/PaymentPage';
 
 // Import admin components
 import AdminDashboard from './admin/AdminDashboard';
@@ -69,7 +70,9 @@ function App() {
           {/* User Routes */}
           <Route path="/profile" element={<UserProfile />} />
           <Route path="/orders" element={<UserOrders />} />
+
           <Route path="/payment/callback" element={<PaymentCallback />} />
+          <Route path="/payment" element={<PaymentPage />} />
 
           {/* Admin Routes */}
           <Route path="/admin/login" element={<AdminLogin />} />

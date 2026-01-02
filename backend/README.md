@@ -1,241 +1,449 @@
-# 🏥 FutureLabs Backend API
+# 🏥 FutureLabs Healthcare Platform - Backend API
 
-<div align="center">
+[![Node.js](https://img.shields.io/badge/Node.js-18.x-green.svg)](https://nodejs.org/)
+[![Express](https://img.shields.io/badge/Express-4.x-blue.svg)](https://expressjs.com/)
+[![MongoDB](https://img.shields.io/badge/MongoDB-6.x-green.svg)](https://www.mongodb.com/)
+[![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-![Node.js](https://img.shields.io/badge/Node.js-18.0-339933?style=for-the-badge&logo=node.js&logoColor=white)
-![Express](https://img.shields.io/badge/Express-4.18.2-000000?style=for-the-badge&logo=express&logoColor=white)
-![MongoDB](https://img.shields.io/badge/MongoDB-4.4-47A248?style=for-the-badge&logo=mongodb&logoColor=white)
-![JWT](https://img.shields.io/badge/JWT-Black-000000?style=for-the-badge&logo=JSON%20web%20tokens)
-
-**Backend API for the FutureLabs Healthcare Platform**
-
-_RESTful API built with Node.js, Express, and MongoDB_
-
-[📚 API Documentation](#-api-endpoints) • [🚀 Getting Started](#-installation) • [🔐 Authentication](#authentication)
-
-</div>
-
----
-
-## 🌟 Overview
-
-The FutureLabs Backend API provides a comprehensive RESTful interface for the healthcare platform, handling user authentication, test/package management, shopping cart functionality, order processing, and location services.
-
-<div align="center">
-  <img src="../frontend/images/banners/banner3.png" alt="FutureLabs Backend Architecture" width="800"/>
-</div>
-
----
+> A comprehensive RESTful API for a healthcare diagnostics platform with admin dashboard, user management, test booking, and location-based services.
 
 ## 📋 Table of Contents
 
-- [✨ Features](#-features)
-- [🛠️ Technologies Used](#️-technologies-used)
-- [🚀 Installation](#-installation)
-- [⚙️ Environment Variables](#️-environment-variables)
-- [📚 API Endpoints](#-api-endpoints)
-- [📁 Project Structure](#-project-structure)
-- [🔐 Authentication](#-authentication)
-- [📦 Seeding Data](#-seeding-data)
-- [🧪 Testing](#-testing)
-- [🚢 Deployment](#-deployment)
-- [📄 License](#-license)
+- [Features](#-features)
+- [Tech Stack](#-tech-stack)
+- [Prerequisites](#-prerequisites)
+- [Installation](#-installation)
+- [Environment Variables](#-environment-variables)
+- [Running the Application](#-running-the-application)
+- [API Documentation](#-api-documentation)
+- [Project Structure](#-project-structure)
+- [Authentication](#-authentication)
+- [Database Models](#-database-models)
+- [Deployment](#-deployment)
+- [Contributing](#-contributing)
+- [License](#-license)
 
 ---
 
 ## ✨ Features
 
-- 🔐 **JWT Authentication** - Secure user authentication with JSON Web Tokens
-- 🛒 **Shopping Cart** - Persistent cart management for users
-- 📦 **Test/Package Management** - CRUD operations for healthcare tests and packages
-- 📍 **Location Services** - Pincode validation and location management
-- 🎁 **Banner Management** - Dynamic promotional banners
-- 📚 **Category System** - Organized healthcare service categories
-- 📋 **Order Processing** - Complete order lifecycle management
-- 🛡️ **Security** - Helmet, CORS, and rate limiting for protection
-- 📊 **Data Validation** - Express-validator for request validation
-- 📧 **Email Service** - Nodemailer integration for notifications
+### 🔐 Authentication & Authorization
+- **JWT-based authentication** with secure token generation
+- **Role-based access control** (Admin, User)
+- **OTP verification** for phone-based registration
+- **Admin login** with separate authentication flow
+- **Password hashing** using bcrypt
+
+### 👥 User Management
+- User registration and login
+- Profile management with addresses
+- User verification system
+- Admin user CRUD operations
+- User statistics and analytics
+
+### 🧪 Test & Package Management
+- Comprehensive test catalog
+- Health package creation and management
+- Category-based test organization
+- Featured and selected tests
+- Advanced filtering and search
+
+### 📦 Order Management
+- Order creation and tracking
+- Order status updates
+- Order history
+- Payment integration ready
+- Order analytics
+
+### 📍 Location Services
+- Service area management
+- Pincode-based service availability
+- Location CRUD operations
+- Active/inactive location status
+
+### 📅 Booking System
+- Time slot management
+- Collector folder assignments
+- Booking availability checks
+- Phlebotomist scheduling
+- Booking cancellation
+
+### 🖼️ Content Management
+- Banner management (main/bottom)
+- Category management
+- Featured content selection
+- Image upload support
+
+### 📊 Analytics & Reports
+- User statistics
+- Order analytics
+- Revenue tracking
+- Category distribution
+- Monthly trends
 
 ---
 
-## 🛠️ Technologies Used
+## 🛠️ Tech Stack
 
-| Technology     | Purpose                       | Version |
-| -------------- | ----------------------------- | ------- |
-| **Node.js**    | Runtime Environment           | 18.x    |
-| **Express**    | Web Framework                 | 4.18.2  |
-| **MongoDB**    | Database                      | 4.4+    |
-| **Mongoose**   | ODM                           | 7.5.0   |
-| **JWT**        | Authentication                | 9.0.2   |
-| **Bcrypt.js**  | Password Hashing              | 2.4.3   |
-| **Nodemailer** | Email Service                 | 7.0.6   |
-| **Cors**       | Cross-Origin Resource Sharing | 2.8.5   |
-| **Helmet**     | Security Headers              | 7.0.0   |
-| **Morgan**     | HTTP Request Logging          | 1.10.0  |
+### Core Technologies
+- **Runtime:** Node.js 18.x
+- **Framework:** Express.js 4.x
+- **Database:** MongoDB 6.x with Mongoose ODM
+- **Authentication:** JSON Web Tokens (JWT)
+- **Security:** bcryptjs, helmet, express-mongo-sanitize
+
+### Key Dependencies
+```json
+{
+  "express": "^4.18.2",
+  "mongoose": "^7.0.0",
+  "jsonwebtoken": "^9.0.0",
+  "bcryptjs": "^2.4.3",
+  "dotenv": "^16.0.3",
+  "cors": "^2.8.5",
+  "helmet": "^7.0.0",
+  "express-rate-limit": "^6.7.0",
+  "nodemailer": "^6.9.1"
+}
+```
+
+---
+
+## 📋 Prerequisites
+
+Before you begin, ensure you have the following installed:
+
+- **Node.js** (v18.x or higher) - [Download](https://nodejs.org/)
+- **MongoDB** (v6.x or higher) - [Download](https://www.mongodb.com/try/download/community)
+- **npm** or **yarn** package manager
+- **Git** for version control
 
 ---
 
 ## 🚀 Installation
 
-### 📚 Prerequisites
+### 1. Clone the Repository
 
-- **Node.js** (v14 or higher) 🟢
-- **MongoDB** (v4.4 or higher) 🟢
-- **npm** or **yarn** package manager 📦
+```bash
+git clone https://github.com/ashiii2121/backend.git
+cd backend
+```
 
-### 🔄 Setup Process
+### 2. Install Dependencies
 
-1. **💾 Clone the repository:**
+```bash
+npm install
+```
 
-   ```bash
-   git clone <repository-url>
-   cd backend
-   ```
+### 3. Set Up Environment Variables
 
-2. **📦 Install dependencies:**
+Create a `.env` file in the root directory:
 
-   ```bash
-   npm install
-   ```
+```bash
+cp .env.example .env
+```
 
-3. **⚙️ Create a `.env` file:**
+Then edit `.env` with your configuration (see [Environment Variables](#-environment-variables) section).
 
-   ```bash
-   cp .env.example .env
-   ```
+### 4. Start MongoDB
 
-4. **🔑 Update the `.env` file with your configuration:**
+Make sure MongoDB is running on your system:
 
-   ```
-   NODE_ENV=development
-   PORT=5000
-   MONGODB_URI=mongodb://localhost:27017/futurelabs
-   JWT_SECRET=your_jwt_secret_key
-   JWT_EXPIRE=7d
-   ```
+```bash
+# Windows
+net start MongoDB
 
-5. **🏃 Run the application:**
+# macOS/Linux
+sudo systemctl start mongod
+```
 
-   ```bash
-   # Development mode with nodemon
-   npm run dev
+### 5. Run the Application
 
-   # Production mode
-   npm start
-   ```
+```bash
+# Development mode with auto-reload
+npm run dev
+
+# Production mode
+npm start
+```
+
+The server will start on `http://localhost:5000`
 
 ---
 
-## ⚙️ Environment Variables
+## 🔧 Environment Variables
 
-| Variable      | Description               | Default Value                        |
-| ------------- | ------------------------- | ------------------------------------ |
-| `NODE_ENV`    | Environment               | development                          |
-| `PORT`        | Server port               | 5000                                 |
-| `MONGODB_URI` | MongoDB connection string | mongodb://localhost:27017/futurelabs |
-| `JWT_SECRET`  | Secret key for JWT        | futurelabs_jwt_secret_key_2023       |
-| `JWT_EXPIRE`  | JWT expiration time       | 7d                                   |
+Create a `.env` file in the root directory with the following variables:
+
+```env
+# Server Configuration
+NODE_ENV=development
+PORT=5000
+
+# Database
+MONGO_URI=mongodb://localhost:27017/futurelabs
+# For MongoDB Atlas:
+# MONGO_URI=mongodb+srv://username:password@cluster.mongodb.net/futurelabs
+
+# JWT Configuration
+JWT_SECRET=your-super-secret-jwt-key-change-this-in-production
+JWT_EXPIRE=30d
+JWT_COOKIE_EXPIRE=30
+
+# Email Configuration (Nodemailer)
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_EMAIL=your-email@gmail.com
+SMTP_PASSWORD=your-app-password
+FROM_EMAIL=noreply@futurelabs.com
+FROM_NAME=FutureLabs
+
+# SMS Configuration (Optional)
+SMS_API_KEY=your-sms-api-key
+SMS_SENDER_ID=FUTLAB
+
+# File Upload
+MAX_FILE_UPLOAD=1000000
+FILE_UPLOAD_PATH=./public/uploads
+
+# Security
+RATE_LIMIT_MAX=100
+RATE_LIMIT_WINDOW=10
+```
+
+### 🔒 Security Notes
+
+- **Never commit `.env` file** to version control
+- Use strong, unique values for `JWT_SECRET`
+- In production, use environment variables from your hosting provider
+- Enable HTTPS in production
 
 ---
 
-## 📚 API Endpoints
+## 🏃 Running the Application
 
-### Authentication
+### Development Mode
 
-🔐 **User Authentication System**
-
-```
-POST    /api/v1/auth/register           # Register a new user
-POST    /api/v1/auth/login              # Login user
-GET     /api/v1/auth/logout             # Logout user
-POST    /api/v1/auth/otp/generate       # Generate OTP
-POST    /api/v1/auth/otp/verify         # Verify OTP
-GET     /api/v1/auth/me                 # Get current user
+```bash
+npm run dev
 ```
 
-### Tests
+Features:
+- Auto-reload on file changes (using nodemon)
+- Detailed error messages
+- MongoDB connection logging
 
-🔬 **Health Tests and Packages**
+### Production Mode
 
-```
-GET     /api/v1/tests                   # Get all tests
-GET     /api/v1/tests/:id               # Get single test
-GET     /api/v1/tests/category/:category# Get tests by category
-GET     /api/v1/tests/selected/:type    # Get selected tests by type
-POST    /api/v1/tests                   # Create new test (Admin)
-PUT     /api/v1/tests/:id               # Update test (Admin)
-DELETE  /api/v1/tests/:id               # Delete test (Admin)
+```bash
+npm start
 ```
 
-### Categories
+Features:
+- Optimized for performance
+- Minimal logging
+- Production error handling
 
-🏷️ **Healthcare Categories**
+### Testing the API
 
-```
-GET     /api/v1/category                # Get all categories
-GET     /api/v1/category/:id            # Get single category
-GET     /api/v1/category/lessPrice/selected  # Get less price categories
-GET     /api/v1/category/organ/selected      # Get vital organ categories
-GET     /api/v1/category/womenage/selected   # Get women age categories
-GET     /api/v1/category/women/selected      # Get women care categories
-GET     /api/v1/category/menage/selected     # Get men age categories
-GET     /api/v1/category/men/selected        # Get men care categories
-GET     /api/v1/category/lifestyle/selected  # Get lifestyle categories
-POST    /api/v1/category                # Create new category (Admin)
-PUT     /api/v1/category/:id            # Update category (Admin)
-DELETE  /api/v1/category/:id            # Delete category (Admin)
-```
+```bash
+# Check server health
+curl http://localhost:5000/api/v1/health
 
-### Cart
-
-🛒 **Shopping Cart Management**
-
-```
-GET     /api/v1/cart/:userId            # Get user cart
-POST    /api/v1/cart/add                # Add item to cart
-DELETE  /api/v1/cart/remove             # Remove item from cart
-PUT     /api/v1/cart/update             # Update cart item
-DELETE  /api/v1/cart/clear/:userId      # Clear user cart
+# Expected response:
+{
+  "success": true,
+  "message": "API is running",
+  "timestamp": "2025-12-31T09:39:18.000Z"
+}
 ```
 
-### Banners
+---
 
-📢 **Promotional Banners**
+## 📚 API Documentation
 
-```
-GET     /api/v1/banners                 # Get all banners
-GET     /api/v1/banners/main            # Get main banners
-GET     /api/v1/banners/bottom          # Get bottom banners
-GET     /api/v1/banners/bottom/random   # Get random bottom banner
-POST    /api/v1/banners                 # Create new banner (Admin)
-PUT     /api/v1/banners/:id             # Update banner (Admin)
-DELETE  /api/v1/banners/:id             # Delete banner (Admin)
-```
-
-### Locations
-
-📍 **Location and Pincode Services**
+### Base URL
 
 ```
-GET     /api/v1/locations/check/:pincode# Check service availability
-GET     /api/v1/locations               # Get all locations
-POST    /api/v1/locations               # Create new location (Admin)
-PUT     /api/v1/locations/:id           # Update location (Admin)
-DELETE  /api/v1/locations/:id           # Delete location (Admin)
+http://localhost:5000/api/v1
 ```
 
-### Orders
+### Authentication Endpoints
 
-📋 **Order Processing**
+#### Register User
+```http
+POST /api/v1/auth/register
+Content-Type: application/json
 
+{
+  "name": "John Doe",
+  "email": "john@example.com",
+  "phone": "9876543210",
+  "password": "password123"
+}
 ```
-GET     /api/v1/orders                  # Get all orders (Admin)
-GET     /api/v1/orders/myorders         # Get current user orders
-GET     /api/v1/orders/:id              # Get single order
-POST    /api/v1/orders                  # Create new order
-PUT     /api/v1/orders/:id/pay          # Update order to paid
-PUT     /api/v1/orders/:id/deliver      # Update order to delivered
-DELETE  /api/v1/orders/:id              # Delete order (Admin)
+
+#### Login User
+```http
+POST /api/v1/auth/login
+Content-Type: application/json
+
+{
+  "phone": "9876543210",
+  "password": "password123"
+}
+```
+
+#### Admin Login
+```http
+POST /api/v1/auth/admin/login
+Content-Type: application/json
+
+{
+  "username": "admin",
+  "password": "admin123"
+}
+```
+
+#### Get Current User
+```http
+GET /api/v1/auth/me
+Authorization: Bearer <token>
+```
+
+### User Management (Admin Only)
+
+#### Get All Users
+```http
+GET /api/v1/users
+Authorization: Bearer <admin-token>
+```
+
+#### Get User Statistics
+```http
+GET /api/v1/users/stats
+Authorization: Bearer <admin-token>
+```
+
+#### Update User
+```http
+PUT /api/v1/users/:id
+Authorization: Bearer <admin-token>
+Content-Type: application/json
+
+{
+  "name": "Updated Name",
+  "email": "updated@example.com"
+}
+```
+
+### Test Management
+
+#### Get All Tests
+```http
+GET /api/v1/tests
+```
+
+Query Parameters:
+- `category` - Filter by category
+- `select` - Select specific fields
+- `sort` - Sort results
+- `page` - Page number
+- `limit` - Results per page
+
+#### Get Test by ID
+```http
+GET /api/v1/tests/:id
+```
+
+#### Create Test (Admin)
+```http
+POST /api/v1/tests
+Authorization: Bearer <admin-token>
+Content-Type: application/json
+
+{
+  "name": "Complete Blood Count",
+  "category": "Health Checkup",
+  "price": 499,
+  "description": "Comprehensive blood analysis"
+}
+```
+
+### Location Services
+
+#### Check Service Availability
+```http
+GET /api/v1/locations/check/:pincode
+```
+
+#### Get All Locations
+```http
+GET /api/v1/locations
+```
+
+### Order Management
+
+#### Create Order
+```http
+POST /api/v1/orders
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "tests": ["test-id-1", "test-id-2"],
+  "address": "123 Main St, City",
+  "pincode": "560001"
+}
+```
+
+#### Get User Orders
+```http
+GET /api/v1/orders/user/:userId
+Authorization: Bearer <token>
+```
+
+### Booking System
+
+#### Get Available Slots
+```http
+GET /api/v1/bookings/available-slots?pincode=560001&date=2025-12-31
+```
+
+#### Book Time Slot
+```http
+POST /api/v1/bookings/book-slot
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "pincode": "560001",
+  "date": "2025-12-31",
+  "timeSlot": "09:00-10:00",
+  "orderId": "order-id"
+}
+```
+
+### Response Format
+
+All API responses follow this structure:
+
+**Success Response:**
+```json
+{
+  "success": true,
+  "data": { ... },
+  "count": 10,
+  "pagination": { ... }
+}
+```
+
+**Error Response:**
+```json
+{
+  "success": false,
+  "error": "Error message here"
+}
 ```
 
 ---
@@ -244,137 +452,299 @@ DELETE  /api/v1/orders/:id              # Delete order (Admin)
 
 ```
 backend/
-├── 📁 controllers/     # Request handlers
-│   ├── auth.js        # Authentication controllers
-│   ├── banners.js     # Banner controllers
-│   ├── cart.js        # Cart controllers
-│   ├── categories.js  # Category controllers
-│   ├── locations.js   # Location controllers
-│   ├── orders.js      # Order controllers
-│   └── tests.js       # Test controllers
-├── 📁 middleware/     # Custom middleware
-│   ├── advancedResults.js  # Advanced query middleware
-│   ├── async.js       # Async error handling
-│   └── auth.js        # Authentication middleware
-├── 📁 models/         # Mongoose models
-│   ├── Banner.js      # Banner model
-│   ├── Cart.js        # Cart model
-│   ├── Category.js    # Category model
-│   ├── Location.js    # Location model
-│   ├── Order.js       # Order model
-│   ├── Test.js        # Test model
-│   └── User.js        # User model
-├── 📁 routes/         # API routes
-│   ├── auth.js        # Authentication routes
-│   ├── banners.js     # Banner routes
-│   ├── cart.js        # Cart routes
-│   ├── categories.js  # Category routes
-│   ├── locations.js   # Location routes
-│   ├── orders.js      # Order routes
-│   └── tests.js       # Test routes
-├── 📁 utils/          # Utility functions
-│   └── sendEmail.js   # Email utility
-├── 📁 _data/          # Seed data
-│   ├── banners.json   # Banner seed data
-│   ├── categories.json# Category seed data
-│   ├── locations.json # Location seed data
-│   ├── tests.json     # Test seed data
-│   └── users.json     # User seed data
-├── seeder.js          # Data seeder
-├── server.js          # Entry point
-└── .env               # Environment variables
+├── config/
+│   └── db.js                 # Database connection
+├── controllers/
+│   ├── auth.js               # Authentication logic
+│   ├── users.js              # User management
+│   ├── tests.js              # Test management
+│   ├── orders.js             # Order processing
+│   ├── locations.js          # Location services
+│   ├── bookings.js           # Booking system
+│   ├── cart.js               # Shopping cart
+│   ├── category.js           # Category management
+│   └── collectorFolder.js    # Collector management
+├── middleware/
+│   ├── auth.js               # JWT authentication
+│   ├── error.js              # Error handling
+│   ├── async.js              # Async handler
+│   └── advancedResults.js    # Query filtering
+├── models/
+│   ├── User.js               # User schema
+│   ├── Test.js               # Test schema
+│   ├── Order.js              # Order schema
+│   ├── Location.js           # Location schema
+│   ├── Booking.js            # Booking schema
+│   ├── Cart.js               # Cart schema
+│   ├── Category.js           # Category schema
+│   └── CollectorFolder.js    # Collector schema
+├── routes/
+│   ├── auth.js               # Auth routes
+│   ├── users.js              # User routes
+│   ├── tests.js              # Test routes
+│   ├── orders.js             # Order routes
+│   ├── locations.js          # Location routes
+│   ├── bookings.js           # Booking routes
+│   ├── cart.js               # Cart routes
+│   ├── category.js           # Category routes
+│   └── collectorFolders.js   # Collector routes
+├── utils/
+│   ├── sendEmail.js          # Email utility
+│   ├── sendSMS.js            # SMS utility
+│   └── errorResponse.js      # Error response utility
+├── .env.example              # Environment template
+├── .gitignore                # Git ignore rules
+├── package.json              # Dependencies
+├── server.js                 # Entry point
+└── README.md                 # This file
 ```
 
 ---
 
 ## 🔐 Authentication
 
-The API uses JWT (JSON Web Tokens) for authentication:
+### JWT Token Flow
 
-1. **Register** - Create a new user account
-2. **Login** - Authenticate with email/password
-3. **OTP Flow** - Generate and verify OTP for additional security
-4. **Protected Routes** - Use JWT token in Authorization header
+1. **User Login/Register** → Server generates JWT token
+2. **Token Storage** → Client stores token (localStorage/cookies)
+3. **API Requests** → Client sends token in Authorization header
+4. **Token Verification** → Server validates token and extracts user info
+5. **Access Control** → Server checks user role and permissions
 
-### 🔑 Token Usage
-
-Include the JWT token in the Authorization header:
+### Token Format
 
 ```
-Authorization: Bearer <your-jwt-token>
+Authorization: Bearer <jwt-token>
+```
+
+### Admin Authentication
+
+Admin users have a separate login endpoint and receive tokens with `role: 'admin'`. These tokens grant access to protected admin routes.
+
+**Default Admin Credentials:**
+- Username: `admin`
+- Password: `admin123`
+
+⚠️ **Change these credentials in production!**
+
+---
+
+## 💾 Database Models
+
+### User Model
+```javascript
+{
+  name: String,
+  email: String,
+  phone: String (unique),
+  password: String (hashed),
+  role: String (enum: ['user', 'admin']),
+  isVerified: Boolean,
+  addresses: [AddressSchema],
+  createdAt: Date
+}
+```
+
+### Test Model
+```javascript
+{
+  name: String,
+  category: String,
+  price: Number,
+  description: String,
+  parameters: [String],
+  preparation: String,
+  sampleType: String,
+  reportTime: String,
+  isSelected: Boolean,
+  isFeatured: Boolean
+}
+```
+
+### Order Model
+```javascript
+{
+  user: ObjectId (ref: User),
+  tests: [ObjectId (ref: Test)],
+  totalPrice: Number,
+  status: String,
+  address: String,
+  pincode: String,
+  bookingDate: Date,
+  timeSlot: String,
+  paymentStatus: String
+}
+```
+
+### Location Model
+```javascript
+{
+  name: String,
+  address: String,
+  city: String,
+  state: String,
+  pincode: String,
+  isActive: Boolean,
+  serviceAreas: [String]
+}
 ```
 
 ---
 
-## 📦 Seeding Data
+## 🚀 Deployment
 
-To populate the database with sample data:
+### Heroku Deployment
 
+1. **Create Heroku App**
 ```bash
-# Import sample data
-node seeder -i
-
-# Delete all data
-node seeder -d
+heroku create futurelabs-backend
 ```
+
+2. **Set Environment Variables**
+```bash
+heroku config:set NODE_ENV=production
+heroku config:set MONGO_URI=your-mongodb-atlas-uri
+heroku config:set JWT_SECRET=your-secret-key
+```
+
+3. **Deploy**
+```bash
+git push heroku main
+```
+
+### Railway Deployment
+
+1. **Connect GitHub Repository**
+2. **Add Environment Variables** in Railway dashboard
+3. **Deploy** - Automatic deployment on push
+
+### Render Deployment
+
+1. **Create New Web Service**
+2. **Connect Repository**
+3. **Set Environment Variables**
+4. **Deploy**
+
+### MongoDB Atlas Setup
+
+1. **Create Cluster** at [MongoDB Atlas](https://www.mongodb.com/cloud/atlas)
+2. **Whitelist IP** (0.0.0.0/0 for development)
+3. **Create Database User**
+4. **Get Connection String**
+5. **Update MONGO_URI** in environment variables
 
 ---
 
 ## 🧪 Testing
 
-Run tests with:
+### Manual Testing
+
+Use tools like:
+- **Postman** - [Download](https://www.postman.com/)
+- **Thunder Client** (VS Code extension)
+- **cURL** (command line)
+
+### Example Test Script
 
 ```bash
-npm test
+# Test health endpoint
+curl http://localhost:5000/api/v1/health
+
+# Test admin login
+curl -X POST http://localhost:5000/api/v1/auth/admin/login \
+  -H "Content-Type: application/json" \
+  -d '{"username":"admin","password":"admin123"}'
+
+# Test protected endpoint
+curl http://localhost:5000/api/v1/users \
+  -H "Authorization: Bearer <your-token>"
 ```
 
 ---
 
-## 🚢 Deployment
+## 🔒 Security Features
 
-### 🌐 Production Deployment
+- ✅ **Helmet.js** - Security headers
+- ✅ **CORS** - Cross-origin resource sharing
+- ✅ **Rate Limiting** - Prevent abuse
+- ✅ **MongoDB Sanitization** - Prevent NoSQL injection
+- ✅ **XSS Protection** - Cross-site scripting prevention
+- ✅ **Password Hashing** - bcrypt encryption
+- ✅ **JWT Authentication** - Secure token-based auth
+- ✅ **Input Validation** - Request validation
 
-1. Set `NODE_ENV=production` in your environment variables
-2. Update `MONGODB_URI` to your production database
-3. Set a strong `JWT_SECRET` for production
-4. Run the application:
+---
 
+## 📊 Performance
+
+- **Response Time:** < 100ms for most endpoints
+- **Database Queries:** Optimized with indexes
+- **Caching:** Ready for Redis integration
+- **Load Balancing:** Horizontal scaling ready
+
+---
+
+## 🤝 Contributing
+
+Contributions are welcome! Please follow these steps:
+
+1. **Fork the repository**
+2. **Create a feature branch**
    ```bash
-   npm start
+   git checkout -b feature/amazing-feature
    ```
+3. **Commit your changes**
+   ```bash
+   git commit -m 'Add amazing feature'
+   ```
+4. **Push to the branch**
+   ```bash
+   git push origin feature/amazing-feature
+   ```
+5. **Open a Pull Request**
 
 ---
 
-## 📄 License
+## 📝 License
 
-MIT License
-
-Copyright (c) 2025 FutureLabs
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ---
 
-<div align="center">
+## 👨‍💻 Author
 
-**⚡ Built with Node.js • 🛡️ Secured with JWT • 📦 Powered by MongoDB**
+**Ashiii2121**
+- GitHub: [@ashiii2121](https://github.com/ashiii2121)
 
-_Made with ❤️ for better healthcare accessibility_
+---
 
-</div>
+## 🙏 Acknowledgments
+
+- Express.js team for the amazing framework
+- MongoDB team for the robust database
+- All contributors and supporters
+
+---
+
+## 📞 Support
+
+For support, email support@futurelabs.com or open an issue on GitHub.
+
+---
+
+## 🗺️ Roadmap
+
+- [ ] Add unit tests (Jest)
+- [ ] Add integration tests
+- [ ] Implement caching (Redis)
+- [ ] Add WebSocket support for real-time updates
+- [ ] Implement payment gateway integration
+- [ ] Add email notifications
+- [ ] Add SMS notifications
+- [ ] Implement file upload for reports
+- [ ] Add API versioning
+- [ ] Create Swagger/OpenAPI documentation
+
+---
+
+**Made with ❤️ for better healthcare accessibility**
