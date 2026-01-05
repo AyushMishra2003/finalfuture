@@ -41,10 +41,7 @@ app.use(express.static(path.join(__dirname, '../frontend/build')));
 const connectDB = async () => {
     try {
         console.log('Attempting to connect to MongoDB...');
-        const conn = await mongoose.connect(process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/futurelabs', {
-            useNewUrlParser: true,
-            useUnifiedTopology: true,
-        });
+        const conn = await mongoose.connect(process.env.MONGODB_URI || 'mongodb+srv://futurelabsdesign:futurelab2025@futurelab-cluster.elb6u.mongodb.net/futurelabs?retryWrites=true&w=majority');
         console.log(`✅ MongoDB connected successfully: ${conn.connection.host}`);
     } catch (error) {
         console.error('❌ MongoDB connection error:', error);

@@ -1,16 +1,13 @@
 const { MongoClient } = require('mongodb');
 
 async function testMongoDBConnection() {
-    const uri = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/futurelabs';
+    const uri = process.env.MONGODB_URI || 'mongodb+srv://futurelabsdesign:futurelab2025@futurelab-cluster.elb6u.mongodb.net/futurelabs?retryWrites=true&w=majority';
     const dbName = 'futurelabs';
 
     console.log('Testing MongoDB connection...');
     console.log('URI:', uri);
 
-    const client = new MongoClient(uri, {
-        useUnifiedTopology: true,
-        useNewUrlParser: true
-    });
+    const client = new MongoClient(uri);
 
     try {
         console.log('\nAttempting to connect to MongoDB...');
