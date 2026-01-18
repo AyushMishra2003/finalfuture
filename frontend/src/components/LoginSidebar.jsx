@@ -1,13 +1,24 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { baseUrl } from "../utils/config";
 import { X } from "react-feather";
 
-const LoginSidebar = () => {
+const LoginSidebar = ({ isOpen, onClose }) => {
   const [phoneNumber, setPhoneNumber] = useState("");
   const [otp, setOtp] = useState("");
   const [showOtpForm, setShowOtpForm] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState("");
+
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    return () => {
+      document.body.style.overflow = 'unset';
+    }
+  }, [isOpen]);
 
   const handlePhoneSubmit = async (e) => {
     e.preventDefault();
@@ -66,17 +77,13 @@ const LoginSidebar = () => {
         const token = data.token;
         localStorage.setItem("userToken", token);
         localStorage.setItem("token", token);
-        localStorage.setItem("userId", data.data.id); // Fixed: was data.userId, should be data.data.id
+        localStorage.setItem("userId", data.data.id);
         localStorage.setItem("userName", data.data.name || "User");
         localStorage.setItem("userPhone", data.data.phone);
         setMessage("Login successful!");
-        // Close sidebar and refresh page
+
         setTimeout(() => {
-          // Hide the sidebar using DOM manipulation
-          const sidebar = document.getElementById("sidebar");
-          if (sidebar) {
-            sidebar.classList.remove("show");
-          }
+          onClose(); // Close sidebar using prop
           window.location.reload();
         }, 1000);
       } else {
@@ -120,26 +127,26 @@ const LoginSidebar = () => {
     setMessage("");
   };
 
-  // Function to close the sidebar using DOM manipulation
-  const closeSidebar = () => {
-    const sidebar = document.getElementById("sidebar");
-    if (sidebar) {
-      sidebar.classList.remove("show");
-    }
-  };
+  if (!isOpen) return null;
 
   return (
-    <div className="collapse" id="sidebar">
+    <>
       <div
-        className="sidebar-content position-fixed top-0 start-0 h-100 bg-white shadow"
-        style={{ width: "100%", maxWidth: "400px", zIndex: "1050" }}
+        className="position-fixed top-0 start-0 h-100 bg-white shadow"
+        style={{
+          width: "100%",
+          maxWidth: "400px",
+          zIndex: "1060",
+          transform: isOpen ? "translateX(0)" : "translateX(-100%)",
+          transition: "transform 0.3s ease-in-out"
+        }}
       >
         <div className="d-flex justify-content-between align-items-center p-3 border-bottom">
           <h5 className="mb-0">Login / Sign Up</h5>
           <button
             type="button"
             className="btn-close"
-            onClick={closeSidebar}
+            onClick={onClose}
             aria-label="Close"
           >
             <X size={24} />
@@ -275,11 +282,11 @@ const LoginSidebar = () => {
         </div>
       </div>
       <div
-        className="sidebar-backdrop position-fixed top-0 start-0 w-100 h-100 bg-dark bg-opacity-50"
-        style={{ zIndex: "1040" }}
-        onClick={closeSidebar}
+        className="position-fixed top-0 start-0 w-100 h-100 bg-dark bg-opacity-50"
+        style={{ zIndex: "1050" }}
+        onClick={onClose}
       ></div>
-    </div>
+    </>
   );
 };
 

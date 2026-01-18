@@ -256,7 +256,7 @@ export const mockData = {
       category: "Single Test",
       description: "Fasting and random glucose levels"
     },
-    
+
     {
       _id: "5",
       name: "Liver Function Test",
@@ -283,6 +283,111 @@ export const mockData = {
       _id: "3",
       title: "Men's Health Campaign",
       imageUrl: "images/banners/sec8man.png"
+    }
+  ],
+
+  specialOffers: [
+    {
+      id: 1,
+      title: "Full Body Checkup + 1 Special Profile Test FREE",
+      tests: "103 Tests",
+      price: "₹999",
+      oldPrice: "₹2299",
+      image: "/images/Tests/full-body.png",
+      discount: "56% OFF",
+      details: {
+        inclusions: ["Complete Blood Count", "Liver Function Test", "Kidney Function Test", "Lipid Profile", "Sugar Test", "1 Special Profile Test"],
+        preparation: "10-12 hours fasting required",
+        sampleType: "Blood & Urine",
+        reportTime: "24-48 Hours",
+        certification: "NABL Accredited",
+        homeCollection: "Free Home Sample Collection"
+      }
+    },
+    {
+      id: 2,
+      title: "Comprehensive Health Package",
+      tests: "95 Tests",
+      price: "₹899",
+      oldPrice: "₹1999",
+      image: "/images/Tests/full-body.png",
+      discount: "55% OFF",
+      details: {
+        inclusions: ["Thyroid Profile", "Vitamin B12", "Vitamin D", "Iron Studies", "All CBC parameters"],
+        preparation: "Fasting required",
+        sampleType: "Blood",
+        reportTime: "24 Hours",
+        certification: "ISO Certified",
+        homeCollection: "Available"
+      }
+    },
+    {
+      id: 3,
+      title: "Heart Care Package",
+      tests: "110 Tests",
+      price: "₹1099",
+      oldPrice: "₹2499",
+      image: "/images/Tests/full-body.png",
+      discount: "56% OFF",
+      details: {
+        inclusions: ["Lipid Profile", "ECG", "Cardiac Markers", "Sugar", "CBC"],
+        preparation: "Fasting mandatory",
+        sampleType: "Blood",
+        reportTime: "24 Hours",
+        certification: "NABL Accredited",
+        homeCollection: "Free Home Collection"
+      }
+    },
+    {
+      id: 4,
+      title: "Diabetes Screening Package",
+      tests: "78 Tests",
+      price: "₹799",
+      oldPrice: "₹1799",
+      image: "/images/Tests/full-body.png",
+      discount: "55% OFF",
+      details: {
+        inclusions: ["HbA1c", "Average Blood Glucose", "Lipid Profile", "Micro-albumin"],
+        preparation: "Fasting required",
+        sampleType: "Blood & Urine",
+        reportTime: "12-24 Hours",
+        certification: "NABL Accredited",
+        homeCollection: "Available"
+      }
+    },
+    {
+      id: 5,
+      title: "Senior Citizen Health Package",
+      tests: "120 Tests",
+      price: "₹1299",
+      oldPrice: "₹2999",
+      image: "/images/Tests/full-body.png",
+      discount: "56% OFF",
+      details: {
+        inclusions: ["Liver & Kidney Function", "Vitamin D & B12", "Lipid Profile", "Urine Routine"],
+        preparation: "Fasting required",
+        sampleType: "Blood & Urine",
+        reportTime: "24-48 Hours",
+        certification: "NABL Accredited",
+        homeCollection: "Free"
+      }
+    },
+    {
+      id: 6,
+      title: "Women Wellness Package",
+      tests: "88 Tests",
+      price: "₹899",
+      oldPrice: "₹1999",
+      image: "/images/Tests/full-body.png",
+      discount: "55% OFF",
+      details: {
+        inclusions: ["Anemia Screening", "Thyroid Profile", "Bone Health", "CBC"],
+        preparation: "Fasting required",
+        sampleType: "Blood",
+        reportTime: "24 Hours",
+        certification: "NABL Accredited",
+        homeCollection: "Available"
+      }
     }
   ]
 };

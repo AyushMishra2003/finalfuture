@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import {
   Plus,
   Home,
@@ -38,6 +39,7 @@ import apiService from "../utils/api";
 
 const Completehealth = () => {
   // State
+  const [searchParams] = useSearchParams();
   const [activeCategory, setActiveCategory] = useState("All");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedTest, setSelectedTest] = useState(null);
@@ -341,7 +343,11 @@ const Completehealth = () => {
     "Cardiac",
     "Thyroid",
     "Women's Health",
+    "Men's Health",
     "Senior Citizen",
+    "Vitamin",
+    "Liver",
+    "Kidney"
   ];
 
   // Stats for Hero Section
@@ -513,7 +519,16 @@ const Completehealth = () => {
     };
 
     fetchServices();
+    fetchServices();
   }, []);
+
+  // Update active category from URL params
+  useEffect(() => {
+    const tab = searchParams.get("tab");
+    if (tab && categories.includes(tab)) {
+      setActiveCategory(tab);
+    }
+  }, [searchParams]);
 
   // Filter Logic
   const filteredServices = services.filter((service) => {

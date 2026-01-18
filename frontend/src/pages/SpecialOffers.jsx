@@ -115,7 +115,7 @@ const SpecialOffers = () => {
         <div className="row mb-5">
           <div className="col-12 text-center">
             <h1 className="display-4 fw-bold mb-3">
-              <span className="gradient-text">🎉 Special Offers</span>
+              <span className="gradient-text"> Special Offers</span>
             </h1>
             <p className="lead text-muted mb-4">
               Limited time deals on health checkups & lab tests

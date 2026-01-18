@@ -10,6 +10,8 @@ import TestimonialsSlider from "../components/TestimonialsSlider";
 import PincodeChecker from "./Pincode";
 import Carousel from "react-bootstrap/Carousel";
 import PremiumCarousel from "../components/PremiumCarousel";
+import SpecialOffersCarousel from "../components/SpecialOffersCarousel";
+import MoneySavingPackages from "../components/MoneySavingPackage";
 
 const Home = () => {
   // Helper function to get correct image URL
@@ -54,110 +56,7 @@ const Home = () => {
 
 
   // special offers carousel
-  const packages = [
-    {
-      id: 1,
-      title: "Full Body Checkup + 1 Special Profile Test FREE",
-      tests: "103 Tests",
-      price: "₹999",
-      oldPrice: "₹2299",
-      image: "/images/Tests/full-body.png",
-      discount: "56% OFF",
-      details: {
-        inclusions: ["Complete Blood Count", "Liver Function Test", "Kidney Function Test", "Lipid Profile", "Sugar Test", "1 Special Profile Test"],
-        preparation: "10-12 hours fasting required",
-        sampleType: "Blood & Urine",
-        reportTime: "24-48 Hours",
-        certification: "NABL Accredited",
-        homeCollection: "Free Home Sample Collection"
-      }
-    },
-    {
-      id: 2,
-      title: "Comprehensive Health Package",
-      tests: "95 Tests",
-      price: "₹899",
-      oldPrice: "₹1999",
-      image: "/images/Tests/full-body.png",
-      discount: "55% OFF",
-      details: {
-        inclusions: ["Thyroid Profile", "Vitamin B12", "Vitamin D", "Iron Studies", "All CBC parameters"],
-        preparation: "Fasting required",
-        sampleType: "Blood",
-        reportTime: "24 Hours",
-        certification: "ISO Certified",
-        homeCollection: "Available"
-      }
-    },
-    {
-      id: 3,
-      title: "Heart Care Package",
-      tests: "110 Tests",
-      price: "₹1099",
-      oldPrice: "₹2499",
-      image: "/images/Tests/full-body.png",
-      discount: "56% OFF",
-      details: {
-        inclusions: ["Lipid Profile", "ECG", "Cardiac Markers", "Sugar", "CBC"],
-        preparation: "Fasting mandatory",
-        sampleType: "Blood",
-        reportTime: "24 Hours",
-        certification: "NABL Accredited",
-        homeCollection: "Free Home Collection"
-      }
-    },
-    {
-      id: 4,
-      title: "Diabetes Screening Package",
-      tests: "78 Tests",
-      price: "₹799",
-      oldPrice: "₹1799",
-      image: "/images/Tests/full-body.png",
-      discount: "55% OFF",
-      details: {
-        inclusions: ["HbA1c", "Average Blood Glucose", "Lipid Profile", "Micro-albumin"],
-        preparation: "Fasting required",
-        sampleType: "Blood & Urine",
-        reportTime: "12-24 Hours",
-        certification: "NABL Accredited",
-        homeCollection: "Available"
-      }
-    },
-    {
-      id: 5,
-      title: "Senior Citizen Health Package",
-      tests: "120 Tests",
-      price: "₹1299",
-      oldPrice: "₹2999",
-      image: "/images/Tests/full-body.png",
-      discount: "56% OFF",
-      details: {
-        inclusions: ["Liver & Kidney Function", "Vitamin D & B12", "Lipid Profile", "Urine Routine"],
-        preparation: "Fasting required",
-        sampleType: "Blood & Urine",
-        reportTime: "24-48 Hours",
-        certification: "NABL Accredited",
-        homeCollection: "Free"
-      }
-    },
-    {
-      id: 6,
-      title: "Women Wellness Package",
-      tests: "88 Tests",
-      price: "₹899",
-      oldPrice: "₹1999",
-      image: "/images/Tests/full-body.png",
-      discount: "55% OFF",
-      details: {
-        inclusions: ["Anemia Screening", "Thyroid Profile", "Bone Health", "CBC"],
-        preparation: "Fasting required",
-        sampleType: "Blood",
-        reportTime: "24 Hours",
-        certification: "NABL Accredited",
-        homeCollection: "Available"
-      }
-    },
-  ];
+  const packages = mockData.specialOffers || [];
 
   // DetailCard Component
   const DetailCard = ({ pkg, onClose }) => {
@@ -167,13 +66,13 @@ const Home = () => {
         <div className="card border-0 shadow-lg detail-card h-100">
           <div className="card-header bg-transparent border-0 d-flex justify-content-between align-items-center pt-3 px-3">
             <h5 className="fw-bold text-primary mb-0">Package Details</h5>
-           <button
-  onClick={onClose}
-  className="btn-close-custom"
-  aria-label="Close"
->
-  ×
-</button>
+            <button
+              onClick={onClose}
+              className="btn-close-custom"
+              aria-label="Close"
+            >
+              ×
+            </button>
 
           </div>
           <div className="card-body px-3 py-2 scrollable-details">
@@ -550,9 +449,10 @@ const Home = () => {
         <div className="container">
           <div className="row justify-content-center">
             <div className="col-lg-8 col-md-10">
-              <h2 className="text-center mb-4 fw-bold">
-                Check Service Availability
-              </h2>
+              <div className="section-header-container">
+                <h2 className="section-title">Check Service Availability</h2>
+                <p className="section-subtitle">Enter your pincode to see if we serve your area with home collection.</p>
+              </div>
               <div className="card shadow-sm border-0">
                 <div className="card-body p-4">
                   <form onSubmit={handlePinCodeCheck}>
@@ -583,25 +483,26 @@ const Home = () => {
                       </div>
                       <div className="col-md-4">
                         <button
-                          className="btn btn-primary btn-lg w-100"
+                          className="btn btn-primary btn-lg w-100 d-flex align-items-center justify-content-center gap-2"
                           type="submit"
                           disabled={checkingService || pinCode.length !== 6}
                         >
                           {checkingService ? (
                             <>
                               <span
-                                className="spinner-border spinner-border-sm me-2"
+                                className="spinner-border spinner-border-sm"
                                 role="status"
                               ></span>
-                              Checking...
+                              <span>Checking...</span>
                             </>
                           ) : (
                             <>
-                              <Search size={20} className="me-2" />
-                              Check
+                              <Search size={20} />
+                              <span>Check</span>
                             </>
                           )}
                         </button>
+
                       </div>
                     </div>
                   </form>
@@ -687,292 +588,11 @@ const Home = () => {
         </div>
       </section>
 
-      {/* Categories Section */}
-      {/* <section className="py-5 bg-light">
-  <div className="container p-3 rounded-3"  style={{ backgroundColor: 'rgba(224, 247, 247, 0.7)' }}> */}
-      {/* Header Section */}
-      {/* <div className="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-5 text-center text-md-start">
-   <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center align-items-start bg-light p-3 rounded-3 shadow-sm">
 
-  <div>
-    <h2 className="fw-bold mb-1" style={{ color: 'rgb(0, 162, 173)' }}>
-      Money-Saving <span className="d-block">Packages</span>
-    </h2>
-    <p className="mb-0 fw-semibold" style={{ color: 'rgb(255, 128, 0)' }}>
-      Upto 75% Discount
-    </p>
-  </div>
-
-
-  <Link
-    to="/completehealth"
-    className="btn fw-semibold text-white mt-3 mt-md-0 px-4 py-2"
-    style={{
-      background: 'linear-gradient(180deg, #FFA500 0%, #FF7A00 100%)',
-      border: 'none',
-      fontSize: '1rem',
-      boxShadow: '0 2px 5px rgba(0,0,0,0.2)',
-      borderRadius: '6px',
-      whiteSpace: 'nowrap',
-    }}
-  >
-    VIEW ALL
-  </Link>
-</div>
-</div> */}
-      {/* 
-  </div>
-</section> */}
 
       {/* Cards Section */}
-      <section className="py-5">
-        <div className="container">
-          {/* Section Header */}
-          <div className="d-flex flex-column flex-md-row justify-content-between align-items-center mb-4">
-            <div className="align-items-md-center ">
-              <h2 className="fw-bold mb-1"
-                style={{ color: "rgb(0, 162, 173)", fontSize: "1.5rem" }}>
-                Money-Saving Packages
-              </h2>
-              <p className="mb-0 fw-semibold" style={{ color: "rgb(255, 128, 0)" }}>
-                Upto 75% Discount
-              </p>
-            </div>
 
-
-            <Link
-              to="/completehealth"
-              className="btn fw-semibold text-white mt-3 mt-md-0 px-4 py-2"
-              style={{
-                background: "linear-gradient(180deg, #FFA500 0%, #FF7A00 100%)",
-                border: "none",
-                fontSize: "1rem",
-                borderRadius: "8px",
-                boxShadow: "0 3px 8px rgba(0,0,0,0.2)",
-              }}
-            >
-              VIEW ALL
-            </Link>
-          </div>
-
-          {/* Carousel */}
-          <div className="position-relative">
-            <div className="overflow-hidden">
-              <div
-                className="d-flex transition-container"
-                style={{
-                  transform: `translateX(-${savingCurrent * 100}%)`,
-                  transition: 'transform 0.5s ease-in-out'
-                }}
-              >
-                {chunkedCategories.map((group, index) => (
-                  <div
-                    key={index}
-                    className="d-flex flex-wrap justify-content-center w-100"
-                    style={{ minWidth: '100%' }}
-                  >
-                    {group.map((item, idx) => (
-                      <div
-                        key={idx}
-                        className="col-6 col-sm-6 col-md-3 col-lg-3 p-2"
-                      >
-                        <Link
-                          to={`/completehealth?tab=${encodeURIComponent(item.name)}`}
-                          className="text-decoration-none"
-                        >
-                          <div
-                            className="card border-0 rounded-4 overflow-hidden shadow-sm h-100 position-relative money-saving-card"
-                            style={{
-                              borderRadius: "14px",
-                              transition: "transform 0.3s ease, box-shadow 0.3s ease",
-                            }}
-                            onMouseEnter={(e) => {
-                              e.currentTarget.style.transform = "translateY(-6px)";
-                              e.currentTarget.style.boxShadow =
-                                "0 8px 20px rgba(0,0,0,0.15)";
-                            }}
-                            onMouseLeave={(e) => {
-                              e.currentTarget.style.transform = "translateY(0)";
-                              e.currentTarget.style.boxShadow =
-                                "0 4px 10px rgba(0,0,0,0.05)";
-                            }}
-                          >
-                            <div className="position-relative overflow-hidden rounded-top-4">
-                              <img
-                                className="img-fluid w-100 money-saving-image"
-                                src={getImageUrl(item.imagePath)}
-                                alt={item.name}
-                                style={{
-                                  height: "160px",
-                                  objectFit: "cover",
-                                  transition: "transform 0.3s ease",
-                                  borderTopLeftRadius: "14px",
-                                  borderTopRightRadius: "14px",
-                                }}
-                                onMouseEnter={(e) =>
-                                  (e.currentTarget.style.transform = "scale(1.05)")
-                                }
-                                onMouseLeave={(e) =>
-                                  (e.currentTarget.style.transform = "scale(1)")
-                                }
-                              />
-                            </div>
-                            <div
-                              className="text-center py-2 rounded-bottom-4"
-                              style={{
-                                backgroundColor: "rgb(119, 217, 207)",
-                                color: "#004d4d",
-                                fontWeight: "600",
-                                fontSize: "0.95rem",
-                              }}
-                            >
-                              {item.name}
-                            </div>
-                          </div>
-                        </Link>
-                      </div>
-                    ))}
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Carousel Navigation Arrows */}
-            <div className="d-flex justify-content-center align-items-center mt-4 w-100" style={{ minHeight: "60px" }}>
-              {/* <button
-                className="btn btn-primary rounded-circle shadow me-3"
-                style={{
-                  width: "45px",
-                  height: "45px",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  backgroundColor: "rgba(0, 0, 0, 0.9)",
-                  border: "none",
-                }}
-                onClick={prevSavingSlide}
-                disabled={savingCurrent === 0}
-              >
-                <i className="bi bi-chevron-left text-white" style={{ fontSize: "1.2rem" }}></i>
-              </button> */}
-
-              {/* Page Indicator */}
-              <div className="d-flex align-items-center mx-3">
-                {chunkedCategories.map((_, index) => (
-                  <span
-                    key={index}
-                    className={`rounded-circle mx-1 ${index === savingCurrent ? 'bg-primary' : 'bg-secondary'}`}
-                    style={{
-                      width: "10px",
-                      height: "10px",
-                      opacity: index === savingCurrent ? 1 : 0.5,
-                      cursor: "pointer",
-                    }}
-                    onClick={() => setSavingCurrent(index)}
-                  ></span>
-                ))}
-              </div>
-
-              {/* <button
-                className="btn rounded-circle shadow"
-                style={{
-                  width: "36px",
-                  height: "36px",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  backgroundColor: "rgba(122, 173, 162, 1)",
-                  border: "none",
-                }}
-                onClick={nextSavingSlide}
-                disabled={savingCurrent === chunkedCategories.length - 1}
-              >
-                <i
-                  className="bi bi-chevron-right text-primary"
-                  style={{
-                    fontSize: "2.5rem",
-                    position: "relative",
-                    zIndex: 50,
-                  }}
-                ></i>
-
-              </button> */}
-
-            </div>
-          </div>
-
-          {/* Responsive Styles */}
-          <style>{`
-      .transition-container {
-        display: flex;
-      }
-      
-      .money-saving-card {
-        height: 100%;
-      }
-      
-      .money-saving-image {
-        height: 160px !important;
-        object-fit: cover;
-      }
-
-      /* Desktop - 4 cards per row */
-      @media (min-width: 992px) {
-        .col-lg-3 {
-          flex: 0 0 25%;
-          max-width: 25%;
-        }
-      }
-
-      /* Tablet - 2 cards per row */
-      @media (min-width: 768px) and (max-width: 991px) {
-        .col-md-3 {
-          flex: 0 0 50%;
-          max-width: 50%;
-        }
-        
-        .money-saving-image {
-          height: 140px !important;
-        }
-      }
-
-      /* Mobile - 2 cards per row */
-      @media (max-width: 767px) {
-        .col-6 {
-          flex: 0 0 50%;
-          max-width: 50%;
-        }
-        
-        .money-saving-image {
-          height: 130px !important;
-        }
-        
-        .card {
-          margin-bottom: 10px;
-        }
-      }
-      
-      /* Small Mobile */
-      @media (max-width: 576px) {
-        .money-saving-image {
-          height: 120px !important;
-        }
-        
-        .col-6 {
-          padding: 5px;
-        }
-      }
-      
-      /* Extra small devices */
-      @media (max-width: 400px) {
-        .money-saving-image {
-          height: 110px !important;
-        }
-      }
-    `}</style>
-        </div>
-      </section>
-
+      <MoneySavingPackages />
 
 
 
@@ -985,11 +605,12 @@ const Home = () => {
       <section className="py-4 bg-light">
         <div className="container">
           <div
-            className="d-flex flex-column flex-md-row align-items-center justify-content-center bg-white shadow-sm p-3 p-md-4 mx-auto"
+            className="d-flex flex-column flex-md-row align-items-center justify-content-center bg-white shadow-lg p-3 p-md-4 mx-auto float-hover"
             style={{
-              borderRadius: "16px",
-              maxWidth: "650px",
-              background: "linear-gradient(90deg, #eafff8 0%, #d8fff0 100%)",
+              borderRadius: "24px",
+              maxWidth: "700px",
+              background: "linear-gradient(135deg, #f0fdfa 0%, #e6fffa 100%)",
+              border: "1px solid rgba(204, 251, 241, 0.5)"
             }}
           >
             {/* Left Side - Illustration */}
@@ -1000,26 +621,19 @@ const Home = () => {
                 style={{
                   width: "120px",
                   height: "auto",
+                  filter: "drop-shadow(0 10px 15px rgba(0,0,0,0.1))"
                 }}
               />
             </div>
 
             {/* Right Side - Text Content */}
             <div className="text-center text-md-start">
-              <h5
-                className="fw-bold mb-1"
-                style={{ color: "#E53935", fontSize: "1.25rem" }}
-              >
-                Free - Home Visit
-              </h5>
-              <h4
-                className="fw-bold mb-2"
-                style={{ color: "#B71C1C", fontSize: "1.5rem" }}
-              >
-                in Bengaluru
+              <span className="section-label">Limited Time Offer</span>
+              <h4 className="fw-bold mb-2 text-gradient-premium" style={{ fontSize: "1.75rem" }}>
+                Free Home Visit in Bengaluru
               </h4>
-              <p className="mb-0 fw-semibold" style={{ color: "#2E7D32" }}>
-                If Bill Amount 1k
+              <p className="mb-0 fw-medium" style={{ color: "#0f766e" }}>
+                For all orders above ₹1000. Expert care at your doorstep.
               </p>
             </div>
           </div>
@@ -1052,54 +666,99 @@ const Home = () => {
 
 
 
-      {/* Special Offer Card */}
 
-      <section className="py-4">
+
+      {/* Special Offers Section */}
+      <section className="py-5 bg-light">
         <div className="container">
-          {/* Header */}
-          <div className="d-flex flex-column flex-md-row justify-content-between align-items-center mb-4 ">
-            <div>
-              <h2
-                className="fw-bold mb-1"
-                style={{ color: "rgb(0, 162, 173)", fontSize: "1.5rem" }}
-              >
-                Special Offers <br />
-                <span style={{ color: "rgb(255, 128, 0)" }}>Upto 75% Discount</span>
-              </h2>
-            </div>
-            <Link
-              to="/completehealth"
-              className="btn text-white fw-semibold shadow-sm px-4 py-2"
-              style={{
-                background: "linear-gradient(180deg, #FFA500 0%, #FF7A00 100%)",
-                border: "none",
-                fontSize: "1rem",
-                borderRadius: "8px",
-              }}
-            >
-              VIEW ALL
-            </Link>
-          </div>
+       
+        <div className="flex flex-col md:flex-row md:justify-between items-center mb-8 relative text-center ">
 
-          {/* Carousel */}
-          <div className="position-relative w-100">
-            <PremiumCarousel
-              items={packages}
-              onAddToCart={(item) => handleAddToCart(item.id)}
-              onViewDetails={handleViewDetails}
-            />
-          </div>
+  <div className="w-full md:w-auto mx-auto mb-4 md:mb-0 flex flex-col items-center ">
+    <h2 className="section-title mb-2 text-center  align-center">
+      Special-Offers <br className="block md:hidden" /> Packages
+    </h2>
 
-          {/* Details Modal */}
-          {showDetails && selectedPackage && (
-            <div className="position-fixed top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-center p-3" style={{ zIndex: 1050, background: "rgba(255, 255, 255, 0.7)", backdropFilter: "blur(1px)" }}>
-              <div className="position-relative w-100" style={{ maxWidth: "450px" }}>
-                <DetailCard pkg={selectedPackage} onClose={() => setShowDetails(false)} />
-              </div>
-            </div>
-          )}
+    <p className="section-subtitle text-center md:text-left">
+      Premium health packages at unbeatable prices.
+      <br className="block md:hidden" /> Up to 75% OFF.
+    </p>
+  </div>
+
+  <button
+    className="btn-premium"
+    onClick={() => navigate('/product?id=1')}
+  >
+    VIEW ALL
+  </button>
+
+</div>
+
+
+          {/* Premium Carousel */}
+          <SpecialOffersCarousel
+            offers={packages.map(pkg => ({
+              id: pkg.id,
+              _id: pkg.id, // For cart compatibility
+              title: pkg.title,
+              name: pkg.title, // For cart display
+              originalPrice: parseInt(pkg.oldPrice.replace(/[₹,]/g, '')),
+              discountedPrice: parseInt(pkg.price.replace(/[₹,]/g, '')),
+              price: parseInt(pkg.price.replace(/[₹,]/g, '')), // For cart
+              discount: parseInt(pkg.discount.replace(/[%OFF ]/g, '')),
+              discountPercentage: parseInt(pkg.discount.replace(/[%OFF ]/g, '')),
+              badge: pkg.discount,
+              features: pkg.details.inclusions,
+              description: `${pkg.tests} included with ${pkg.details.homeCollection}`,
+              category: "Health Package",
+              imageUrl: pkg.image,
+              tests: pkg.tests,
+              homeSampleCollection: true,
+              reportsIn: pkg.details.reportTime
+            }))}
+            onAddToCart={(offerId) => {
+              const pkg = packages.find(p => p.id === offerId);
+              if (pkg) {
+                // Get existing cart from localStorage
+                const existingCart = JSON.parse(localStorage.getItem("cart")) || [];
+
+                // Create cart item with all required fields
+                const cartItem = {
+                  _id: pkg.id,
+                  name: pkg.title,
+                  price: parseInt(pkg.price.replace(/[₹,]/g, '')),
+                  originalPrice: parseInt(pkg.oldPrice.replace(/[₹,]/g, '')),
+                  discountPercentage: parseInt(pkg.discount.replace(/[%OFF ]/g, '')),
+                  category: "Health Package",
+                  description: `${pkg.tests} included with ${pkg.details.homeCollection}`,
+                  homeSampleCollection: true,
+                  reportsIn: pkg.details.reportTime
+                };
+
+                // Check if item already exists in cart
+                const existingItemIndex = existingCart.findIndex(item => item._id === pkg.id);
+
+                if (existingItemIndex === -1) {
+                  // Add new item to cart
+                  existingCart.push(cartItem);
+                  localStorage.setItem("cart", JSON.stringify(existingCart));
+
+                  // Trigger storage event for cart count update
+                  window.dispatchEvent(new Event("storage"));
+
+                  // Show notification
+                  setShowCartNotification(true);
+                  setTimeout(() => setShowCartNotification(false), 3000);
+                } else {
+                  // Item already in cart
+                  alert("This package is already in your cart!");
+                }
+              }
+            }}
+          />
         </div>
       </section>
+
 
 
 
@@ -1199,28 +858,6 @@ const Home = () => {
         </div>
       </section> */}
 
-      {/* Ads Carousel */}
-      {/* {ads.length > 0 && (
-        <section className="py-5">
-          <div className="container">
-            <h3 className="text-center mb-4 fw-bold">Special Promotions</h3>
-            <div className="row g-3">
-              {ads.slice(0, 3).map((ad, index) => (
-                <div key={index} className="col-lg-4 col-md-6">
-                  <div className="card border-0 shadow-sm hover-lift">
-                    <img
-                      className="card-img-top"
-                      src={getImageUrl(ad.imageUrl)}
-                      alt={ad.title}
-                      style={{ height: "200px", objectFit: "cover" }}
-                    />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-      )} */}
 
       {/* Testimonials Slider */}
       <TestimonialsSlider />

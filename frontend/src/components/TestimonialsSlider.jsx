@@ -67,35 +67,47 @@ const GoogleReviewsSection = () => {
   ];
 
   const renderStars = (rating) =>
-    Array.from({ length: 5 }, (_, i) => (
-      <Star
-        key={i}
-        className={`me-1 star-icon ${i < rating ? "text-warning fill-current" : "text-muted"
-          }`}
-        size={16}
-        fill={i < rating ? "#ffc107" : "none"}
-      />
-    ));
+  Array.from({ length: 5 }, (_, i) => (
+    <Star
+      key={i}
+      size={16}
+      className={`star-icon ${
+        i < rating ? "text-warning" : "text-muted"
+      }`}
+      style={{
+        display: "inline-block",
+        verticalAlign: "middle",
+        marginRight: "4px",
+      }}
+      fill={i < rating ? "#ffc107" : "none"}
+    />
+  ));
+
 
   return (
     <section className="py-5 testimonials-section" style={{ background: "linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%)" }}>
       <div className="container px-4">
         {/* Rating Summary & Heading */}
         <div className="text-center mb-5">
-          <div className="d-inline-flex align-items-center mb-2 px-3 py-1 rounded-pill bg-white shadow-sm border">
-            <img
-              src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/Google_Color_Icon.svg/1200px-Google_Color_Icon.svg.png"
-              alt="Google G"
-              style={{ width: "18px", height: "18px", marginRight: "10px" }}
-            />
-            <span className="small fw-bold text-secondary">Google Verified Reviews</span>
-          </div>
+      <div className="d-inline-flex align-items-center mb-2 px-3 py-1 rounded-pill bg-white shadow-sm border gap-2">
+  <img
+      src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/2f/Google_2015_logo.svg/512px-Google_2015_logo.svg.png"
+    alt="Google"
+    className="flex-shrink-0"
+    style={{ width: "60px", height: "30px", display: "block" }}
+  />
+
+  <span className="small fw-bold text-secondary">
+     Verified Reviews
+  </span>
+</div>
+
           <h2 className="fw-bold text-dark mt-2 mb-3" style={{ fontSize: "2.2rem", letterSpacing: "-0.5px" }}>
             Trusted by Thousands of Patients
           </h2>
           <div className="d-flex justify-content-center align-items-center gap-2">
             <span className="fw-bold text-dark fs-4">4.9</span>
-            <div className="d-flex">{renderStars(5)}</div>
+            <div className="d-flex align-items-center flex-nowrap">{renderStars(5)}</div>
             <span className="text-muted small ms-1">(1,240+ Total Reviews)</span>
           </div>
         </div>
@@ -172,7 +184,10 @@ const GoogleReviewsSection = () => {
                     </div>
                   </div>
 
-                  <div className="mb-2">{renderStars(review.rating)}</div>
+                  <div className="mb-2 d-flex align-items-center flex-nowrap">
+  {renderStars(review.rating)}
+</div>
+
 
                   <p className="text-secondary small mb-3 flex-grow-1" style={{ lineClamp: 3, WebkitLineClamp: 3, display: "-webkit-box", WebkitBoxOrient: "vertical", overflow: "hidden", lineHeight: "1.6" }}>
                     "{review.review}"
@@ -218,7 +233,13 @@ const GoogleReviewsSection = () => {
 
         .star-icon {
           transition: transform 0.3s ease;
+
         }
+          .star-icon {
+  flex-shrink: 0;
+  line-height: 1;
+}
+
 
         .testimonial-card:hover .star-icon {
           transform: scale(1.2);

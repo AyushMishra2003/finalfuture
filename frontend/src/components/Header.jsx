@@ -11,6 +11,9 @@ const Header = () => {
   const [cartPulse, setCartPulse] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userName, setUserName] = useState("User");
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [showLogin, setShowLogin] = useState(false);
+
 
   // Check login status and fetch user details
   useEffect(() => {
@@ -342,15 +345,14 @@ const Header = () => {
                 <button
                   className="login-button text-center d-none d-md-inline-block position-relative  overflow-hidden"
                   id="login-button-desktop"
-                  data-bs-toggle="collapse"
-                  data-bs-target="#sidebar"
-                  aria-expanded="false"
-                  aria-controls="sidebar"
+                  onClick={(e) => {
+                    addRippleEffect(e);
+                    setShowLogin(true);
+                  }}
                   style={{
                     transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
                     cursor: 'pointer',
                   }}
-                  onClick={addRippleEffect}
                   onMouseEnter={(e) => {
                     e.currentTarget.style.transform = 'translateY(-2px)';
                     e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.15)';
@@ -372,7 +374,7 @@ const Header = () => {
                 >
                   <img
                     src={`${process.env.PUBLIC_URL}/images/icon-svg/login.svg`}
-                    className="login-icon"
+                    className="login-icon mx-4"
                     alt="Login"
                     style={{
                       transition: 'transform 0.3s ease',
@@ -402,6 +404,7 @@ const Header = () => {
                       maxHeight: "25px",
                       width: "auto",
                       marginRight: "8px",
+                      marginTop: "12px",
                       transition: 'transform 0.3s ease'
                     }}
                   />
@@ -416,115 +419,88 @@ const Header = () => {
                     style={{
                       maxHeight: "60px",
                       width: "auto",
+                      marginTop: "6px",
                       transition: 'transform 0.3s ease'
                     }}
                   />
                 </div>
               </Link>
             </div>
-            <div className="col-6 text-end p-2">
-              <div className="cart-button-wrapper">
-                <Link
-                  to="/cart"
-                  className={`cart cart-button ${cartPulse ? 'cart-pulse' : ''}`}
-                  id="cart-button-mobile"
-                  style={{
-                    display: "inline-flex",
-                    transition: 'transform 0.3s ease'
-                  }}
-                  onTouchStart={(e) => {
-                    e.currentTarget.style.transform = 'scale(0.95)';
-                  }}
-                  onTouchEnd={(e) => {
-                    e.currentTarget.style.transform = 'scale(1)';
-                  }}
-                >
-                  <img
-                    src={`${process.env.PUBLIC_URL}/images/icon-svg/cart.svg`}
-                    className="offers"
-                    alt="Cart"
-                  />
-                  {cartCount > 0 && (
-                    <span
-                      className="cart-badge"
-                      id="cart-badge-mobile"
-                      style={{ transition: 'transform 0.3s ease' }}
-                    >
-                      {cartCount}
-                    </span>
-                  )}
-                </Link>
-              </div>
+            <div className="col-6 text-end p-2 d-flex justify-content-end align-items-center gap-2">
 
-              {isLoggedIn ? (
-                <div className="dropdown d-inline-block ms-2">
-                  <button
-                    className="login-button text-center d-md-none position-relative overflow-hidden dropdown-toggle"
-                    id="profile-button-mobile"
-                    data-bs-toggle="dropdown"
-                    aria-expanded="false"
-                    style={{
-                      transition: 'all 0.3s ease',
-                      background: '#4CAF50',
-                      color: 'white',
-                      border: 'none',
-                      padding: '8px 12px'
-                    }}
-                  >
-                    <img
-                      src={`${process.env.PUBLIC_URL}/images/icon-svg/login.svg`}
-                      className="login-icon"
-                      alt="Profile"
-                      style={{
-                        transition: 'transform 0.3s ease',
-                        filter: 'brightness(0) invert(1)',
-                        height: '20px'
-                      }}
-                    />
-                  </button>
-                  <ul className="dropdown-menu dropdown-menu-end" aria-labelledby="profile-button-mobile">
-                    <li><Link className="dropdown-item" to="/profile">My Profile</Link></li>
-                    <li><Link className="dropdown-item" to="/orders">My Orders</Link></li>
-                    <li><hr className="dropdown-divider" /></li>
-                    <li><button className="dropdown-item text-danger" onClick={handleLogout}>Logout</button></li>
-                  </ul>
-                </div>
-              ) : (
-                <button
-                  className="login-button text-center d-md-none position-relative  overflow-hidden"
-                  id="login-button-mobile"
-                  data-bs-toggle="collapse"
-                  data-bs-target="#sidebar"
-                  aria-expanded="false"
-                  aria-controls="sidebar"
-                  style={{
-                    transition: 'all 0.3s ease',
-                    position: 'relative',
-                    top: '-8px'
-                  }}
-                  onClick={addRippleEffect}
-                  onTouchStart={(e) => {
-                    e.currentTarget.style.transform = 'scale(0.95)';
-                  }}
-                  onTouchEnd={(e) => {
-                    e.currentTarget.style.transform = 'scale(1)';
-                  }}
-                >
-                  <img
-                    src={`${process.env.PUBLIC_URL}/images/icon-svg/login.svg`}
-                    className="login-icon"
-                    alt="Login"
-                    style={{
-                      transition: 'transform 0.3s ease',
-                    }}
-                  />
-                  Login
-                </button>
-              )}
+              {/* Cart */}
+              <Link
+                to="/cart"
+                className={`cart cart-button ${cartPulse ? 'cart-pulse' : ''}`}
+                style={{ display: "inline-flex" }}
+              >
+                <img src="/images/icon-svg/cart.svg" className="offers" alt="Cart" />
+                {cartCount > 0 && <span className="cart-badge">{cartCount}</span>}
+              </Link>
+
+              {/* Hamburger Button */}
+              <button
+                className={`hamburger ${mobileMenuOpen ? "active" : ""}`}
+                onClick={() => setMobileMenuOpen(true)}
+              >
+                <span></span>
+                <span></span>
+                <span></span>
+              </button>
+
             </div>
+
           </div>
         </div>
       </div>
+      {/* Mobile Drawer Overlay */}
+      <div
+        className={`mobile-overlay ${mobileMenuOpen ? "show" : ""}`}
+        onClick={() => setMobileMenuOpen(false)}
+      ></div>
+
+      {/* Mobile Drawer */}
+      <div className={`mobile-drawer ${mobileMenuOpen ? "open" : ""}`}>
+
+        {/* User Card */}
+        <div className="mobile-user-card">
+          <img src="/images/icon-svg/login.svg" alt="User" />
+          <div>
+            <strong>{isLoggedIn ? userName : "Guest User"}</strong>
+            <small>{isLoggedIn ? "Welcome back 👋" : "Login to continue"}</small>
+          </div>
+        </div>
+
+        {/* Menu Items */}
+        <nav className="mobile-menu">
+
+          <Link to="/" onClick={() => setMobileMenuOpen(false)}>🏠 Home</Link>
+          <Link to="/packages" onClick={() => setMobileMenuOpen(false)}>🧪 Health Packages</Link>
+          <Link to="/tests" onClick={() => setMobileMenuOpen(false)}>🩺 Lab Tests</Link>
+          <Link to="/offers" onClick={() => setMobileMenuOpen(false)}>🔥 Offers</Link>
+          <Link to="/contact" onClick={() => setMobileMenuOpen(false)}>📞 Contact</Link>
+
+          <hr />
+
+          {isLoggedIn ? (
+            <>
+              <Link to="/profile" onClick={() => setMobileMenuOpen(false)}>👤 My Profile</Link>
+              <Link to="/orders" onClick={() => setMobileMenuOpen(false)}>📦 My Orders</Link>
+              <button onClick={handleLogout} className="logout-btn">🚪 Logout</button>
+            </>
+          ) : (
+            <button
+              onClick={() => {
+                setMobileMenuOpen(false);
+                setShowLogin(true);
+              }}
+            >
+              🔐 Login / Signup
+            </button>
+          )}
+        </nav>
+      </div>
+
 
       {/* Mobile Search Container - Second Navbar */}
       <div className="search-container container-fluid d-block d-md-none">
@@ -532,7 +508,10 @@ const Header = () => {
       </div>
 
       {/* Login Sidebar */}
-      {!isLoggedIn && <LoginSidebar />}
+      <LoginSidebar
+        isOpen={showLogin || !isLoggedIn && false} // Show only if explicitly triggered, relying on isOpen prop
+        onClose={() => setShowLogin(false)}
+      />
     </>
   );
 };
@@ -545,113 +524,3 @@ export default Header;
 
 
 
-// <div className="logo-container d-block d-md-none bg-light">
-//      <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"></link>
-//   <div className="container-fluid">
-//     <div className="row p-1 align-items-center">
-//       {/* Logo */}
-//       <div className="col-6 p-0">
-//         <Link to="/">
-//           <img
-//             src={`${process.env.PUBLIC_URL}/images/logo/ft-logo.svg`}
-//             alt="FutureLabs"
-//             className="logo"
-//             onError={(e) => {
-//               e.target.onerror = null;
-//               e.target.src = `${process.env.PUBLIC_URL}/images/logo/favicon.jpg`;
-//             }}
-//             style={{ maxHeight: "60px", width: "auto" }}
-//           />
-//         </Link>
-//       </div>
-
-//       {/* Cart + Hamburger */}
-//       <div className="col-6 text-end p-2">
-//         {/* Cart */}
-//         <Link
-//           to="/cart"
-//           className="cart cart-button me-2"
-//           id="cart-button-mobile"
-//           style={{ display: cartCount > 0 ? "inline-block" : "none" }}
-//         >
-//           <img
-//             src={`${process.env.PUBLIC_URL}/images/icon-svg/cart.svg`}
-//             className="offers"
-//             alt="Cart"
-//           />
-//           <span className="cart-badge" id="cart-badge-mobile">
-//             {cartCount}
-//           </span>
-//         </Link>
-
-//         {/* Hamburger Menu Button */}
-//         <button
-//           className="btn btn-outline-secondary"
-//           type="button"
-//           data-bs-toggle="offcanvas"
-//           data-bs-target="#mobileMenu"
-//           aria-controls="mobileMenu"
-//         >
-//           <span className="navbar-toggler-icon"></span>
-//         </button>
-//       </div>
-//     </div>
-//   </div>
-// </div>
-
-// {/* Mobile Search Bar Below Header */}
-// <div className="search-container container-fluid d-block d-md-none">
-//   <SearchComponent isMobile={true} />
-// </div>
-
-// {/* Offcanvas Mobile Menu */}
-// <div
-//   className="offcanvas offcanvas-end"
-//   tabIndex="-1"
-//   id="mobileMenu"
-//   aria-labelledby="mobileMenuLabel"
-// >
-//   <div className="offcanvas-header">
-//     <h5 className="offcanvas-title" id="mobileMenuLabel">Menu</h5>
-//     <button
-//       type="button"
-//       className="btn-close text-reset"
-//       data-bs-dismiss="offcanvas"
-//       aria-label="Close"
-//     ></button>
-//   </div>
-//   <div className="offcanvas-body">
-//     <ul className="list-unstyled">
-//       <li className="mb-3">
-//         <Link to="/" className="btn btn-link w-100 text-start">
-//           🏠 Home
-//         </Link>
-//       </li>
-//       <li className="mb-3">
-//         <Link to="/contact" className="btn btn-link w-100 text-start">
-//           📞 Contact Us
-//         </Link>
-//       </li>
-//       <li className="mb-3">
-//         <button
-//           className="btn btn-outline-primary w-100"
-//           id="login-button-mobile"
-//           data-bs-toggle="collapse"
-//           data-bs-target="#sidebar"
-//           aria-expanded="false"
-//           aria-controls="sidebar"
-//         >
-//           <img
-//             src={`${process.env.PUBLIC_URL}/images/icon-svg/login.svg`}
-//             className="login-icon me-2"
-//             alt="Login"
-//             style={{ height: "20px" }}
-//           />
-//           Login
-//         </button>
-//       </li>
-//     </ul>
-//   </div>
-// </div>
-
-// <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>

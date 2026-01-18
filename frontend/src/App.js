@@ -17,6 +17,7 @@ import Sitemap from './pages/Sitemap';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import TermsAndConditions from './pages/TermsAndConditions';
 import ErrorPage from './pages/ErrorPage';
+import MoneySavingPackages from './components/MoneySavingPackage';
 import Completehealth from './pages/Completehealth';
 import CreatePackage from './pages/CreatePackage';
 import SendOtpTest from './pages/SendOtpTest';
@@ -26,6 +27,7 @@ import UserProfile from './pages/UserProfile';
 import UserOrders from './pages/UserOrders';
 import PaymentCallback from './pages/PaymentCallback';
 import PaymentPage from './pages/PaymentPage';
+import Contact from './pages/Contact';
 
 // Import admin components
 import AdminDashboard from './admin/AdminDashboard';
@@ -51,6 +53,7 @@ function App() {
           <Route path="/" element={<Home />} />
           <Route path="/cart" element={<Cart />} />
           <Route path="/checkups" element={<Checkups />} />
+          <Route path="/money-saving-packages" element={<MoneySavingPackages />} />
           <Route path="/completehealth" element={<Completehealth />} />
           <Route path="/package" element={<Package />} />
           <Route path="/create-package" element={<CreatePackage />} />
@@ -66,6 +69,7 @@ function App() {
           <Route path="/terms-and-conditions" element={<TermsAndConditions />} />
           <Route path="/send-otp-test" element={<SendOtpTest />} />
           <Route path="/send-otp-bhashsms-test" element={<SendOtpBhashSMSTest />} />
+          <Route path="/contact" element={<Contact />} />
 
           {/* User Routes */}
           <Route path="/profile" element={<UserProfile />} />
