@@ -131,6 +131,19 @@ const LoginSidebar = ({ isOpen, onClose }) => {
 
   return (
     <>
+      <style>{`
+        .btn-no-hover {
+          background-color: #198754 !important; /* Bootstrap success color */
+          border-color: #198754 !important;
+          opacity: 1 !important;
+        }
+        .btn-no-hover:hover, .btn-no-hover:focus, .btn-no-hover:active {
+          background-color: #198754 !important;
+          border-color: #198754 !important;
+          box-shadow: none !important;
+          transform: none !important;
+        }
+      `}</style>
       <div
         className="position-fixed top-0 start-0 h-100 bg-white shadow"
         style={{
@@ -153,7 +166,7 @@ const LoginSidebar = ({ isOpen, onClose }) => {
           </button>
         </div>
         <div className="login-form-container p-4">
-          <div className="login-banner mb-4 text-center">
+          <div className="login-banner mb-4 d-flex justify-content-center text-center">
             <img
               src={`${process.env.PUBLIC_URL}/images/logo/WhatsApp Image 2025-08-19 at 17.38.25_562bb83d.jpg`}
               alt="Login Banner"
@@ -227,7 +240,7 @@ const LoginSidebar = ({ isOpen, onClose }) => {
               <div className="d-grid">
                 <button
                   type="submit"
-                  className="btn btn-success btn-lg"
+                  className="btn btn-success btn-lg btn-no-hover"
                   disabled={isLoading}
                 >
                   {isLoading ? (

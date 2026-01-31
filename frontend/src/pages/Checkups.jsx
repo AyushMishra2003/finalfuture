@@ -2,6 +2,9 @@ import React, { useState, useEffect } from "react";
 import { useSearchParams, Link } from "react-router-dom";
 import { AlertTriangle } from "lucide-react";
 import apiService from "../utils/api";
+import PatientSelectionModal from "../components/PatientSelectionModal";
+import AppointmentTimeModal from "../components/AppointmentTimeModal";
+import LocationSelectionModal from "../components/LocationSelectionModal";
 
 const Checkups = () => {
   const [tabs, setTabs] = useState([]);
@@ -10,6 +13,12 @@ const Checkups = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchParams] = useSearchParams();
+  const [isPatientModalOpen, setIsPatientModalOpen] = useState(false);
+  const [isAppointmentModalOpen, setIsAppointmentModalOpen] = useState(false);
+  const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
+  const [selectedTest, setSelectedTest] = useState(null);
+  const [selectedPatientsForBooking, setSelectedPatientsForBooking] = useState([]);
+  const [appointmentDetailsForBooking, setAppointmentDetailsForBooking] = useState(null);
 
   useEffect(() => {
     const fetchTabs = async () => {
@@ -43,7 +52,7 @@ const Checkups = () => {
       setLoading(true);
       setError(null);
       const response = await apiService.getTestsByCategory(tabName);
-      
+
       if (response.success && response.data) {
         setTabContent(response.data);
       } else {
@@ -69,25 +78,21 @@ const Checkups = () => {
     window.history.pushState({}, "", newUrl);
   };
 
-  const addToCart = async (testId) => {
-    const userId = localStorage.getItem("userId") || "temp-user-id";
-    if (!userId) {
-      alert("Please login to add items to cart");
+  const handleAddToCartClick = (test) => {
+    // Check if item already in cart
+    const currentCart = JSON.parse(localStorage.getItem('cart') || '[]');
+    const existingItem = currentCart.find(
+      (item) => item.id === test._id || item._id === test._id
+    );
+
+    if (existingItem) {
+      alert("Item is already in your cart!");
       return;
     }
 
-    try {
-      const response = await apiService.addToCart(userId, testId);
-
-      if (response.success) {
-        alert("Item added to cart successfully!");
-      } else {
-        setError(response.message || "Failed to add item to cart");
-      }
-    } catch (error) {
-      console.error("Error adding to cart:", error);
-      setError("Error adding item to cart. Please try again.");
-    }
+    // Open patient selection modal
+    setSelectedTest(test);
+    setIsPatientModalOpen(true);
   };
 
   if (loading && tabs.length === 0) {
@@ -124,7 +129,7 @@ const Checkups = () => {
   return (
     <div className="container py-5">
       <h2 className="mb-4">Health Checkups</h2>
-      
+
       {/* Tab Navigation */}
       <ul className="nav nav-tabs mb-4">
         {tabs.map((tab) => (
@@ -157,7 +162,7 @@ const Checkups = () => {
                   <p className="text-muted">Price: ₹{test.price}</p>
                   <button
                     className="btn btn-primary"
-                    onClick={() => addToCart(test._id)}
+                    onClick={() => handleAddToCartClick(test)}
                   >
                     Add to Cart
                   </button>
@@ -167,6 +172,81 @@ const Checkups = () => {
           ))}
         </div>
       )}
+
+      {/* Patient Selection Modal */}
+      <PatientSelectionModal
+        isOpen={isPatientModalOpen}
+        onClose={() => {
+          setIsPatientModalOpen(false);
+          setSelectedTest(null);
+          setSelectedPatientsForBooking([]);
+        }}
+        onNext={(selectedPatients) => {
+          setSelectedPatientsForBooking(selectedPatients);
+          setIsPatientModalOpen(false);
+          setIsAppointmentModalOpen(true);
+        }}
+      />
+
+      <AppointmentTimeModal
+        isOpen={isAppointmentModalOpen}
+        onClose={() => {
+          setIsAppointmentModalOpen(false);
+          setSelectedTest(null);
+          setSelectedPatientsForBooking([]);
+          setAppointmentDetailsForBooking(null);
+        }}
+        onNext={(appointmentDetails) => {
+          setAppointmentDetailsForBooking(appointmentDetails);
+          setIsAppointmentModalOpen(false);
+          setIsLocationModalOpen(true);
+        }}
+        selectedPatients={selectedPatientsForBooking}
+      />
+
+      <LocationSelectionModal
+        isOpen={isLocationModalOpen}
+        onClose={() => {
+          setIsLocationModalOpen(false);
+          setSelectedTest(null);
+          setSelectedPatientsForBooking([]);
+          setAppointmentDetailsForBooking(null);
+        }}
+        onConfirm={(finalBookingDetails) => {
+          if (!selectedTest) return;
+
+          const currentCart = JSON.parse(localStorage.getItem('cart') || '[]');
+
+          finalBookingDetails.patients.forEach(patient => {
+            const cartItem = {
+              ...selectedTest,
+              id: selectedTest._id,
+              category: activeTab || "Health Checkup",
+              patient: patient,
+              appointment: {
+                date: finalBookingDetails.date,
+                time: finalBookingDetails.time,
+                location: finalBookingDetails.location
+              }
+            };
+            currentCart.push(cartItem);
+          });
+
+          localStorage.setItem('cart', JSON.stringify(currentCart));
+          window.dispatchEvent(new Event('storage'));
+
+          setIsLocationModalOpen(false);
+          setIsAppointmentModalOpen(false);
+          setIsPatientModalOpen(false);
+          setSelectedTest(null);
+          setSelectedPatientsForBooking([]);
+          setAppointmentDetailsForBooking(null);
+
+          alert(`✅ Appointment booked for ${finalBookingDetails.patients.length} patient(s)!`);
+        }}
+        selectedPatients={selectedPatientsForBooking}
+        appointmentDetails={appointmentDetailsForBooking}
+      />
     </div>
   );
 };

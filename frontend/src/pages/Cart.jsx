@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Trash2, ShoppingBag, ArrowRight, CheckCircle, Home } from "lucide-react";
+import { Trash2, ShoppingBag, ArrowRight, CheckCircle, Home, User, Calendar, MapPin, Clock } from "lucide-react";
 import axios from 'axios';
 import { baseUrl } from "../utils/config";
 import HDFCPayment from '../components/HDFCPayment';
@@ -83,15 +83,27 @@ const Cart = () => {
       return;
     }
 
+    // Allow guest checkout - navigate directly to payment page
     const token = localStorage.getItem('userToken') || localStorage.getItem('token');
+
+    // If no token, allow guest checkout
     if (!token) {
-      alert("Please login to proceed with checkout");
-      navigate('/login'); // Assuming /login route exists or use appropriate redirect
+      // Navigate to payment page without creating order first
+      navigate('/payment', {
+        state: {
+          orderId: null, // Guest order, will be created on payment page
+          amount: calculateSubtotal(),
+          items: cartItems,
+          totalMRP: calculateOriginalTotal(),
+          discount: calculateSavings(),
+          isGuest: true
+        }
+      });
       return;
     }
 
+    // For logged-in users, create order first
     try {
-      // Create Order First
       const orderConfig = {
         headers: { Authorization: `Bearer ${token}` }
       };
@@ -99,7 +111,7 @@ const Cart = () => {
       const orderData = {
         orderItems: cartItems.map(item => ({
           name: item.name,
-          quantity: 1, // Default to 1
+          quantity: 1,
           price: item.price,
           test: item._id
         })),
@@ -117,20 +129,31 @@ const Cart = () => {
         const totalMRP = calculateOriginalTotal();
         const savings = calculateSavings();
 
-        // Instead of inline payment, navigate to Payment Page with state
+        // Navigate to Payment Page with state
         navigate('/payment', {
           state: {
             orderId: response.data.data._id,
             amount: response.data.data.totalPrice,
             items: cartItems,
             totalMRP: totalMRP,
-            discount: savings
+            discount: savings,
+            isGuest: false
           }
         });
       }
     } catch (error) {
       console.error("Error creating order:", error);
-      alert("Failed to create order. Please try again.");
+      // If order creation fails, still allow proceeding to payment
+      navigate('/payment', {
+        state: {
+          orderId: null,
+          amount: calculateSubtotal(),
+          items: cartItems,
+          totalMRP: calculateOriginalTotal(),
+          discount: calculateSavings(),
+          isGuest: true
+        }
+      });
     }
   };
 
@@ -270,6 +293,54 @@ const Cart = () => {
                               </span>
                             )}
                           </div>
+
+                          {/* Patient Details */}
+                          {item.patient && (
+                            <div className="cart-item-patient-info">
+                              <div className="patient-detail">
+                                <User size={16} className="detail-icon" />
+                                <div className="detail-content">
+                                  <span className="detail-label">Patient:</span>
+                                  <span className="detail-value">
+                                    {item.patient.name} ({item.patient.age}/{item.patient.gender})
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Appointment Details */}
+                          {item.appointment && (
+                            <div className="cart-item-appointment-info">
+                              {item.appointment.date && item.appointment.time && (
+                                <div className="appointment-detail">
+                                  <Calendar size={16} className="detail-icon" />
+                                  <div className="detail-content">
+                                    <span className="detail-label">Appointment:</span>
+                                    <span className="detail-value">
+                                      {item.appointment.date.day} {item.appointment.date.date} {item.appointment.date.month} at {item.appointment.time}
+                                    </span>
+                                  </div>
+                                </div>
+                              )}
+
+                              {/* Location Details */}
+                              {item.appointment.location && (
+                                <div className="location-detail">
+                                  <MapPin size={16} className="detail-icon" />
+                                  <div className="detail-content">
+                                    <span className="detail-label">Location:</span>
+                                    <span className="detail-value">
+                                      {typeof item.appointment.location === 'string'
+                                        ? item.appointment.location
+                                        : `${item.appointment.location.address}, ${item.appointment.location.city} - ${item.appointment.location.pincode}`
+                                      }
+                                    </span>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          )}
                         </div>
 
                         <div className="cart-item-pricing">
@@ -349,7 +420,7 @@ const Cart = () => {
 
                   <button className="checkout-btn" onClick={handleCheckout}>
                     <ShoppingBag size={20} />
-                    Proceed to Checkout
+                    Proceed to Payment
                     <ArrowRight size={20} />
                   </button>
 

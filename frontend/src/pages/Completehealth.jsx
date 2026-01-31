@@ -36,6 +36,9 @@ import {
   Pill,
 } from "lucide-react";
 import apiService from "../utils/api";
+import PatientSelectionModal from "../components/PatientSelectionModal";
+import AppointmentTimeModal from "../components/AppointmentTimeModal";
+import LocationSelectionModal from "../components/LocationSelectionModal";
 
 const Completehealth = () => {
   // State
@@ -52,6 +55,14 @@ const Completehealth = () => {
   const [toastMessage, setToastMessage] = useState("");
   const [bookedItems, setBookedItems] = useState({}); // Track booked items: { testId: patientCount }
   const [expandedCategories, setExpandedCategories] = useState([]); // Track expanded test categories
+
+  // Modal State
+  const [isPatientModalOpen, setIsPatientModalOpen] = useState(false);
+  const [isAppointmentModalOpen, setIsAppointmentModalOpen] = useState(false);
+  const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
+  const [selectedTestForBooking, setSelectedTestForBooking] = useState(null);
+  const [selectedPatientsForBooking, setSelectedPatientsForBooking] = useState([]);
+  const [appointmentDetailsForBooking, setAppointmentDetailsForBooking] = useState(null);
 
   // Comprehensive Test Database
   const testDatabase = {
@@ -551,47 +562,9 @@ const Completehealth = () => {
     document.body.style.overflow = 'auto';
   };
 
-  const handleAddToCart = (test) => {
-    // Update booked items state
-    setBookedItems(prev => ({
-      ...prev,
-      [test.id]: (prev[test.id] || 0) + 1
-    }));
-
-    // Get existing cart from localStorage
-    const existingCart = JSON.parse(localStorage.getItem('cart')) || [];
-
-    // Create cart item with mapped properties to match Cart.jsx expectations
-    const newItem = {
-      _id: test.id,
-      name: test.title,
-      price: test.price,
-      originalPrice: test.mrp,
-      category: test.category,
-      description: test.description,
-      testCount: test.testCount,
-      reportTime: test.reportTime,
-      quantity: 1
-    };
-
-    const updatedCart = [...existingCart, newItem];
-
-    // Save to localStorage
-    localStorage.setItem('cart', JSON.stringify(updatedCart));
-
-    // Update local state
-    setCart(updatedCart);
-
-    // Dispatch custom event for Header cart count update
-    const event = new CustomEvent('cartUpdated', { detail: { count: updatedCart.length } });
-    window.dispatchEvent(event);
-
-    // Also dispatch storage event for cross-component sync
-    window.dispatchEvent(new Event("storage"));
-
-    setToastMessage(`${test.title} added to cart!`);
-    setShowToast(true);
-    setTimeout(() => setShowToast(false), 3000);
+  const handleBookTest = (test) => {
+    setSelectedTestForBooking(test);
+    setIsPatientModalOpen(true);
   };
 
   // Toggle test category expansion
@@ -1362,7 +1335,7 @@ const Completehealth = () => {
                 </div>
               </div>
               <button
-                onClick={() => handleAddToCart(activeTest)}
+                onClick={() => handleBookTest(activeTest)}
                 style={{
                   flex: 1,
                   background: bookedItems[activeTest.id] ? "linear-gradient(135deg, #FF8C00 0%, #FF7A00 100%)" : "linear-gradient(135deg, #10b981 0%, #059669 100%)",
@@ -1416,6 +1389,98 @@ const Completehealth = () => {
           to { opacity: 1; }
         }
       `}</style>
+      <PatientSelectionModal
+        isOpen={isPatientModalOpen}
+        onClose={() => {
+          setIsPatientModalOpen(false);
+          setSelectedTestForBooking(null);
+          setSelectedPatientsForBooking([]);
+        }}
+        onNext={(selectedPatients) => {
+          setSelectedPatientsForBooking(selectedPatients);
+          setIsPatientModalOpen(false);
+          setIsAppointmentModalOpen(true);
+        }}
+      />
+
+      <AppointmentTimeModal
+        isOpen={isAppointmentModalOpen}
+        onClose={() => {
+          setIsAppointmentModalOpen(false);
+          setSelectedTestForBooking(null);
+          setSelectedPatientsForBooking([]);
+          setAppointmentDetailsForBooking(null);
+        }}
+        onNext={(appointmentDetails) => {
+          setAppointmentDetailsForBooking(appointmentDetails);
+          setIsAppointmentModalOpen(false);
+          setIsLocationModalOpen(true);
+        }}
+        selectedPatients={selectedPatientsForBooking}
+      />
+
+      <LocationSelectionModal
+        isOpen={isLocationModalOpen}
+        onClose={() => {
+          setIsLocationModalOpen(false);
+          setSelectedTestForBooking(null);
+          setSelectedPatientsForBooking([]);
+          setAppointmentDetailsForBooking(null);
+        }}
+        onConfirm={(finalBookingDetails) => {
+          const test = selectedTestForBooking;
+          if (!test) return;
+
+          // Update booked items state
+          setBookedItems(prev => ({
+            ...prev,
+            [test.id]: (prev[test.id] || 0) + finalBookingDetails.patients.length
+          }));
+
+          const existingCart = JSON.parse(localStorage.getItem('cart') || '[]');
+
+          finalBookingDetails.patients.forEach(patient => {
+            const newItem = {
+              _id: test.id,
+              name: test.title,
+              price: test.price,
+              originalPrice: test.mrp,
+              category: test.category,
+              description: test.description,
+              testCount: test.testCount,
+              reportTime: test.reportTime,
+              quantity: 1,
+              patient: patient,
+              appointment: {
+                date: finalBookingDetails.date,
+                time: finalBookingDetails.time,
+                location: finalBookingDetails.location
+              }
+            };
+            existingCart.push(newItem);
+          });
+
+          localStorage.setItem('cart', JSON.stringify(existingCart));
+          setCart(existingCart);
+
+          const event = new CustomEvent('cartUpdated', { detail: { count: existingCart.length } });
+          window.dispatchEvent(event);
+          window.dispatchEvent(new Event("storage"));
+
+          setToastMessage(`${test.title} - Appointment booked for ${finalBookingDetails.patients.length} patient(s)!`);
+          setShowToast(true);
+          setTimeout(() => setShowToast(false), 3000);
+
+          setIsLocationModalOpen(false);
+          setIsAppointmentModalOpen(false);
+          setIsPatientModalOpen(false);
+          setSelectedTestForBooking(null);
+          setSelectedPatientsForBooking([]);
+          setAppointmentDetailsForBooking(null);
+        }}
+        selectedPatients={selectedPatientsForBooking}
+        appointmentDetails={appointmentDetailsForBooking}
+      />
     </div>
   );
 };

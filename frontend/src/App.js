@@ -22,12 +22,15 @@ import Completehealth from './pages/Completehealth';
 import CreatePackage from './pages/CreatePackage';
 import SendOtpTest from './pages/SendOtpTest';
 import SendOtpBhashSMSTest from './pages/SendOtpBhashSMSTest';
+import SpecialOffers from './pages/SpecialOffers';
 
 import UserProfile from './pages/UserProfile';
 import UserOrders from './pages/UserOrders';
 import PaymentCallback from './pages/PaymentCallback';
 import PaymentPage from './pages/PaymentPage';
+import OrderSummary from './pages/OrderSummary';
 import Contact from './pages/Contact';
+import BookingFlowDemo from './pages/BookingFlowDemo';
 
 // Import admin components
 import AdminDashboard from './admin/AdminDashboard';
@@ -54,6 +57,7 @@ function App() {
           <Route path="/cart" element={<Cart />} />
           <Route path="/checkups" element={<Checkups />} />
           <Route path="/money-saving-packages" element={<MoneySavingPackages />} />
+          <Route path="/offers" element={<SpecialOffers />} />
           <Route path="/completehealth" element={<Completehealth />} />
           <Route path="/package" element={<Package />} />
           <Route path="/create-package" element={<CreatePackage />} />
@@ -77,6 +81,8 @@ function App() {
 
           <Route path="/payment/callback" element={<PaymentCallback />} />
           <Route path="/payment" element={<PaymentPage />} />
+          <Route path="/order-summary" element={<OrderSummary />} />
+          <Route path="/booking-demo" element={<BookingFlowDemo />} />
 
           {/* Admin Routes */}
           <Route path="/admin/login" element={<AdminLogin />} />

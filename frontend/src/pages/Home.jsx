@@ -12,6 +12,30 @@ import Carousel from "react-bootstrap/Carousel";
 import PremiumCarousel from "../components/PremiumCarousel";
 import SpecialOffersCarousel from "../components/SpecialOffersCarousel";
 import MoneySavingPackages from "../components/MoneySavingPackage";
+import PatientSelectionModal from "../components/PatientSelectionModal";
+import AppointmentTimeModal from "../components/AppointmentTimeModal";
+import LocationSelectionModal from "../components/LocationSelectionModal";
+
+// Reusable SectionHeader Component
+const SectionHeader = ({ title, subtitle, action }) => (
+  <div className="text-center mb-4 section-header-row">
+    <div className="section-header-text mb-3">
+      <h2 className="section-title fw-bold mb-2" style={{ fontSize: '2.25rem', letterSpacing: '-0.02em', color: '#115e59' }}>
+        {title}
+      </h2>
+      {subtitle && (
+        <p className="section-subtitle text-muted mb-0 fw-medium mx-auto" style={{ fontSize: '1rem', lineHeight: '1.5', maxWidth: '600px' }}>
+          {subtitle}
+        </p>
+      )}
+    </div>
+    {action && (
+      <div className="section-action d-flex justify-content-center">
+        {action}
+      </div>
+    )}
+  </div>
+);
 
 const Home = () => {
   // Helper function to get correct image URL
@@ -57,6 +81,14 @@ const Home = () => {
 
   // special offers carousel
   const packages = mockData.specialOffers || [];
+
+  // Patient selection modal state
+  const [isPatientModalOpen, setIsPatientModalOpen] = useState(false);
+  const [isAppointmentModalOpen, setIsAppointmentModalOpen] = useState(false);
+  const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
+  const [selectedPackageForBooking, setSelectedPackageForBooking] = useState(null);
+  const [selectedPatientsForBooking, setSelectedPatientsForBooking] = useState([]);
+  const [appointmentDetailsForBooking, setAppointmentDetailsForBooking] = useState(null);
 
   // DetailCard Component
   const DetailCard = ({ pkg, onClose }) => {
@@ -449,9 +481,11 @@ const Home = () => {
         <div className="container">
           <div className="row justify-content-center">
             <div className="col-lg-8 col-md-10">
-              <div className="section-header-container">
-                <h2 className="section-title">Check Service Availability</h2>
-                <p className="section-subtitle">Enter your pincode to see if we serve your area with home collection.</p>
+              <div className="mb-4">
+                <SectionHeader
+                  title="Check Service Availability"
+                  subtitle="Enter your pincode to see if we serve your area with home collection."
+                />
               </div>
               <div className="card shadow-sm border-0">
                 <div className="card-body p-4">
@@ -671,28 +705,19 @@ const Home = () => {
       {/* Special Offers Section */}
       <section className="py-5 bg-light">
         <div className="container">
-       
-        <div className="flex flex-col md:flex-row md:justify-between items-center mb-8 relative text-center ">
 
-  <div className="w-full md:w-auto mx-auto mb-4 md:mb-0 flex flex-col items-center ">
-    <h2 className="section-title mb-2 text-center  align-center">
-      Special-Offers <br className="block md:hidden" /> Packages
-    </h2>
-
-    <p className="section-subtitle text-center md:text-left">
-      Premium health packages at unbeatable prices.
-      <br className="block md:hidden" /> Up to 75% OFF.
-    </p>
-  </div>
-
-  <button
-    className="btn-premium"
-    onClick={() => navigate('/product?id=1')}
-  >
-    VIEW ALL
-  </button>
-
-</div>
+          <SectionHeader
+            title="Special Offers Packages"
+            subtitle="Premium health packages at unbeatable prices. Up to 75% OFF."
+            action={
+              <button
+                className="btn-premium"
+                onClick={() => navigate('/offers')}
+              >
+                VIEW ALL
+              </button>
+            }
+          />
 
 
           {/* Premium Carousel */}
@@ -719,10 +744,69 @@ const Home = () => {
             onAddToCart={(offerId) => {
               const pkg = packages.find(p => p.id === offerId);
               if (pkg) {
-                // Get existing cart from localStorage
+                // Check if item already exists in cart
                 const existingCart = JSON.parse(localStorage.getItem("cart")) || [];
+                const existingItemIndex = existingCart.findIndex(item => item._id === pkg.id);
 
-                // Create cart item with all required fields
+                if (existingItemIndex !== -1) {
+                  alert("This package is already in your cart!");
+                  return;
+                }
+
+                // Open patient selection modal
+                setSelectedPackageForBooking(pkg);
+                setIsPatientModalOpen(true);
+              }
+            }}
+          />
+
+          {/* Patient Selection Modal */}
+          <PatientSelectionModal
+            isOpen={isPatientModalOpen}
+            onClose={() => {
+              setIsPatientModalOpen(false);
+              setSelectedPackageForBooking(null);
+            }}
+            onNext={(selectedPatients) => {
+              // Store selected patients and move to appointment time selection
+              setSelectedPatientsForBooking(selectedPatients);
+              setIsPatientModalOpen(false);
+              setIsAppointmentModalOpen(true);
+            }}
+          />
+
+          <AppointmentTimeModal
+            isOpen={isAppointmentModalOpen}
+            onClose={() => {
+              setIsAppointmentModalOpen(false);
+              setSelectedPackageForBooking(null);
+              setSelectedPatientsForBooking([]);
+              setAppointmentDetailsForBooking(null);
+            }}
+            onNext={(appointmentDetails) => {
+              setAppointmentDetailsForBooking(appointmentDetails);
+              setIsAppointmentModalOpen(false);
+              setIsLocationModalOpen(true);
+            }}
+            selectedPatients={selectedPatientsForBooking}
+          />
+
+          <LocationSelectionModal
+            isOpen={isLocationModalOpen}
+            onClose={() => {
+              setIsLocationModalOpen(false);
+              setSelectedPackageForBooking(null);
+              setSelectedPatientsForBooking([]);
+              setAppointmentDetailsForBooking(null);
+            }}
+            onConfirm={(finalBookingDetails) => {
+              if (!selectedPackageForBooking) return;
+
+              const pkg = selectedPackageForBooking;
+              const existingCart = JSON.parse(localStorage.getItem("cart")) || [];
+
+              // Add item for each selected patient with full booking details
+              finalBookingDetails.patients.forEach(patient => {
                 const cartItem = {
                   _id: pkg.id,
                   name: pkg.title,
@@ -732,29 +816,34 @@ const Home = () => {
                   category: "Health Package",
                   description: `${pkg.tests} included with ${pkg.details.homeCollection}`,
                   homeSampleCollection: true,
-                  reportsIn: pkg.details.reportTime
+                  reportsIn: pkg.details.reportTime,
+                  patient: patient,
+                  appointment: {
+                    date: finalBookingDetails.date,
+                    time: finalBookingDetails.time,
+                    location: finalBookingDetails.location
+                  }
                 };
+                existingCart.push(cartItem);
+              });
 
-                // Check if item already exists in cart
-                const existingItemIndex = existingCart.findIndex(item => item._id === pkg.id);
+              localStorage.setItem("cart", JSON.stringify(existingCart));
+              window.dispatchEvent(new Event("storage"));
 
-                if (existingItemIndex === -1) {
-                  // Add new item to cart
-                  existingCart.push(cartItem);
-                  localStorage.setItem("cart", JSON.stringify(existingCart));
+              // Show notification
+              setShowCartNotification(true);
+              setTimeout(() => setShowCartNotification(false), 3000);
 
-                  // Trigger storage event for cart count update
-                  window.dispatchEvent(new Event("storage"));
-
-                  // Show notification
-                  setShowCartNotification(true);
-                  setTimeout(() => setShowCartNotification(false), 3000);
-                } else {
-                  // Item already in cart
-                  alert("This package is already in your cart!");
-                }
-              }
+              // Close all modals and reset
+              setIsLocationModalOpen(false);
+              setIsAppointmentModalOpen(false);
+              setIsPatientModalOpen(false);
+              setSelectedPackageForBooking(null);
+              setSelectedPatientsForBooking([]);
+              setAppointmentDetailsForBooking(null);
             }}
+            selectedPatients={selectedPatientsForBooking}
+            appointmentDetails={appointmentDetailsForBooking}
           />
         </div>
       </section>

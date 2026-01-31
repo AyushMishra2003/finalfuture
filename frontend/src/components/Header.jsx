@@ -118,6 +118,16 @@ const Header = () => {
   return (
     <>
       <style>{`
+        /* Custom breakpoint for switching to Mobile Header below 1744px */
+        @media (max-width: 1744px) {
+          .desktop-view-custom { display: none !important; }
+          .mobile-view-custom { display: block !important; }
+        }
+        @media (min-width: 1745px) {
+          .desktop-view-custom { display: block !important; }
+          .mobile-view-custom { display: none !important; }
+        }
+
         @keyframes cartPulse {
           0%, 100% { transform: scale(1); }
           50% { transform: scale(1.2); }
@@ -198,68 +208,174 @@ const Header = () => {
         .header-fade-in {
           animation: fadeInDown 0.5s ease-out;
         }
+
+        /* Base Header Layout */
+        .header-main-row {
+          flex-wrap: nowrap !important;
+        }
+
+        .header-center-area {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          flex: 1;
+          white-space: nowrap;
+        }
+
+        .header-actions {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          white-space: nowrap;
+        }
+
+        /* Large Screens (>1600px) */
+        @media (min-width: 1600px) {
+          .header-side-col { width: 280px; }
+          .header-main-row { padding: 0 40px; }
+          .header-center-area { gap: 14px; }
+        }
+
+        /* Standard Desktop (1300px - 1599px) */
+        @media (min-width: 1300px) and (max-width: 1599px) {
+          .header-side-col { width: 240px; }
+          .header-main-row { padding: 0 30px; }
+          .header-center-area { gap: 12px; }
+        }
+
+        /* Medium Desktop (1200px - 1299px) */
+        @media (min-width: 1200px) and (max-width: 1299px) {
+          .header-side-col { width: 220px !important; }
+          .header-main-row { padding: 0 25px; }
+          .btn.interactive-button {
+              font-size: 0.9rem;
+              padding: 0.4rem 0.7rem;
+          }
+          .header-center-area { gap: 10px !important; }
+          .header-center-area > div { max-width: 480px !important; }
+          .login-button { padding: 8px 16px; font-size: 0.9rem; }
+          .logo img.logo { max-height: 65px !important; }
+        }
+
+        /* Small Desktop (1024px - 1199px) */
+        @media (min-width: 1024px) and (max-width: 1199px) {
+          .header-side-col { width: 200px !important; }
+          .header-main-row { padding: 0 20px; }
+          .btn.interactive-button {
+              font-size: 0.85rem;
+              padding: 0.35rem 0.6rem;
+          }
+          .header-center-area { gap: 8px !important; }
+          .header-center-area > div { max-width: 420px !important; }
+          .login-button { padding: 7px 14px; font-size: 0.85rem; }
+          .cart-button { padding: 10px; }
+          .cart-button img { width: 22px; height: 22px; }
+          .logo img.logo { max-height: 60px !important; }
+          .logo img.favicon { max-height: 28px !important; }
+        }
+
+        /* Large Tablet / Small Laptop (900px - 1023px) */
+        @media (min-width: 900px) and (max-width: 1023px) {
+          .header-side-col { width: 180px !important; }
+          .header-main-row { padding: 0 15px; }
+          .header-center-area { padding: 0 8px !important; gap: 6px !important; }
+          .header-center-area > div { max-width: 360px !important; min-width: 150px !important; }
+          .btn.interactive-button {
+              font-size: 0.8rem;
+              padding: 0.3rem 0.5rem;
+          }
+          .login-button { 
+            padding: 6px 12px; 
+            font-size: 0.8rem; 
+          }
+          .login-icon { margin: 0 8px !important; }
+          .cart-button { padding: 9px; }
+          .cart-button img { width: 20px; height: 20px; }
+          .logo img.logo { max-height: 55px !important; }
+          .logo img.favicon { max-height: 27px !important; }
+        }
+
+        /* Tablet (768px - 899px) */
+        @media (min-width: 768px) and (max-width: 899px) {
+          .header-side-col { width: 160px !important; }
+          .header-main-row { padding: 0 12px; }
+          .header-center-area { padding: 0 6px !important; gap: 5px !important; }
+          .header-center-area > div { max-width: 320px !important; min-width: 140px !important; }
+          .btn.interactive-button {
+              font-size: 0.75rem;
+              padding: 0.28rem 0.45rem;
+              white-space: nowrap;
+          }
+          .login-button { 
+            padding: 6px 10px; 
+            font-size: 0.75rem;
+            white-space: nowrap;
+          }
+          .login-icon { 
+            margin: 0 6px !important; 
+            width: 16px !important;
+            height: 16px !important;
+          }
+          .cart-button { padding: 8px; }
+          .cart-button img { width: 18px; height: 18px; }
+          .cart-badge { 
+            font-size: 0.65rem; 
+            min-width: 18px; 
+            height: 18px; 
+          }
+          .logo img.logo { max-height: 50px !important; }
+          .logo img.favicon { max-height: 25px !important; }
+          .dropdown-toggle::after { font-size: 0.7rem; }
+          .dropdown-menu { font-size: 0.85rem; }
+        }
       `}</style>
 
       {/* Desktop Header */}
-      <header className={`d-none d-md-block header-fade-in ${isScrolled ? 'header-scrolled' : ''}`}>
-        <div className="container-fluid bg-light">
-          <div className="row align-items-center">
-            {/* Logo Section */}
-            <div className="col-lg-2 col-md-3 col-sm-12 col-12 d-flex align-items-center py-lg-3 py-md-2">
+      <header className={`desktop-view-custom header-fade-in ${isScrolled ? 'header-scrolled' : ''}`}>
+        <div className="container-fluid bg-light px-2 px-xl-4">
+          <div className="d-flex align-items-center justify-content-between py-2 header-main-row" style={{ minHeight: '80px' }}>
+
+            {/* Logo Section - Left (Fixed Width) */}
+            <div className="d-flex align-items-center header-side-col" style={{ flexShrink: 0 }}>
               <Link to="/" className="logo-bounce d-inline-block">
-                {/* Using flex display for favicon and logo alignment */}
                 <div style={{ display: 'flex', alignItems: 'center' }}>
                   <img
                     src="/images/logo/favicon.jpg"
                     alt="Favicon"
                     className="favicon"
-                    style={{
-                      maxHeight: "30px",
-                      width: "auto",
-                      marginRight: "10px",
-                      transition: "transform 0.3s ease"
-                    }}
+                    style={{ maxHeight: "30px", width: "auto", marginRight: "10px" }}
                   />
                   <img
                     src="/images/logo/WhatsApp Image 2025-08-19 at 17.38.25_ee7be669.jpg"
                     alt="FutureLabs"
                     className="logo"
-                    onError={(e) => {
-                      e.target.onerror = null;
-                      e.target.src = "/images/logo/favicon.jpg";
-                    }}
-                    style={{
-                      maxHeight: "70px",
-                      width: "auto",
-                      transition: "transform 0.3s ease"
-                    }}
+                    style={{ maxHeight: "70px", width: "auto" }}
                   />
                 </div>
               </Link>
             </div>
 
 
-            {/* Home + Search + Contact Us */}
-            <div className="col-lg-6 col-md-5 col-sm-12 col-12 py-lg-3 py-md-2 d-flex align-items-center justify-content-center gap-3 mx-5">
-              {/* Home Button */}
+            {/* Center Section - Nav & Search (Flexible & Centered) */}
+            <div className="header-center-area">
               <Link
                 to="/"
-                className="btn btn-outline-primary btn-sm interactive-button"
+                className="btn btn-outline-primary btn-sm interactive-button text-nowrap btn-sm-responsive"
                 style={buttonHoverStyle}
                 onClick={addRippleEffect}
               >
                 Home
               </Link>
 
-              {/* Search Component */}
-              <div className="flex-grow-1">
-                <SearchComponent />
+              <div className="flex-grow-1 d-flex justify-content-center">
+                <div className="w-100">
+                  <SearchComponent />
+                </div>
               </div>
 
-              {/* Contact Us Button */}
               <Link
                 to="/contact"
-                className="btn btn-outline-primary btn-sm interactive-button"
+                className="btn btn-outline-primary btn-sm interactive-button text-nowrap btn-sm-responsive"
                 style={buttonHoverStyle}
                 onClick={addRippleEffect}
               >
@@ -267,23 +383,14 @@ const Header = () => {
               </Link>
             </div>
 
-            {/* Cart + Login */}
-            <div className="col-lg-3 col-md-3 col-sm-12 col-12 py-lg-3 py-md-2 d-flex align-items-center justify-content-end gap-2">
+            {/* Right Section - Cart & Login (Fixed Width - Right Aligned) */}
+            <div className="header-side-col header-actions">
               {/* Cart button */}
               <Link
                 to="/cart"
                 className={`cart cart-button ${cartPulse ? 'cart-pulse' : ''}`}
                 id="cart-button-desktop"
-                style={{
-                  display: "inline-flex",
-                  transition: 'transform 0.3s ease'
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.transform = 'scale(1.1) rotate(-5deg)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.transform = 'scale(1) rotate(0deg)';
-                }}
+                style={{ display: "inline-flex", transition: 'transform 0.3s ease' }}
               >
                 <img
                   src={`${process.env.PUBLIC_URL}/images/icon-svg/cart.svg`}
@@ -291,11 +398,7 @@ const Header = () => {
                   alt="Cart"
                 />
                 {cartCount > 0 && (
-                  <span
-                    className="cart-badge"
-                    id="cart-badge-desktop"
-                    style={{ transition: 'transform 0.3s ease' }}
-                  >
+                  <span className="cart-badge" id="cart-badge-desktop">
                     {cartCount}
                   </span>
                 )}
@@ -303,19 +406,18 @@ const Header = () => {
 
               {/* Login/Profile button */}
               {isLoggedIn ? (
-                <div className="dropdown">
+                <div className="dropdown ms-3">
                   <button
                     className="login-button text-center d-none d-md-inline-block position-relative overflow-hidden dropdown-toggle"
                     id="profile-button-desktop"
                     data-bs-toggle="dropdown"
                     aria-expanded="false"
                     style={{
-                      transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
                       cursor: 'pointer',
                       background: '#4CAF50',
                       color: 'white',
                       border: 'none',
-                      paddingLeft: '35px', /* Make room for the absolute positioned icon */
+                      paddingLeft: '35px',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center'
@@ -326,7 +428,6 @@ const Header = () => {
                       className="login-icon"
                       alt="Profile"
                       style={{
-                        transition: 'transform 0.3s ease',
                         filter: 'brightness(0) invert(1)',
                         position: 'absolute',
                         left: '10px'
@@ -343,53 +444,26 @@ const Header = () => {
                 </div>
               ) : (
                 <button
-                  className="login-button text-center d-none d-md-inline-block position-relative  overflow-hidden"
-                  id="login-button-desktop"
-                  onClick={(e) => {
-                    addRippleEffect(e);
-                    setShowLogin(true);
-                  }}
-                  style={{
-                    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                    cursor: 'pointer',
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.transform = 'translateY(-2px)';
-                    e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.15)';
-                    const icon = e.currentTarget.querySelector('.login-icon');
-                    if (icon) icon.style.transform = 'scale(1.1) rotate(5deg)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.transform = 'translateY(0)';
-                    e.currentTarget.style.boxShadow = 'none';
-                    const icon = e.currentTarget.querySelector('.login-icon');
-                    if (icon) icon.style.transform = 'scale(1) rotate(0deg)';
-                  }}
-                  onMouseDown={(e) => {
-                    e.currentTarget.style.transform = 'translateY(0) scale(0.95)';
-                  }}
-                  onMouseUp={(e) => {
-                    e.currentTarget.style.transform = 'translateY(-2px) scale(1)';
-                  }}
+                  className="login-button text-center d-none d-md-inline-block position-relative overflow-hidden ms-3"
+                  onClick={(e) => { addRippleEffect(e); setShowLogin(true); }}
+                  style={{ cursor: 'pointer' }}
                 >
                   <img
                     src={`${process.env.PUBLIC_URL}/images/icon-svg/login.svg`}
                     className="login-icon mx-4"
                     alt="Login"
-                    style={{
-                      transition: 'transform 0.3s ease',
-                    }}
                   />
                   Login
                 </button>
               )}
             </div>
+
           </div>
         </div>
       </header>
 
       {/* Mobile Header */}
-      <div className="logo-container d-block d-md-none header-fade-in">
+      <div className="logo-container mobile-view-custom header-fade-in">
         <div className="container-fluid">
           <div className="row p-1">
             <div className="col-6 p-0">
@@ -475,9 +549,9 @@ const Header = () => {
         <nav className="mobile-menu">
 
           <Link to="/" onClick={() => setMobileMenuOpen(false)}>🏠 Home</Link>
-          <Link to="/packages" onClick={() => setMobileMenuOpen(false)}>🧪 Health Packages</Link>
-          <Link to="/tests" onClick={() => setMobileMenuOpen(false)}>🩺 Lab Tests</Link>
-          <Link to="/offers" onClick={() => setMobileMenuOpen(false)}>🔥 Offers</Link>
+          <Link to="/money-saving-packages" onClick={() => setMobileMenuOpen(false)}>🧪 Health Packages</Link>
+          <Link to="/create-package" onClick={() => setMobileMenuOpen(false)}>🧬 Make Your Own Package</Link>
+          <Link to="/offers" onClick={() => setMobileMenuOpen(false)}>🔥 Special Offers</Link>
           <Link to="/contact" onClick={() => setMobileMenuOpen(false)}>📞 Contact</Link>
 
           <hr />
@@ -503,7 +577,7 @@ const Header = () => {
 
 
       {/* Mobile Search Container - Second Navbar */}
-      <div className="search-container container-fluid d-block d-md-none">
+      <div className="search-container container-fluid mobile-view-custom">
         <SearchComponent isMobile={true} />
       </div>
 
@@ -517,10 +591,3 @@ const Header = () => {
 };
 
 export default Header;
-
-
-
-
-
-
-

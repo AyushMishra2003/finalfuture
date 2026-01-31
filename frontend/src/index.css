@@ -31,6 +31,13 @@ body {
   position: relative;
 }
 
+/* Add bottom padding on mobile to prevent content from being hidden behind footer */
+@media (max-width: 768px) {
+  body {
+    padding-bottom: 80px !important;
+  }
+}
+
 /* Additional Green Background Layers */
 body::before {
   content: '';
@@ -147,9 +154,66 @@ section {
 @media (max-width: 768px) {
   body {
     padding-bottom: 40px;
+  }
+}
 
+/* Standardized Section Headers */
+.section-title {
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 700;
+  color: #0d2e28;
+  font-size: clamp(1.75rem, 4vw, 2.5rem);
+  line-height: 1.2;
+  letter-spacing: -0.5px;
+  position: relative;
+  display: inline-block;
+  margin-bottom: 0.5rem;
+}
+
+.section-subtitle {
+  font-family: 'Poppins', sans-serif;
+  font-size: 1.05rem;
+  color: #5d7572;
+  font-weight: 400;
+  margin-top: 0.5rem;
+  line-height: 1.6;
+  max-width: 600px;
+}
+
+/* Responsive adjustments for headers */
+@media (max-width: 768px) {
+  .section-title {
+    font-size: 1.75rem !important; 
+    text-align: center;
+    display: block;
+    width: 100%;
+  }
+  .section-subtitle {
+    font-size: 0.95rem !important;
+    text-align: center;
+    margin-left: auto;
+    margin-right: auto;
+    max-width: 90%;
+    display: block;
+  }
+  
+  .section-header-row {
+    flex-direction: column !important;
+    align-items: center !important;
+    text-align: center !important;
   }
 
+  .section-header-text {
+    width: 100% !important;
+    margin-bottom: 1rem !important;
+    text-align: center !important;
+  }
+  
+  .section-header-actions {
+    width: 100% !important;
+    display: flex !important;
+    justify-content: center !important;
+  }
 }
 
 
@@ -184,8 +248,21 @@ a {
 
 .modal {
   backdrop-filter: blur(15px) !important;
+  z-index: 99999 !important;
+  position: fixed !important;
+  inset: 0 !important;
+}
 
-  z-index: 9000 !important;
+/* Ensure modal is always on top */
+.z-\[60\] {
+  z-index: 99999 !important;
+}
+
+/* Fix for potential transform/overflow issues in parent containers */
+.product-page-container {
+  transform: none !important;
+  filter: none !important;
+  perspective: none !important;
 }
 
 p {
@@ -339,17 +416,27 @@ a.text-black:hover {
 /* scroll-button */
 #scrollBtn {
   position: fixed;
-  bottom: 20px;
+  bottom: 115px; /* Moved up to be clearly in the page content area */
   right: 20px;
   background-color: #2E9D91;
   color: white;
   border: none;
-  padding: 5px 9px;
-  border-radius: 5px;
+  padding: 8px 12px;
+  border-radius: 50%;
   cursor: pointer;
   display: none;
-  font-size: 16px;
+  font-size: 18px;
   z-index: 9000;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+  transition: all 0.3s ease;
+}
+
+@media (min-width: 768px) {
+  #scrollBtn {
+    bottom: 30px;
+    padding: 10px 15px;
+    border-radius: 5px;
+  }
 }
 
 #scrollBtn:hover {
@@ -4965,52 +5052,90 @@ footer {
 
 
 
-/* mobilefooter */
+/* mobilefooter - Horizontal Bottom Layout */
 
 .mobile-footer {
-
   position: fixed;
   bottom: 0;
   left: 0;
   width: 100%;
-  background-color: #00adb5;
-  box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
-  padding: 10px 0;
+  background: linear-gradient(135deg, #00adb5 0%, #20c997 100%);
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.15);
+  padding: 0;
   z-index: 1000;
+  display: flex;
+  justify-content: space-around;
+  align-items: stretch;
+  gap: 0;
+  height: 70px;
 }
 
-.mobile-footer a {
+.mobile-footer a,
+.mobile-footer > div {
   font-family: "Poppins", serif;
   font-weight: 500;
   font-style: normal;
   text-decoration: none;
   color: rgb(255, 255, 255);
-  font-size: 14px;
+  font-size: 11px;
   text-align: center;
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
+  flex: 1;
+  padding: 8px 4px;
+  transition: all 0.3s ease;
+  position: relative;
 }
 
 .mobile-footer a.active {
-  color: black;
+  color: #ffffff;
+  background-color: rgba(255, 255, 255, 0.15);
+}
 
+.mobile-footer a:hover {
+  background-color: rgba(255, 255, 255, 0.1);
 }
 
 .mobile-footer svg {
-  width: 30px;
-  max-width: 100%;
-  height: auto;
-
+  width: 28px;
+  height: 28px;
+  margin-bottom: 4px;
+  display: block;
+  stroke: white;
+  fill: white;
 }
 
-.wts-mblie {
-  margin-bottom: -9px;
+.mobile-footer span {
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1.2;
+  color: white;
+  display: block;
 }
 
+/* Ensure profile-cart-container doesn't break layout */
+#profile-cart-container {
+  min-width: 0;
+  flex: 1;
+}
+
+.wts-mblie,
 .offr-moblie {
-  margin-bottom: -8px;
+  margin-bottom: 4px;
+}
 
+/* Add padding to body on mobile to prevent content from being hidden behind fixed footer */
+@media (max-width: 767px) {
+  body {
+    padding-bottom: 80px; /* 70px footer height + 10px extra spacing */
+  }
+  
+  /* Ensure main footer is completely hidden on mobile */
+  #footer {
+    display: none !important;
+  }
 }
 
 

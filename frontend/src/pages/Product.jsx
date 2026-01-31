@@ -20,6 +20,50 @@ import {
 } from "lucide-react";
 import { mockData } from "../utils/mockData";
 import apiService from "../utils/api";
+import { ChevronDown, ChevronUp } from "lucide-react";
+import PatientSelectionModal from "../components/PatientSelectionModal";
+import AppointmentTimeModal from "../components/AppointmentTimeModal";
+import LocationSelectionModal from "../components/LocationSelectionModal";
+
+// Accordion Component for Test Groups
+const AccordionItem = ({ title, tests }) => {
+  const [isOpen, setIsOpen] = useState(false);
+
+  return (
+    <div className="bg-white rounded-3xl shadow-md border border-gray-100 overflow-hidden transition-all duration-300 hover:shadow-lg">
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="w-full bg-emerald-50/50 p-6 flex items-center justify-between hover:bg-emerald-50 transition-colors"
+      >
+        <h3 className="text-lg font-bold text-gray-900 flex items-center gap-3">
+          <div className="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center shrink-0">
+            <Activity size={20} className="text-emerald-600" />
+          </div>
+          {title}
+        </h3>
+        <div className={`p-2 rounded-full bg-white text-emerald-600 shadow-sm transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`}>
+          <ChevronDown size={20} />
+        </div>
+      </button>
+
+      <div
+        className={`transition-all duration-300 ease-in-out overflow-hidden ${isOpen ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0'
+          }`}
+      >
+        <div className="p-6 pt-2 border-t border-gray-100">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            {tests.map((test, index) => (
+              <div key={index} className="flex items-start gap-3 p-3 rounded-xl hover:bg-gray-50 transition-colors">
+                <CheckCircle className="text-emerald-600 shrink-0 mt-0.5" size={16} />
+                <span className="text-gray-700 font-medium text-sm">{test}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 const Product = () => {
   const [searchParams] = useSearchParams();
@@ -34,6 +78,11 @@ const Product = () => {
   const [imageLoaded, setImageLoaded] = useState(false);
   const [activeTab, setActiveTab] = useState('overview');
   const [liked, setLiked] = useState(false);
+  const [isPatientModalOpen, setIsPatientModalOpen] = useState(false);
+  const [isAppointmentModalOpen, setIsAppointmentModalOpen] = useState(false);
+  const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
+  const [selectedPatientsForBooking, setSelectedPatientsForBooking] = useState([]);
+  const [appointmentDetailsForBooking, setAppointmentDetailsForBooking] = useState(null);
   const headerRef = useRef(null);
 
   // Initial Data Fetch
@@ -159,7 +208,7 @@ const Product = () => {
   // Calculate blur based on scroll
   const blurAmount = Math.min(scrollY / 50, 10);
 
-  const handleAddToCart = () => {
+  const handleAddToCartClick = () => {
     if (!product) return;
 
     const currentCart = JSON.parse(localStorage.getItem('cart') || '[]');
@@ -172,24 +221,63 @@ const Product = () => {
       return;
     }
 
-    const cartItem = {
-      ...product,
-      id: product.id || product._id, // Ensure consistent ID
-      category: "Special Package"
+    // Open patient selection modal
+    setIsPatientModalOpen(true);
+  };
+
+  const handlePatientSelectionNext = (selectedPatients) => {
+    // Store selected patients and move to appointment time selection
+    setSelectedPatientsForBooking(selectedPatients);
+    setIsPatientModalOpen(false);
+    setIsAppointmentModalOpen(true);
+  };
+
+  const handleAppointmentTimeNext = (timeDetails) => {
+    setAppointmentDetailsForBooking(timeDetails);
+    setIsAppointmentModalOpen(false);
+    setIsLocationModalOpen(true);
+  };
+
+  const handleLocationConfirm = (locationDetails) => {
+    const finalBookingDetails = {
+      patients: selectedPatientsForBooking,
+      date: appointmentDetailsForBooking?.date,
+      time: appointmentDetailsForBooking?.time,
+      location: locationDetails
     };
+    handleAppointmentConfirm(finalBookingDetails);
+    setIsLocationModalOpen(false);
+  };
 
-    const updatedCart = [...currentCart, cartItem];
-    localStorage.setItem('cart', JSON.stringify(updatedCart));
+  const handleAppointmentConfirm = (appointmentDetails) => {
+    const currentCart = JSON.parse(localStorage.getItem('cart') || '[]');
 
-    // Dispatch event to update other components
+    // Add item for each selected patient with appointment details
+    appointmentDetails.patients.forEach(patient => {
+      const cartItem = {
+        ...product,
+        id: product.id || product._id,
+        category: "Special Package",
+        patient: patient,
+        appointment: {
+          date: appointmentDetails.date,
+          time: appointmentDetails.time,
+          location: appointmentDetails.location
+        }
+      };
+      currentCart.push(cartItem);
+    });
+
+    localStorage.setItem('cart', JSON.stringify(currentCart));
     window.dispatchEvent(new Event('storage'));
-    setCartCount(1);
+    setCartCount(currentCart.length);
 
-    // Optional: Show success feedback
-    const button = document.getElementById('add-to-cart-btn');
-    button?.classList.add('animate-bounce');
-    setTimeout(() => button?.classList.remove('animate-bounce'), 600);
-    // alert("Added to cart successfully!");
+    // Close modals and reset
+    setIsAppointmentModalOpen(false);
+    setSelectedPatientsForBooking([]);
+
+    // Show success feedback
+    alert(`✅ Appointment booked for ${appointmentDetails.patients.length} patient(s)!`);
   };
 
   const handleShare = () => {
@@ -248,273 +336,327 @@ const Product = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 via-white to-slate-50 font-sans selection:bg-emerald-100 selection:text-emerald-900">
+    <>
+      <div className="product-page-container min-h-screen bg-gradient-to-b from-slate-50 via-white to-slate-50 font-sans selection:bg-emerald-100 selection:text-emerald-900">
 
-      {/* Floating Header - appears on scroll */}
-      <div
-        ref={headerRef}
-        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${scrollY > 300
-          ? 'translate-y-0 bg-white/95 backdrop-blur-xl shadow-lg shadow-black/5'
-          : '-translate-y-full'
-          }`}
-      >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <button
-              onClick={() => window.history.back()}
-              className="p-2 hover:bg-gray-100 rounded-xl transition-colors"
-            >
-              <ArrowLeft size={20} />
-            </button>
-            <div>
-              <h2 className="font-bold text-gray-900 text-sm">{product.title}</h2>
-              <p className="text-xs text-gray-500">{product.price}</p>
-            </div>
-          </div>
-          <button
-            onClick={handleAddToCart}
-            className="px-6 py-2.5 bg-emerald-600 text-white rounded-full font-bold text-sm hover:bg-emerald-700 transition-all hover:shadow-lg hover:shadow-emerald-600/20"
-          >
-            Add to Cart
-          </button>
-        </div>
-      </div>
-
-      {/* Hero Section with Parallax and Blur Effect */}
-      <div
-        className="relative bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50 pt-20 pb-32 px-4 sm:px-6 lg:px-8 overflow-hidden transition-all duration-300"
-        style={{
-          transform: `translateY(${parallaxOffset}px)`,
-          filter: `blur(${blurAmount}px)`,
-          opacity: Math.max(0.3, 1 - scrollY / 800)
-        }}
-      >
-        {/* Decorative Blobs */}
-        <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-br from-emerald-200/30 to-teal-200/30 rounded-full blur-3xl"></div>
-        <div className="absolute bottom-0 left-0 w-96 h-96 bg-gradient-to-tr from-cyan-200/20 to-blue-200/20 rounded-full blur-3xl"></div>
-
-        <div className="max-w-7xl mx-auto relative z-10">
-          {/* Breadcrumbs */}
-          <nav className="flex items-center space-x-2 text-sm text-gray-600 mb-8">
-            <button className="hover:text-emerald-600 transition-colors">Home</button>
-            <ChevronRight size={14} />
-            <button className="hover:text-emerald-600 transition-colors">Health Packages</button>
-            <ChevronRight size={14} />
-            <span className="font-medium text-gray-900">{product.title}</span>
-          </nav>
-
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-            <div>
-              <div className="inline-flex items-center gap-2 bg-white/80 backdrop-blur-sm px-4 py-2 rounded-full mb-6 shadow-sm">
-                <Award className="text-emerald-600" size={16} />
-                <span className="text-sm font-semibold text-gray-700">Trusted by 50,000+ customers</span>
-              </div>
-
-              <h1 className="text-4xl md:text-6xl font-black text-gray-900 tracking-tight leading-tight mb-6">
-                {product.title}
-              </h1>
-
-              <div className="flex items-center gap-4 mb-6">
-                <div className="flex items-center gap-1">
-                  {[...Array(5)].map((_, i) => (
-                    <Star
-                      key={i}
-                      size={18}
-                      className={`${i < Math.floor(product.rating) ? 'fill-amber-400 text-amber-400' : 'text-gray-300'}`}
-                    />
-                  ))}
-                  <span className="ml-2 font-bold text-gray-900">{product.rating}</span>
-                  <span className="text-gray-500 text-sm">({product.reviews.toLocaleString()} reviews)</span>
-                </div>
-              </div>
-
-              <div className="flex flex-wrap gap-3 mb-8">
-                <span className="inline-flex items-center px-4 py-2 rounded-full text-sm font-bold bg-emerald-600 text-white shadow-lg shadow-emerald-600/20">
-                  <TestTube size={16} className="mr-2" />
-                  {product.tests}
-                </span>
-                <span className="inline-flex items-center px-4 py-2 rounded-full text-sm font-bold bg-white text-sky-600 shadow-lg">
-                  <ShieldCheck size={16} className="mr-2" />
-                  {product.details.certification}
-                </span>
-                <span className="inline-flex items-center px-4 py-2 rounded-full text-sm font-bold bg-white text-orange-600 shadow-lg">
-                  <Zap size={16} className="mr-2" />
-                  {product.discount}
-                </span>
-              </div>
-
-              <div className="flex items-baseline gap-4 mb-8">
-                <span className="text-6xl font-black text-emerald-600">{product.price}</span>
-                <span className="text-2xl text-gray-400 line-through">{product.oldPrice}</span>
-              </div>
-
-              <div className="flex gap-3">
-                <button
-                  id="add-to-cart-btn"
-                  onClick={handleAddToCart}
-                  className="flex-1 py-4 px-8 bg-gradient-to-r from-emerald-600 to-teal-600 text-white rounded-2xl font-bold text-lg shadow-2xl shadow-emerald-600/30 hover:shadow-emerald-600/40 hover:scale-105 transition-all duration-300 flex items-center justify-center gap-3"
-                >
-                  <ShoppingCart size={22} />
-                  {cartCount > 0 ? `Added (${cartCount})` : 'Add to Cart'}
-                </button>
-
-                <button
-                  onClick={() => setLiked(!liked)}
-                  className={`p-4 rounded-2xl font-bold shadow-xl transition-all duration-300 ${liked
-                    ? 'bg-rose-100 text-rose-600 scale-105'
-                    : 'bg-white text-gray-400 hover:bg-gray-50'
-                    }`}
-                >
-                  <Heart size={24} className={liked ? 'fill-rose-600' : ''} />
-                </button>
-
-                <button
-                  onClick={handleShare}
-                  className="p-4 bg-white rounded-2xl font-bold shadow-xl text-gray-600 hover:bg-gray-50 transition-all duration-300 hover:scale-105"
-                >
-                  <Share2 size={24} />
-                </button>
-              </div>
-            </div>
-
-            {/* Hero Image - Hidden on mobile when scrolling */}
-            <div className={`relative transition-all duration-500 ${scrollY > 100 ? 'lg:block hidden' : 'block'}`}>
-              <div className="absolute inset-0 bg-gradient-to-br from-emerald-400/20 to-teal-400/20 rounded-[3rem] blur-2xl"></div>
-              <div className="relative bg-white rounded-[3rem] shadow-2xl p-8 overflow-hidden">
-                <img
-                  src={product.image}
-                  alt={product.title}
-                  onLoad={() => setImageLoaded(true)}
-                  className={`w-full h-auto object-cover rounded-2xl transition-all duration-700 ${imageLoaded ? 'opacity-100 scale-100' : 'opacity-0 scale-95'
-                    }`}
-                />
-                {product.discount && (
-                  <div className="absolute top-12 right-12">
-                    <div className="relative">
-                      <div className="absolute inset-0 bg-orange-500 rounded-full blur-xl opacity-50"></div>
-                      <span className="relative block bg-gradient-to-br from-orange-500 to-red-500 text-white text-lg font-black px-6 py-3 rounded-full shadow-2xl">
-                        {product.discount}
-                      </span>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Tab Navigation */}
-      <div className="sticky top-0 z-40 bg-white/95 backdrop-blur-xl border-b border-gray-200 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex gap-8 overflow-x-auto scrollbar-hide">
-            {['overview', 'tests', 'benefits', 'reviews'].map((tab) => (
+        {/* Floating Header - appears on scroll */}
+        <div
+          ref={headerRef}
+          className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${scrollY > 300
+            ? 'translate-y-0 bg-white/95 backdrop-blur-xl shadow-lg shadow-black/5'
+            : '-translate-y-full'
+            }`}
+        >
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
+            <div className="flex items-center gap-4">
               <button
-                key={tab}
-                onClick={() => {
-                  setActiveTab(tab);
-                  document.getElementById(tab)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                }}
-                className={`py-4 px-2 font-bold text-sm uppercase tracking-wider whitespace-nowrap border-b-2 transition-all ${activeTab === tab
-                  ? 'border-emerald-600 text-emerald-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-900'
-                  }`}
+                onClick={() => window.history.back()}
+                className="p-2 hover:bg-gray-100 rounded-xl transition-colors"
               >
-                {tab}
+                <ArrowLeft size={20} />
               </button>
-            ))}
+              <div>
+                <h2 className="font-bold text-gray-900 text-sm">{product.title}</h2>
+                <p className="text-xs text-gray-500">{product.price}</p>
+              </div>
+            </div>
+            <button
+              onClick={handleAddToCartClick}
+              className="px-6 py-2.5 bg-emerald-600 text-white rounded-full font-bold text-sm hover:bg-emerald-700 transition-all hover:shadow-lg hover:shadow-emerald-600/20"
+            >
+              Add to Cart
+            </button>
           </div>
         </div>
-      </div>
 
-      {/* Content Sections */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+        {/* Hero Section with Parallax and Blur Effect */}
+        <div
+          className="relative bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50 pt-20 pb-32 px-4 sm:px-6 lg:px-8 overflow-hidden transition-all duration-300"
+          style={{
+            transform: `translateY(${parallaxOffset}px)`,
+            filter: `blur(${blurAmount}px)`,
+            opacity: Math.max(0.3, 1 - scrollY / 800)
+          }}
+        >
+          {/* Decorative Blobs */}
+          <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-br from-emerald-200/30 to-teal-200/30 rounded-full blur-3xl"></div>
+          <div className="absolute bottom-0 left-0 w-96 h-96 bg-gradient-to-tr from-cyan-200/20 to-blue-200/20 rounded-full blur-3xl"></div>
 
-        {/* Overview Section */}
-        <section id="overview" className="mb-24 scroll-mt-20">
-          <h2 className="text-3xl font-black text-gray-900 mb-8">Package Overview</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {[
-              { icon: Home, title: 'Home Collection', desc: product.details.homeCollection, color: 'emerald' },
-              { icon: Clock, title: 'Quick Reports', desc: product.details.reportTime, color: 'blue' },
-              { icon: TestTube, title: 'Sample Type', desc: product.details.sampleType, color: 'purple' }
-            ].map((item, idx) => (
-              <div
-                key={idx}
-                className="group bg-white rounded-3xl p-8 shadow-lg hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 border border-gray-100"
+          <div className="max-w-7xl mx-auto relative z-10">
+            {/* Breadcrumbs */}
+            <nav className="flex items-center space-x-2 text-sm text-gray-600 mb-8">
+              <button
+                onClick={() => navigate('/')}
+                className="hover:text-emerald-600 transition-colors"
               >
-                <div className={`w-16 h-16 ${colorMap[item.color].bg} rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300`}>
-                  <item.icon className={`${colorMap[item.color].text}`} size={28} />
-                </div>
-                <h3 className="font-bold text-gray-900 text-lg mb-2">{item.title}</h3>
-                <p className="text-gray-600 leading-relaxed">{item.desc}</p>
-              </div>
-            ))}
-          </div>
-        </section>
+                Home
+              </button>
+              <ChevronRight size={14} />
+              <button
+                onClick={() => navigate('/offers')}
+                className="hover:text-emerald-600 transition-colors"
+              >
+                special offers
+              </button>
+              <ChevronRight size={14} />
+              <span className="font-medium text-gray-900">{product.title}</span>
+            </nav>
 
-        {/* Tests Section */}
-        <section id="tests" className="mb-24 scroll-mt-20">
-          <h2 className="text-3xl font-black text-gray-900 mb-8">Included Tests</h2>
-          <div className="bg-gradient-to-br from-white to-gray-50 rounded-3xl shadow-xl border border-gray-100 p-8">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {product.details.inclusions.map((test, idx) => (
-                <div
-                  key={idx}
-                  className="flex items-center gap-4 p-4 bg-white rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 hover:scale-105 border border-gray-100"
-                >
-                  <div className="w-10 h-10 bg-emerald-100 rounded-xl flex items-center justify-center shrink-0">
-                    <CheckCircle className="text-emerald-600" size={20} />
-                  </div>
-                  <span className="font-semibold text-gray-800">{test}</span>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+              <div>
+                <div className="inline-flex items-center gap-2 bg-white/80 backdrop-blur-sm px-4 py-2 rounded-full mb-6 shadow-sm">
+                  <Award className="text-emerald-600" size={16} />
+                  <span className="text-sm font-semibold text-gray-700">Trusted by 50,000+ customers</span>
                 </div>
+
+                <h1 className="text-4xl md:text-6xl font-black text-gray-900 tracking-tight leading-tight mb-6">
+                  {product.title}
+                </h1>
+
+                <div className="flex items-center gap-4 mb-6">
+                  <div className="flex items-center gap-1">
+                    {[...Array(5)].map((_, i) => (
+                      <Star
+                        key={i}
+                        size={18}
+                        className={`${i < Math.floor(product.rating) ? 'fill-amber-400 text-amber-400' : 'text-gray-300'}`}
+                      />
+                    ))}
+                    <span className="ml-2 font-bold text-gray-900">{product.rating}</span>
+                    <span className="text-gray-500 text-sm">({product.reviews.toLocaleString()} reviews)</span>
+                  </div>
+                </div>
+
+                <div className="flex flex-wrap gap-3 mb-8">
+                  <span className="inline-flex items-center px-4 py-2 rounded-full text-sm font-bold bg-emerald-600 text-white shadow-lg shadow-emerald-600/20">
+                    <TestTube size={16} className="mr-2" />
+                    {product.tests}
+                  </span>
+                  <span className="inline-flex items-center px-4 py-2 rounded-full text-sm font-bold bg-white text-sky-600 shadow-lg">
+                    <ShieldCheck size={16} className="mr-2" />
+                    {product.details.certification}
+                  </span>
+                  <span className="inline-flex items-center px-4 py-2 rounded-full text-sm font-bold bg-white text-orange-600 shadow-lg">
+                    <Zap size={16} className="mr-2" />
+                    {product.discount}
+                  </span>
+                </div>
+
+                <div className="flex items-baseline gap-4 mb-8">
+                  <span className="text-6xl font-black text-emerald-600">{product.price}</span>
+                  <span className="text-2xl text-gray-400 line-through">{product.oldPrice}</span>
+                </div>
+
+                <div className="flex gap-3">
+                  <button
+                    id="add-to-cart-btn"
+                    onClick={handleAddToCartClick}
+                    className="flex-1 py-4 px-8 bg-gradient-to-r from-emerald-600 to-teal-600 text-white rounded-2xl font-bold text-lg shadow-2xl shadow-emerald-600/30 hover:shadow-emerald-600/40 hover:scale-105 transition-all duration-300 flex items-center justify-center gap-3"
+                  >
+                    <ShoppingCart size={22} />
+                    {cartCount > 0 ? `Added (${cartCount})` : 'Add to Cart'}
+                  </button>
+
+                  <button
+                    onClick={() => setLiked(!liked)}
+                    className={`p-4 rounded-2xl font-bold shadow-xl transition-all duration-300 ${liked
+                      ? 'bg-rose-100 text-rose-600 scale-105'
+                      : 'bg-white text-gray-400 hover:bg-gray-50'
+                      }`}
+                  >
+                    <Heart size={24} className={liked ? 'fill-rose-600' : ''} />
+                  </button>
+
+                  <button
+                    onClick={handleShare}
+                    className="p-4 bg-white rounded-2xl font-bold shadow-xl text-gray-600 hover:bg-gray-50 transition-all duration-300 hover:scale-105"
+                  >
+                    <Share2 size={24} />
+                  </button>
+                </div>
+              </div>
+
+              {/* Hero Image - Hidden on mobile when scrolling */}
+              <div className={`relative transition-all duration-500 ${scrollY > 100 ? 'lg:block hidden' : 'block'}`}>
+                <div className="absolute inset-0 bg-gradient-to-br from-emerald-400/20 to-teal-400/20 rounded-[3rem] blur-2xl"></div>
+                <div className="relative bg-white rounded-[3rem] shadow-2xl p-8 overflow-hidden">
+                  <img
+                    src={product.image}
+                    alt={product.title}
+                    onLoad={() => setImageLoaded(true)}
+                    className={`w-full h-auto object-cover rounded-2xl transition-all duration-700 ${imageLoaded ? 'opacity-100 scale-100' : 'opacity-0 scale-95'
+                      }`}
+                  />
+                  {product.discount && (
+                    <div className="absolute top-12 right-12">
+                      <div className="relative">
+                        <div className="absolute inset-0 bg-orange-500 rounded-full blur-xl opacity-50"></div>
+                        <span className="relative block bg-gradient-to-br from-orange-500 to-red-500 text-white text-lg font-black px-6 py-3 rounded-full shadow-2xl">
+                          {product.discount}
+                        </span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Tab Navigation */}
+        <div className="sticky top-0 z-40 bg-white/95 backdrop-blur-xl border-b border-gray-200 shadow-sm">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex gap-8 overflow-x-auto scrollbar-hide">
+              {['overview', 'tests', 'benefits', 'reviews'].map((tab) => (
+                <button
+                  key={tab}
+                  onClick={() => {
+                    setActiveTab(tab);
+                    document.getElementById(tab)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                  }}
+                  className={`py-4 px-2 font-bold text-sm uppercase tracking-wider whitespace-nowrap border-b-2 transition-all ${activeTab === tab
+                    ? 'border-emerald-600 text-emerald-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-900'
+                    }`}
+                >
+                  {tab}
+                </button>
               ))}
             </div>
           </div>
-        </section>
+        </div>
 
-        {/* Benefits Section */}
-        <section id="benefits" className="mb-24 scroll-mt-20">
-          <h2 className="text-3xl font-black text-gray-900 mb-8">Why Choose This Package?</h2>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <div className="bg-gradient-to-br from-emerald-50 to-teal-50 rounded-3xl p-10 border-2 border-emerald-200">
-              <Activity className="text-emerald-600 mb-4" size={32} />
-              <h3 className="text-2xl font-bold text-gray-900 mb-4">Comprehensive Health Screening</h3>
-              <p className="text-gray-700 leading-relaxed">Get a complete picture of your health with 98 essential tests covering all major health parameters.</p>
-            </div>
-            <div className="bg-gradient-to-br from-blue-50 to-cyan-50 rounded-3xl p-10 border-2 border-blue-200">
-              <ShieldCheck className="text-blue-600 mb-4" size={32} />
-              <h3 className="text-2xl font-bold text-gray-900 mb-4">NABL Certified Lab</h3>
-              <p className="text-gray-700 leading-relaxed">All tests performed in NABL accredited labs ensuring highest quality and accuracy standards.</p>
-            </div>
-          </div>
-        </section>
+        {/* Content Sections */}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
 
-        {/* Preparation Notice */}
-        <section id="reviews" className="scroll-mt-20">
-          <div className="bg-gradient-to-r from-amber-50 to-orange-50 rounded-3xl p-8 border-2 border-amber-200 flex gap-6 items-start">
-            <div className="bg-amber-100 rounded-2xl p-4 shrink-0">
-              <AlertTriangle className="text-amber-600" size={28} />
+          {/* Overview Section */}
+          <section id="overview" className="mb-24 scroll-mt-20">
+            <h2 className="text-3xl font-black text-gray-900 mb-8">Package Overview</h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {[
+                { icon: Home, title: 'Home Collection', desc: product.details.homeCollection, color: 'emerald' },
+                { icon: Clock, title: 'Quick Reports', desc: product.details.reportTime, color: 'blue' },
+                { icon: TestTube, title: 'Sample Type', desc: product.details.sampleType, color: 'purple' }
+              ].map((item, idx) => (
+                <div
+                  key={idx}
+                  className="group bg-white rounded-3xl p-8 shadow-lg hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 border border-gray-100"
+                >
+                  <div className={`w-16 h-16 ${colorMap[item.color].bg} rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300`}>
+                    <item.icon className={`${colorMap[item.color].text}`} size={28} />
+                  </div>
+                  <h3 className="font-bold text-gray-900 text-lg mb-2">{item.title}</h3>
+                  <p className="text-gray-600 leading-relaxed">{item.desc}</p>
+                </div>
+              ))}
             </div>
-            <div>
-              <h3 className="text-xl font-bold text-amber-900 mb-2">Important Preparation Instructions</h3>
-              <p className="text-amber-800 leading-relaxed">{product.details.preparation}</p>
+          </section>
+
+          {/* Tests Section */}
+          <section id="tests" className="mb-24 scroll-mt-20">
+            <h2 className="text-3xl font-black text-gray-900 mb-8">Included Tests</h2>
+
+            {/* Check if we have detailed inclusions mapping */}
+            {product.details.detailedInclusions ? (
+              <div className="space-y-4">
+                {Object.entries(product.details.detailedInclusions).map(([category, tests], idx) => (
+                  <AccordionItem key={idx} title={category} tests={tests} />
+                ))}
+              </div>
+            ) : (
+              /* Fallback to simple list if no detailed mapping exists */
+              <div className="bg-gradient-to-br from-white to-gray-50 rounded-3xl shadow-xl border border-gray-100 p-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {product.details.inclusions.map((test, idx) => (
+                    <div
+                      key={idx}
+                      className="flex items-center gap-4 p-4 bg-white rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 hover:scale-105 border border-gray-100"
+                    >
+                      <div className="w-10 h-10 bg-emerald-100 rounded-xl flex items-center justify-center shrink-0">
+                        <CheckCircle className="text-emerald-600" size={20} />
+                      </div>
+                      <span className="font-semibold text-gray-800">{test}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </section>
+
+          {/* Benefits Section */}
+          <section id="benefits" className="mb-24 scroll-mt-20">
+            <h2 className="text-3xl font-black text-gray-900 mb-8">Why Choose This Package?</h2>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              <div className="bg-gradient-to-br from-emerald-50 to-teal-50 rounded-3xl p-10 border-2 border-emerald-200">
+                <Activity className="text-emerald-600 mb-4" size={32} />
+                <h3 className="text-2xl font-bold text-gray-900 mb-4">Comprehensive Health Screening</h3>
+                <p className="text-gray-700 leading-relaxed">Get a complete picture of your health with 98 essential tests covering all major health parameters.</p>
+              </div>
+              <div className="bg-gradient-to-br from-blue-50 to-cyan-50 rounded-3xl p-10 border-2 border-blue-200">
+                <ShieldCheck className="text-blue-600 mb-4" size={32} />
+                <h3 className="text-2xl font-bold text-gray-900 mb-4">NABL Certified Lab</h3>
+                <p className="text-gray-700 leading-relaxed">All tests performed in NABL accredited labs ensuring highest quality and accuracy standards.</p>
+              </div>
             </div>
-          </div>
-        </section>
+          </section>
+
+          {/* Preparation Notice */}
+          <section id="reviews" className="scroll-mt-20">
+            <div className="bg-gradient-to-r from-amber-50 to-orange-50 rounded-3xl p-8 border-2 border-amber-200 flex gap-6 items-start">
+              <div className="bg-amber-100 rounded-2xl p-4 shrink-0">
+                <AlertTriangle className="text-amber-600" size={28} />
+              </div>
+              <div>
+                <h3 className="text-xl font-bold text-amber-900 mb-2">Important Preparation Instructions</h3>
+                <p className="text-amber-800 leading-relaxed">{product.details.preparation}</p>
+              </div>
+            </div>
+          </section>
+        </div>
       </div>
 
       {/* Floating Action Button */}
       <div className="fixed bottom-8 right-8 z-50">
         <button
-          onClick={handleAddToCart}
+          onClick={handleAddToCartClick}
           className="bg-gradient-to-r from-emerald-600 to-teal-600 text-white p-5 rounded-full shadow-2xl shadow-emerald-600/40 hover:shadow-emerald-600/60 hover:scale-110 transition-all duration-300"
         >
           <ShoppingCart size={28} />
         </button>
       </div>
 
-    </div>
+      <PatientSelectionModal
+        isOpen={isPatientModalOpen}
+        onClose={() => {
+          setIsPatientModalOpen(false);
+          setSelectedPatientsForBooking([]);
+        }}
+        onNext={handlePatientSelectionNext}
+      />
+
+      <AppointmentTimeModal
+        isOpen={isAppointmentModalOpen}
+        onClose={() => {
+          setIsAppointmentModalOpen(false);
+          setSelectedPatientsForBooking([]);
+          setAppointmentDetailsForBooking(null);
+        }}
+        onNext={handleAppointmentTimeNext}
+        selectedPatients={selectedPatientsForBooking}
+      />
+
+      <LocationSelectionModal
+        isOpen={isLocationModalOpen}
+        onClose={() => {
+          setIsLocationModalOpen(false);
+          setSelectedPatientsForBooking([]);
+          setAppointmentDetailsForBooking(null);
+        }}
+        onConfirm={handleLocationConfirm}
+        selectedPatients={selectedPatientsForBooking}
+        appointmentDetails={appointmentDetailsForBooking}
+      />
+    </>
   );
 };
 

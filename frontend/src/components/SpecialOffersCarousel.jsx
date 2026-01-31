@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ShoppingCart, Activity, Clock } from 'lucide-react';
+import '../scrollbar-hide.css';
 
 /**
  * Enhanced Premium Special Offers Carousel - Medical-Tech UI
@@ -16,6 +17,54 @@ import { ShoppingCart, Activity, Clock } from 'lucide-react';
 const SpecialOffersCarousel = ({ offers, onAddToCart }) => {
     const [cartItems, setCartItems] = useState({});
     const [activeIndex, setActiveIndex] = useState(0);
+    const [isMobile, setIsMobile] = useState(window.innerWidth < 1280);
+    const [activeMobileIndex, setActiveMobileIndex] = useState(0);
+    const scrollContainerRef = useRef(null);
+
+    useEffect(() => {
+        const handleResize = () => {
+            setIsMobile(window.innerWidth < 1280);
+        };
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
+
+    // Handle Mobile Scroll for Pagination Dots
+    const handleScroll = () => {
+        if (!scrollContainerRef.current) return;
+        const container = scrollContainerRef.current;
+        const scrollLeft = container.scrollLeft;
+        // Approximation: card width (min 300/340) + gap (16)
+        // Better: Use center point calc
+        const containerCenter = scrollLeft + container.clientWidth / 2;
+
+        let minDiff = Infinity;
+        let closestIndex = 0;
+
+        // Iterate through child nodes (the spacer divs)
+        // The first child of container is the flex wrapper
+        const flexWrapper = container.firstElementChild;
+        if (!flexWrapper) return;
+
+        const children = flexWrapper.children;
+        for (let i = 0; i < children.length; i++) {
+            const child = children[i];
+            // Get position relative to container
+            const childLeft = child.offsetLeft;
+            const childWidth = child.offsetWidth;
+            const childCenter = childLeft + childWidth / 2;
+
+            const diff = Math.abs(childCenter - containerCenter);
+            if (diff < minDiff) {
+                minDiff = diff;
+                closestIndex = i;
+            }
+        }
+
+        if (activeMobileIndex !== closestIndex) {
+            setActiveMobileIndex(closestIndex);
+        }
+    };
 
     const handleAddToCart = (offerId) => {
         setCartItems(prev => ({ ...prev, [offerId]: (prev[offerId] || 0) + 1 }));
@@ -24,87 +73,144 @@ const SpecialOffersCarousel = ({ offers, onAddToCart }) => {
 
     if (!offers || offers.length === 0) return null;
 
-    return (
-        <div className="medical-carousel-container w-full py-8 md:py-12 relative">
-            {/* Carousel Wrapper */}
-            <div className="relative h-[520px] flex items-center justify-center overflow-hidden px-4">
-                {/* Cards Container */}
-                <div className="relative w-full max-w-[1400px] h-full flex items-center justify-center">
-                    {offers.map((offer, index) => {
-                        const diff = index - activeIndex;
-                        const totalCards = offers.length;
-
-                        // Calculate position
-                        let position = diff;
-                        if (diff > totalCards / 2) position = diff - totalCards;
-                        if (diff < -totalCards / 2) position = diff + totalCards;
-
-                        const isCenter = position === 0;
-                        const isVisible = Math.abs(position) <= 1;
-
-                        return (
-                            <div
-                                key={offer.id}
-                                className="absolute transition-all duration-700 ease-out"
-                                style={{
-                                    transform: `translateX(${position * 380}px) scale(${isCenter ? 1.05 : 0.85})`,
-                                    opacity: isVisible ? (isCenter ? 1 : 0.35) : 0,
-                                    filter: isCenter ? 'blur(0px)' : 'blur(6px)',
-                                    zIndex: isCenter ? 20 : 10 - Math.abs(position),
-                                    pointerEvents: isCenter ? 'auto' : 'none',
-                                }}
-                            >
-                                <MedicalCard
-                                    offer={offer}
-                                    isActive={isCenter}
-                                    cartCount={cartItems[offer.id]}
-                                    onAddToCart={handleAddToCart}
-                                />
-                            </div>
-                        );
-                    })}
+    const mobileView = (
+        <div className="w-full">
+            <div
+                ref={scrollContainerRef}
+                onScroll={handleScroll}
+                className="w-full overflow-x-auto pb-8 pt-4 px-4 scrollbar-hide -mx-4"
+            >
+                <div className="flex gap-4 snap-x snap-mandatory px-4">
+                    {offers.map((offer) => (
+                        <div key={offer.id} className="min-w-[300px] max-w-[340px] snap-center flex-shrink-0">
+                            <MedicalCard
+                                offer={offer}
+                                isActive={true}
+                                cartCount={cartItems[offer.id]}
+                                onAddToCart={handleAddToCart}
+                            />
+                        </div>
+                    ))}
                 </div>
-
-                {/* Navigation Buttons */}
-                <button
-                    onClick={() => setActiveIndex((prev) => (prev === 0 ? offers.length - 1 : prev - 1))}
-                    className="absolute left-4 top-1/2 -translate-y-1/2 z-30 w-12 h-12 rounded-full bg-white shadow-lg flex items-center justify-center text-teal-700 hover:bg-teal-50 transition-all duration-300 hover:scale-110"
-                    style={{ boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
-                >
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <path d="M15 18l-6-6 6-6" />
-                    </svg>
-                </button>
-
-                <button
-                    onClick={() => setActiveIndex((prev) => (prev === offers.length - 1 ? 0 : prev + 1))}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 z-30 w-12 h-12 rounded-full bg-white shadow-lg flex items-center justify-center text-teal-700 hover:bg-teal-50 transition-all duration-300 hover:scale-110"
-                    style={{ boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
-                >
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <path d="M9 18l6-6-6-6" />
-                    </svg>
-                </button>
             </div>
 
-            {/* Pagination Dots */}
-            <div className="flex justify-center gap-2 mt-8">
+            {/* Mobile Pagination Dots */}
+            <div className="flex justify-center items-center gap-2 mt-4">
                 {offers.map((_, index) => (
                     <button
                         key={index}
-                        onClick={() => setActiveIndex(index)}
-                        className="transition-all duration-400"
+                        onClick={() => {
+                            if (scrollContainerRef.current) {
+                                const container = scrollContainerRef.current;
+                                const flexWrapper = container.firstElementChild;
+                                if (flexWrapper && flexWrapper.children[index]) {
+                                    const child = flexWrapper.children[index];
+                                    // Center the child
+                                    const scrollAmount = child.offsetLeft - (container.clientWidth / 2) + (child.offsetWidth / 2);
+                                    container.scrollTo({ left: scrollAmount, behavior: 'smooth' });
+                                }
+                            }
+                        }}
+                        className={`rounded-full transition-all duration-300 ${index === activeMobileIndex
+                            ? 'w-6 h-2 bg-teal-700'
+                            : 'w-2 h-2 bg-gray-300 hover:bg-gray-400'
+                            }`}
                         style={{
-                            width: index === activeIndex ? '24px' : '8px',
-                            height: '8px',
-                            borderRadius: index === activeIndex ? '12px' : '50%',
-                            background: index === activeIndex ? '#2D7A6E' : '#D1D5DB',
-                            boxShadow: index === activeIndex ? '0 2px 8px rgba(45, 122, 110, 0.3)' : 'none',
-                            cursor: 'pointer',
+                            boxShadow: index === activeMobileIndex ? '0 2px 8px rgba(45, 122, 110, 0.3)' : 'none',
                         }}
                     />
                 ))}
             </div>
+        </div>
+    );
+
+    return (
+        <div className="medical-carousel-container w-full py-8 md:py-12 relative">
+            {isMobile ? (
+                mobileView
+            ) : (
+                <>
+                    {/* Carousel Wrapper */}
+                    <div className="relative h-[520px] flex items-center justify-center overflow-hidden px-4">
+                        {/* Cards Container */}
+                        <div className="relative w-full max-w-[1400px] h-full flex items-center justify-center">
+                            {offers.map((offer, index) => {
+                                const diff = index - activeIndex;
+                                const totalCards = offers.length;
+
+                                // Calculate position
+                                let position = diff;
+                                if (diff > totalCards / 2) position = diff - totalCards;
+                                if (diff < -totalCards / 2) position = diff + totalCards;
+
+                                const isCenter = position === 0;
+                                const isVisible = Math.abs(position) <= 1;
+
+                                return (
+                                    <div
+                                        key={offer.id}
+                                        className="absolute transition-all duration-700 ease-out"
+                                        style={{
+                                            transform: `translateX(${position * 380}px) scale(${isCenter ? 1.05 : 0.85})`,
+                                            opacity: isVisible ? (isCenter ? 1 : 0.35) : 0,
+                                            filter: isCenter ? 'blur(0px)' : 'blur(6px)',
+                                            zIndex: isCenter ? 20 : 10 - Math.abs(position),
+                                            pointerEvents: isCenter ? 'auto' : 'none',
+                                        }}
+                                    >
+                                        <MedicalCard
+                                            offer={offer}
+                                            isActive={isCenter}
+                                            cartCount={cartItems[offer.id]}
+                                            onAddToCart={handleAddToCart}
+                                        />
+                                    </div>
+                                );
+                            })}
+                        </div>
+
+                        {/* Navigation Buttons */}
+                        <button
+                            onClick={() => setActiveIndex((prev) => (prev === 0 ? offers.length - 1 : prev - 1))}
+                            className="absolute left-4 top-1/2 -translate-y-1/2 z-30 w-12 h-12 rounded-full bg-white shadow-lg flex items-center justify-center text-teal-700 hover:bg-teal-50 transition-all duration-300 hover:scale-110"
+                            style={{ boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
+                        >
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                <path d="M15 18l-6-6 6-6" />
+                            </svg>
+                        </button>
+
+                        <button
+                            onClick={() => setActiveIndex((prev) => (prev === offers.length - 1 ? 0 : prev + 1))}
+                            className="absolute right-4 top-1/2 -translate-y-1/2 z-30 w-12 h-12 rounded-full bg-white shadow-lg flex items-center justify-center text-teal-700 hover:bg-teal-50 transition-all duration-300 hover:scale-110"
+                            style={{ boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
+                        >
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                <path d="M9 18l6-6-6-6" />
+                            </svg>
+                        </button>
+                    </div>
+
+                    {/* Pagination Dots */}
+                    <div className="flex justify-center gap-2 mt-8">
+                        {offers.map((_, index) => (
+                            <button
+                                key={index}
+                                onClick={() => setActiveIndex(index)}
+                                className="transition-all duration-400"
+                                style={{
+                                    width: index === activeIndex ? '24px' : '8px',
+                                    height: '8px',
+                                    borderRadius: index === activeIndex ? '12px' : '50%',
+                                    background: index === activeIndex ? '#2D7A6E' : '#D1D5DB',
+                                    boxShadow: index === activeIndex ? '0 2px 8px rgba(45, 122, 110, 0.3)' : 'none',
+                                    cursor: 'pointer',
+                                }}
+                            />
+                        ))}
+                    </div>
+                </>
+            )}
         </div>
     );
 };
@@ -150,7 +256,8 @@ const MedicalCard = ({ offer, isActive, cartCount, onAddToCart }) => {
                 boxShadow: "0 12px 32px rgba(0, 0, 0, 0.15)",
             } : {}}
             style={{
-                width: '340px',
+                width: '100%',
+                maxWidth: '340px',
                 boxShadow: isActive ? '0 8px 24px rgba(0, 0, 0, 0.12)' : '0 4px 12px rgba(0, 0, 0, 0.08)',
             }}
         >

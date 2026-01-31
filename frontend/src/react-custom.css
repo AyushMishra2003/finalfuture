@@ -173,53 +173,272 @@
   color: #721c24;
 }
 
-/* Scroll to Top Button */
+/* ============================================
+   PREMIUM SCROLL TO TOP BUTTON
+   ============================================ */
+
 .scroll-to-top-btn {
   position: fixed;
-  bottom: 20px;
-  right: 20px;
-  width: 50px;
-  height: 50px;
+  bottom: 30px;
+  right: 30px;
+  width: 56px;
+  height: 56px;
   border-radius: 50%;
-  background-color: #007c6f;
+  
+  /* Premium gradient background */
+  background: linear-gradient(135deg, #00adb5 0%, #20c997 50%, #007c6f 100%);
+  background-size: 200% 200%;
+  
+  /* Glassmorphism effect */
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  
+  /* Borders and shadows */
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 
+    0 8px 32px rgba(0, 124, 111, 0.3),
+    0 2px 8px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  
   color: white;
-  border: none;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   cursor: pointer;
-  transition: all 0.3s;
-  z-index: 1000;
+  
+  /* Layout */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  
+  /* Initial state - hidden */
+  opacity: 0;
+  visibility: hidden;
+  transform: scale(0.8) translateY(20px);
+  
+  /* Smooth transitions */
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  
+  /* Layering */
+  z-index: 999;
+  
+  /* Remove default button styles */
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
+  
+  /* Accessibility */
+  user-select: none;
+  -webkit-user-select: none;
+  
+  /* Animated gradient */
+  animation: gradientShift 6s ease infinite;
+  
+  /* Safe area for notched devices */
+  bottom: calc(30px + env(safe-area-inset-bottom));
 }
 
+/* Visible state - fade in and scale up */
+.scroll-to-top-btn.visible {
+  opacity: 1;
+  visibility: visible;
+  transform: scale(1) translateY(0);
+}
+
+/* Hover effect - desktop */
 .scroll-to-top-btn:hover {
-  background-color: #005a52;
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+  transform: scale(1.1) translateY(-4px);
+  box-shadow: 
+    0 12px 48px rgba(0, 124, 111, 0.4),
+    0 4px 16px rgba(0, 0, 0, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4),
+    0 0 24px rgba(32, 201, 151, 0.5);
+  border-color: rgba(255, 255, 255, 0.4);
 }
 
-/* Responsive Improvements */
-@media (max-width: 768px) {
-  .suggestion-item {
-    padding: 10px 12px;
-  }
+/* Active/Click state */
+.scroll-to-top-btn:active,
+.scroll-to-top-btn.clicked {
+  transform: scale(0.95);
+  box-shadow: 
+    0 4px 16px rgba(0, 124, 111, 0.3),
+    inset 0 2px 4px rgba(0, 0, 0, 0.2);
+}
 
-  .suggestion-title {
-    font-size: 0.875rem;
-  }
+/* SVG icon styling */
+.scroll-to-top-btn svg {
+  width: 24px;
+  height: 24px;
+  stroke: white;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.2));
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  z-index: 2;
+}
 
-  .suggestion-category,
-  .suggestion-price {
-    font-size: 0.75rem;
-  }
+/* Icon animation on hover */
+.scroll-to-top-btn:hover svg {
+  transform: translateY(-3px);
+  animation: bounceArrow 0.6s ease-in-out infinite;
+}
 
-  .test-card {
-    margin-bottom: 16px;
-  }
+/* Ripple effect */
+.scroll-to-top-btn .ripple {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.5);
+  transform: translate(-50%, -50%);
+  opacity: 0;
+  pointer-events: none;
+}
 
+.scroll-to-top-btn:active .ripple,
+.scroll-to-top-btn.clicked .ripple {
+  animation: rippleEffect 0.6s ease-out;
+}
+
+/* Gradient animation */
+@keyframes gradientShift {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+/* Arrow bounce animation */
+@keyframes bounceArrow {
+  0%, 100% {
+    transform: translateY(-3px);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+/* Ripple effect animation */
+@keyframes rippleEffect {
+  0% {
+    width: 0;
+    height: 0;
+    opacity: 0.5;
+  }
+  100% {
+    width: 120px;
+    height: 120px;
+    opacity: 0;
+  }
+}
+
+/* ============================================
+   RESPONSIVE DESIGN
+   ============================================ */
+
+/* Tablet adjustments */
+@media (max-width: 992px) {
   .scroll-to-top-btn {
-    width: 45px;
-    height: 45px;
-    bottom: 80px;
-    /* Above mobile footer */
+    width: 52px;
+    height: 52px;
+    right: 24px;
+    bottom: 24px;
+    bottom: calc(24px + env(safe-area-inset-bottom));
+  }
+  
+  .scroll-to-top-btn svg {
+    width: 22px;
+    height: 22px;
+  }
+}
+
+/* Mobile optimizations */
+@media (max-width: 768px) {
+  .scroll-to-top-btn {
+    width: 48px;
+    height: 48px;
+    right: 16px;
+    
+    /* Position above mobile footer (70px) with spacing */
+    bottom: 90px;
+    bottom: calc(90px + env(safe-area-inset-bottom));
+    
+    /* Slightly reduced effects for performance */
+    box-shadow: 
+      0 6px 24px rgba(0, 124, 111, 0.25),
+      0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+  
+  .scroll-to-top-btn svg {
+    width: 20px;
+    height: 20px;
+    stroke-width: 2.5;
+  }
+  
+  /* Simpler hover on mobile (touch devices) */
+  .scroll-to-top-btn:hover {
+    transform: scale(1.05);
+  }
+  
+  /* Enhanced tap feedback */
+  .scroll-to-top-btn:active {
+    transform: scale(0.9);
+  }
+}
+
+/* Small mobile devices */
+@media (max-width: 480px) {
+  .scroll-to-top-btn {
+    width: 44px;
+    height: 44px;
+    right: 12px;
+    bottom: 85px;
+    bottom: calc(85px + env(safe-area-inset-bottom));
+  }
+  
+  .scroll-to-top-btn svg {
+    width: 18px;
+    height: 18px;
+  }
+}
+
+/* Landscape mobile - adjust for limited vertical space */
+@media (max-height: 500px) and (orientation: landscape) {
+  .scroll-to-top-btn {
+    width: 40px;
+    height: 40px;
+    bottom: 75px;
+    right: 10px;
+  }
+}
+
+/* Dark mode support (if applicable) */
+@media (prefers-color-scheme: dark) {
+  .scroll-to-top-btn {
+    border-color: rgba(255, 255, 255, 0.15);
+    box-shadow: 
+      0 8px 32px rgba(0, 124, 111, 0.4),
+      0 2px 8px rgba(0, 0, 0, 0.3);
+  }
+}
+
+/* Reduced motion for accessibility */
+@media (prefers-reduced-motion: reduce) {
+  .scroll-to-top-btn,
+  .scroll-to-top-btn svg,
+  .scroll-to-top-btn .ripple {
+    animation: none !important;
+    transition-duration: 0.01ms !important;
+  }
+  
+  .scroll-to-top-btn:hover svg {
+    animation: none;
+  }
+}
+
+/* Print - hide button */
+@media print {
+  .scroll-to-top-btn {
+    display: none !important;
   }
 }
 
@@ -315,6 +534,25 @@
     transform: translateX(0);
   }
 }
+
+/* Subtle pulse animation for booking flow */
+.animate-pulse-slow {
+  animation: pulseSlow 3s ease-in-out infinite;
+}
+
+@keyframes pulseSlow {
+  0%, 100% {
+    box-shadow: 
+      0 4px 16px rgba(16, 185, 129, 0.3),
+      0 0 0 0 rgba(16, 185, 129, 0.4);
+  }
+  50% {
+    box-shadow: 
+      0 4px 24px rgba(16, 185, 129, 0.4),
+      0 0 0 8px rgba(16, 185, 129, 0);
+  }
+}
+
 
 /* Focus States for Accessibility */
 .btn:focus,

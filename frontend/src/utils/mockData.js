@@ -301,7 +301,15 @@ export const mockData = {
         sampleType: "Blood & Urine",
         reportTime: "24-48 Hours",
         certification: "NABL Accredited",
-        homeCollection: "Free Home Sample Collection"
+        homeCollection: "Free Home Sample Collection",
+        detailedInclusions: {
+          "Complete Blood Count (CBC)": ["Haemoglobin", "PCV", "RBC Count", "Total WBC Count", "Differential Count", "Platelet Count"],
+          "Liver Function Test": ["Bilirubin Total", "Bilirubin Direct", "Bilirubin Indirect", "SGOT", "SGPT", "Alkaline Phosphatase", "Total Protein", "Albumin", "Globulin", "A/G Ratio"],
+          "Kidney Function Test": ["Urea", "Creatinine", "Uric Acid", "Calcium", "Phosphorus", "Sodium", "Potassium", "Chloride"],
+          "Lipid Profile": ["Total Cholesterol", "Triglycerides", "HDL Cholesterol", "LDL Cholesterol", "VLDL Cholesterol", "Cholesterol/HDL Ratio"],
+          "Sugar Screening": ["Fasting Blood Sugar", "HbA1c"],
+          "Urine Analysis": ["Colour", "Appearance", "pH", "Specific Gravity", "Protein", "Glucose", "Ketone Bodies", "Bile Salts", "Bile Pigments", "Blood", "Nitrite"]
+        }
       }
     },
     {
@@ -318,7 +326,14 @@ export const mockData = {
         sampleType: "Blood",
         reportTime: "24 Hours",
         certification: "ISO Certified",
-        homeCollection: "Available"
+        homeCollection: "Available",
+        detailedInclusions: {
+          "Thyroid Profile": ["T3 Total", "T4 Total", "TSH"],
+          "Vitamin Profile": ["Vitamin D Total", "Vitamin B12"],
+          "Iron Studies": ["Serum Iron", "TIBC", "Transferrin Saturation"],
+          "Complete Blood Count": ["Haemoglobin", "RBC", "WBC", "Platelets", "MCV", "MCH", "MCHC"],
+          "Blood Sugar": ["Fasting Blood Sugar", "Post Prandial Blood Sugar", "HbA1c"]
+        }
       }
     },
     {
@@ -335,7 +350,13 @@ export const mockData = {
         sampleType: "Blood",
         reportTime: "24 Hours",
         certification: "NABL Accredited",
-        homeCollection: "Free Home Collection"
+        homeCollection: "Free Home Collection",
+        detailedInclusions: {
+          "Lipid Profile": ["Total Cholesterol", "Triglycerides", "HDL", "LDL", "VLDL"],
+          "Cardiac Markers": ["CK-MB", "Troponin I", "NT-proBNP", "Homocysteine", "hs-CRP"],
+          "Diabetes": ["Fasting Blood Sugar", "HbA1c"],
+          "Complete Blood Count": ["Haemoglobin", "WBC Count", "Platelet Count"]
+        }
       }
     },
     {

@@ -1,0 +1,113 @@
+/* Payment Success Modal */
+.payment-success-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(8px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+    padding: 20px;
+}
+
+.payment-success-modal {
+    background: white;
+    border-radius: 24px;
+    padding: 60px 40px;
+    max-width: 500px;
+    width: 100%;
+    text-align: center;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+.success-checkmark {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 120px;
+    height: 120px;
+    background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);
+    border-radius: 50%;
+    margin-bottom: 30px;
+    color: white;
+    animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(39, 174, 96, 0.7);
+    }
+    50% {
+        transform: scale(1.05);
+        box-shadow: 0 0 0 20px rgba(39, 174, 96, 0);
+    }
+}
+
+.payment-success-modal h2 {
+    font-size: 2rem;
+    font-weight: 800;
+    color: #2c3e50;
+    margin-bottom: 15px;
+}
+
+.payment-success-modal p {
+    font-size: 1.1rem;
+    color: #666;
+    margin-bottom: 30px;
+}
+
+/* Success Loader */
+.success-loader {
+    margin-top: 40px;
+}
+
+.loader-bar {
+    width: 100%;
+    height: 6px;
+    background: #e0e0e0;
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 15px;
+}
+
+.loader-progress {
+    height: 100%;
+    background: linear-gradient(90deg, #27ae60 0%, #2ecc71 100%);
+    border-radius: 10px;
+}
+
+.redirect-text {
+    font-size: 0.9rem;
+    color: #999;
+    margin: 0;
+}
+
+/* Responsive */
+@media (max-width: 576px) {
+    .payment-success-modal {
+        padding: 40px 30px;
+    }
+
+    .success-checkmark {
+        width: 100px;
+        height: 100px;
+    }
+
+    .success-checkmark svg {
+        width: 60px;
+        height: 60px;
+    }
+
+    .payment-success-modal h2 {
+        font-size: 1.5rem;
+    }
+
+    .payment-success-modal p {
+        font-size: 1rem;
+    }
+}

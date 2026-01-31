@@ -21,6 +21,7 @@
 .login-button:hover::before {
   left: 100%;
 }
+
 /* Enhanced Cart Button Styles */
 .cart-button {
   position: relative;
@@ -86,6 +87,7 @@
   50% { transform: translateX(5px) rotate(5deg); }
   75% { transform: translateX(-5px) rotate(-5deg); }
 }
+
 /* Hamburger Icon */
 .hamburger {
   width: 34px;
@@ -185,4 +187,172 @@
 .logout-btn {
   background: #ffecec !important;
   color: #d63031;
+}
+
+/* ================= HEADER RESPONSIVE FIX 768px+ ================= */
+
+.header-main-row {
+  flex-wrap: nowrap !important;
+}
+
+/* TRUE centered middle section */
+.header-center-area {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  flex: 1;
+  white-space: nowrap;
+}
+
+/* Right actions */
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  white-space: nowrap;
+}
+
+/* Search width control - base */
+.header-center-area > div {
+  min-width: 180px;
+  max-width: 520px;
+  width: 100%;
+}
+
+/* ---------- Extra Large Desktop (1400px+) ---------- */
+@media (min-width: 1400px) {
+  .header-center-area {
+    gap: 14px;
+  }
+
+  .header-center-area > div {
+    max-width: 600px;
+  }
+}
+
+/* ---------- Large Desktop (1200px - 1399px) ---------- */
+@media (min-width: 1200px) and (max-width: 1399px) {
+  .header-center-area {
+    gap: 12px;
+  }
+
+  .header-center-area > div {
+    max-width: 520px;
+  }
+}
+
+/* ---------- Medium Desktop (1024px - 1199px) ---------- */
+@media (min-width: 1024px) and (max-width: 1199px) {
+  .header-center-area {
+    gap: 10px;
+  }
+
+  .header-center-area .btn {
+    padding: 7px 12px;
+    font-size: 0.88rem;
+  }
+
+  .login-button {
+    padding: 8px 14px;
+    font-size: 0.88rem;
+  }
+
+  .cart-button {
+    padding: 10px;
+  }
+
+  .header-center-area > div {
+    max-width: 450px;
+  }
+}
+
+/* ---------- Small Desktop / Large Tablet (900px - 1023px) ---------- */
+@media (min-width: 900px) and (max-width: 1023px) {
+  .header-center-area {
+    gap: 8px;
+    padding: 0 8px;
+  }
+
+  .header-center-area .btn {
+    padding: 6px 10px;
+    font-size: 0.82rem;
+  }
+
+  .login-button {
+    padding: 7px 12px;
+    font-size: 0.82rem;
+  }
+
+  .cart-button {
+    padding: 9px;
+  }
+
+  .cart-button img {
+    width: 20px;
+    height: 20px;
+  }
+
+  .header-center-area > div {
+    max-width: 380px;
+    min-width: 160px;
+  }
+}
+
+/* ---------- Tablet (768px - 899px) ---------- */
+@media (min-width: 768px) and (max-width: 899px) {
+  .header-center-area {
+    gap: 6px;
+    padding: 0 6px;
+  }
+
+  .header-center-area .btn {
+    padding: 5px 9px;
+    font-size: 0.76rem;
+    white-space: nowrap;
+  }
+
+  .login-button {
+    padding: 6px 10px;
+    font-size: 0.76rem;
+  }
+
+  .login-icon {
+    width: 16px !important;
+    height: 16px !important;
+  }
+
+  .cart-button {
+    padding: 8px;
+  }
+
+  .cart-button img {
+    width: 18px;
+    height: 18px;
+  }
+
+  .cart-badge {
+    font-size: 0.65rem;
+    min-width: 18px;
+    height: 18px;
+  }
+
+  .header-center-area > div {
+    max-width: 320px;
+    min-width: 140px;
+  }
+
+  .dropdown-toggle::after {
+    font-size: 0.7rem;
+  }
+
+  .dropdown-menu {
+    font-size: 0.85rem;
+  }
+}
+
+/* Prevent wrapping everywhere */
+.header-center,
+.header-actions {
+  flex-wrap: nowrap !important;
 }

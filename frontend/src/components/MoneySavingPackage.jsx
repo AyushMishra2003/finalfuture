@@ -1,11 +1,52 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import '../scrollbar-hide.css';
 
 const MoneySavingPackages = () => {
     const [currentSlide, setCurrentSlide] = useState(0);
     const [cardsPerView, setCardsPerView] = useState(4);
+    const [isMobile, setIsMobile] = useState(window.innerWidth < 1280);
+    const [activeMobileIndex, setActiveMobileIndex] = useState(0);
+    const scrollContainerRef = useRef(null);
     const navigate = useNavigate();
+
+    // Handle Mobile Scroll for Pagination Dots
+    const handleScroll = () => {
+        if (!scrollContainerRef.current) return;
+        const container = scrollContainerRef.current;
+        const scrollLeft = container.scrollLeft;
+        // Approximation: card width (min 260/300) + gap (16)
+        // Better: Use center point calc
+        const containerCenter = scrollLeft + container.clientWidth / 2;
+
+        let minDiff = Infinity;
+        let closestIndex = 0;
+
+        // Iterate through child nodes (the spacer divs)
+        // The first child of container is the flex wrapper
+        const flexWrapper = container.firstElementChild;
+        if (!flexWrapper) return;
+
+        const children = flexWrapper.children;
+        for (let i = 0; i < children.length; i++) {
+            const child = children[i];
+            // Get position relative to container
+            const childLeft = child.offsetLeft;
+            const childWidth = child.offsetWidth;
+            const childCenter = childLeft + childWidth / 2;
+
+            const diff = Math.abs(childCenter - containerCenter);
+            if (diff < minDiff) {
+                minDiff = diff;
+                closestIndex = i;
+            }
+        }
+
+        if (activeMobileIndex !== closestIndex) {
+            setActiveMobileIndex(closestIndex);
+        }
+    };
 
     // Category Mapping for URL params
     const categoryMap = {
@@ -38,8 +79,13 @@ const MoneySavingPackages = () => {
     // Update cards per view based on screen size
     useEffect(() => {
         const handleResize = () => {
-            if (window.innerWidth >= 1024) {
+            const mobile = window.innerWidth < 1280;
+            setIsMobile(mobile);
+
+            if (window.innerWidth >= 1280) {
                 setCardsPerView(4);
+            } else if (window.innerWidth >= 1024) {
+                setCardsPerView(3);
             } else if (window.innerWidth >= 768) {
                 setCardsPerView(3);
             } else if (window.innerWidth >= 640) {
@@ -84,82 +130,123 @@ const MoneySavingPackages = () => {
             <div className="max-w-7xl mx-auto px-4">
                 {/* Section Header */}
                 {/* Section Header */}
-                <div className="flex flex-col md:flex-row justify-between items-center md:items-end mb-8">
-                    <div className="text-center w-full md:w-auto mx-auto mb-4 md:mb-0">
-                        <h2 className="section-title mb-2">
+                {/* Section Header */}
+                <div className="text-center mt-12 mb-8 section-header-row">
+                    <div className="section-header-text mb-4">
+                        <h2 className="section-title font-bold mb-2" style={{ fontSize: '2.25rem', letterSpacing: '-0.02em', color: '#115e59' }}>
                             Money-Saving Packages
                         </h2>
-                        <p className="section-subtitle">
+                        <p className="section-subtitle text-gray-500 font-medium mx-auto" style={{ fontSize: '1rem', lineHeight: '1.5', maxWidth: '600px' }}>
                             Up to 75% Discount. <br className="block md:hidden" /> Comprehensive care at best prices.
                         </p>
                     </div>
 
-                    <button
-                        className="btn-premium"
-                        onClick={() => navigate('/completehealth')}
-                    >
-                        VIEW ALL
-                    </button>
+                    <div className="section-header-actions flex justify-center">
+                        <button
+                            className="btn-premium"
+                            onClick={() => navigate('/completehealth')}
+                        >
+                            VIEW ALL
+                        </button>
+                    </div>
                 </div>
 
                 {/* Carousel Container */}
                 <div className="relative">
                     {/* Navigation Buttons */}
-                    <button
-                        onClick={handlePrevious}
-                        className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 z-10 w-12 h-12 rounded-full bg-white shadow-lg flex items-center justify-center text-gray-700 hover:bg-teal-50 transition-all duration-300 hover:scale-110 disabled:opacity-50"
-                        style={{ boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
-                    >
-                        <ChevronLeft size={24} />
-                    </button>
+                    {!isMobile && (
+                        <>
+                            <button
+                                onClick={handlePrevious}
+                                className="hidden lg:flex absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 z-10 w-12 h-12 rounded-full bg-white shadow-lg items-center justify-center text-gray-700 hover:bg-teal-50 transition-all duration-300 hover:scale-110 disabled:opacity-50"
+                                style={{ boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
+                            >
+                                <ChevronLeft size={24} />
+                            </button>
 
-                    <button
-                        onClick={handleNext}
-                        className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 z-10 w-12 h-12 rounded-full bg-white shadow-lg flex items-center justify-center text-gray-700 hover:bg-teal-50 transition-all duration-300 hover:scale-110 disabled:opacity-50"
-                        style={{ boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
-                    >
-                        <ChevronRight size={24} />
-                    </button>
+                            <button
+                                onClick={handleNext}
+                                className="hidden lg:flex absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 z-10 w-12 h-12 rounded-full bg-white shadow-lg items-center justify-center text-gray-700 hover:bg-teal-50 transition-all duration-300 hover:scale-110 disabled:opacity-50"
+                                style={{ boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
+                            >
+                                <ChevronRight size={24} />
+                            </button>
+                        </>
+                    )}
 
                     {/* Cards Grid */}
-                    <div className="overflow-hidden px-8">
+                    <div
+                        ref={scrollContainerRef}
+                        onScroll={handleScroll}
+                        className={`${isMobile ? 'overflow-x-auto pt-4 pb-8 -mx-4 px-4 scrollbar-hide' : 'overflow-hidden px-8'}`}
+                    >
                         <div
-                            className="grid gap-4 transition-all duration-500 ease-in-out"
-                            style={{
+                            className={isMobile ? 'flex gap-4 snap-x snap-mandatory' : 'grid gap-4 transition-all duration-500 ease-in-out'}
+                            style={isMobile ? {} : {
                                 gridTemplateColumns: `repeat(${cardsPerView}, 1fr)`,
                             }}
                         >
-                            {getCurrentCards().map((item, index) => (
-                                <CategoryCard
-                                    key={item.id}
-                                    item={item}
-                                    getImageUrl={getImageUrl}
-                                    index={index}
-                                    onNavigate={(name) => {
-                                        const mappedCategory = categoryMap[name] || "All";
-                                        navigate(`/completehealth?tab=${encodeURIComponent(mappedCategory)}`);
-                                    }}
-                                />
+                            {(isMobile ? categories : getCurrentCards()).map((item, index) => (
+                                <div key={item.id} className={isMobile ? 'min-w-[260px] sm:min-w-[300px] snap-center' : ''}>
+                                    <CategoryCard
+                                        item={item}
+                                        getImageUrl={getImageUrl}
+                                        index={index}
+                                        onNavigate={(name) => {
+                                            const mappedCategory = categoryMap[name] || "All";
+                                            navigate(`/completehealth?tab=${encodeURIComponent(mappedCategory)}`);
+                                        }}
+                                    />
+                                </div>
                             ))}
                         </div>
                     </div>
 
                     {/* Pagination Dots */}
-                    <div className="flex justify-center items-center gap-2 mt-8">
-                        {Array.from({ length: totalSlides }).map((_, index) => (
-                            <button
-                                key={index}
-                                onClick={() => setCurrentSlide(index)}
-                                className={`rounded-full transition-all duration-300 ${index === currentSlide
-                                    ? 'w-8 h-3 bg-teal-700'
-                                    : 'w-3 h-3 bg-gray-300 hover:bg-gray-400'
-                                    }`}
-                                style={{
-                                    boxShadow: index === currentSlide ? '0 2px 8px rgba(45, 122, 110, 0.3)' : 'none',
-                                }}
-                            />
-                        ))}
-                    </div>
+                    {isMobile ? (
+                        <div className="flex justify-center items-center gap-2 mt-4">
+                            {categories.map((_, index) => (
+                                <button
+                                    key={index}
+                                    onClick={() => {
+                                        if (scrollContainerRef.current) {
+                                            const container = scrollContainerRef.current;
+                                            const flexWrapper = container.firstElementChild;
+                                            if (flexWrapper && flexWrapper.children[index]) {
+                                                const child = flexWrapper.children[index];
+                                                // Center the child
+                                                const scrollAmount = child.offsetLeft - (container.clientWidth / 2) + (child.offsetWidth / 2);
+                                                container.scrollTo({ left: scrollAmount, behavior: 'smooth' });
+                                            }
+                                        }
+                                    }}
+                                    className={`rounded-full transition-all duration-300 ${index === activeMobileIndex
+                                        ? 'w-6 h-2 bg-teal-700'
+                                        : 'w-2 h-2 bg-gray-300 hover:bg-gray-400'
+                                        }`}
+                                    style={{
+                                        boxShadow: index === activeMobileIndex ? '0 2px 8px rgba(45, 122, 110, 0.3)' : 'none',
+                                    }}
+                                />
+                            ))}
+                        </div>
+                    ) : (
+                        <div className="flex justify-center items-center gap-2 mt-8">
+                            {Array.from({ length: totalSlides }).map((_, index) => (
+                                <button
+                                    key={index}
+                                    onClick={() => setCurrentSlide(index)}
+                                    className={`rounded-full transition-all duration-300 ${index === currentSlide
+                                        ? 'w-8 h-3 bg-teal-700'
+                                        : 'w-3 h-3 bg-gray-300 hover:bg-gray-400'
+                                        }`}
+                                    style={{
+                                        boxShadow: index === currentSlide ? '0 2px 8px rgba(45, 122, 110, 0.3)' : 'none',
+                                    }}
+                                />
+                            ))}
+                        </div>
+                    )}
                 </div>
             </div>
         </section>
