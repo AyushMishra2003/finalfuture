@@ -371,7 +371,7 @@ const Product = () => {
 
         {/* Hero Section with Parallax and Blur Effect */}
         <div
-          className="relative bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50 pt-20 pb-32 px-4 sm:px-6 lg:px-8 overflow-hidden transition-all duration-300"
+          className="relative bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50 pt-20 pb-16 md:pb-32 px-4 sm:px-6 lg:px-8 overflow-hidden transition-all duration-300"
           style={{
             transform: `translateY(${parallaxOffset}px)`,
             filter: `blur(${blurAmount}px)`,
@@ -451,9 +451,9 @@ const Product = () => {
                   <button
                     id="add-to-cart-btn"
                     onClick={handleAddToCartClick}
-                    className="flex-1 py-4 px-8 bg-gradient-to-r from-emerald-600 to-teal-600 text-white rounded-2xl font-bold text-lg shadow-2xl shadow-emerald-600/30 hover:shadow-emerald-600/40 hover:scale-105 transition-all duration-300 flex items-center justify-center gap-3"
+                    className="flex-1 py-3 px-6 md:py-4 md:px-8 bg-gradient-to-r from-emerald-600 to-teal-600 text-white rounded-xl md:rounded-2xl font-bold text-base md:text-lg shadow-xl shadow-emerald-600/30 hover:shadow-emerald-600/40 hover:scale-105 transition-all duration-300 flex items-center justify-center gap-2 md:gap-3"
                   >
-                    <ShoppingCart size={22} />
+                    <ShoppingCart size={20} className="md:w-6 md:h-6" />
                     {cartCount > 0 ? `Added (${cartCount})` : 'Add to Cart'}
                   </button>
 
@@ -616,12 +616,12 @@ const Product = () => {
       </div>
 
       {/* Floating Action Button */}
-      <div className="fixed bottom-8 right-8 z-50">
+      <div className="fixed bottom-6 right-6 md:bottom-8 md:right-8 z-50">
         <button
           onClick={handleAddToCartClick}
-          className="bg-gradient-to-r from-emerald-600 to-teal-600 text-white p-5 rounded-full shadow-2xl shadow-emerald-600/40 hover:shadow-emerald-600/60 hover:scale-110 transition-all duration-300"
+          className="bg-gradient-to-r from-emerald-600 to-teal-600 text-white p-3 md:p-5 rounded-full shadow-xl md:shadow-2xl shadow-emerald-600/40 hover:shadow-emerald-600/60 hover:scale-110 transition-all duration-300"
         >
-          <ShoppingCart size={28} />
+          <ShoppingCart size={24} />
         </button>
       </div>
 
