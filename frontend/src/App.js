@@ -37,6 +37,10 @@ import AdminDashboard from './admin/AdminDashboard';
 import AdminLogin from './admin/AdminLogin';
 import AdminAuthWrapper from './admin/AdminAuthWrapper';
 
+// Import phlebotomist components
+import PhlebotomistLogin from './phlebotomist/PhlebotomistLogin';
+import PhlebotomistDashboard from './phlebotomist/PhlebotomistDashboard';
+
 // Import shared components
 import Header from './components/Header';
 import Footer from './components/Footer';
@@ -44,13 +48,15 @@ import ScrollToTop from './components/ScrollToTop';
 import { Search, CheckCircle, AlertTriangle } from "react-feather";
 
 
+
 function App() {
   const location = window.location;
   const isAdminRoute = location.pathname.startsWith('/admin');
+  const isPhlebotomistRoute = location.pathname.startsWith('/phlebotomist');
 
   return (
     <div className="App">
-      {!isAdminRoute && <Header />}
+      {!isAdminRoute && !isPhlebotomistRoute && <Header />}
       <main>
         <Routes>
           <Route path="/" element={<Home />} />
@@ -89,11 +95,16 @@ function App() {
           <Route path="/admin/dashboard" element={<AdminAuthWrapper><AdminDashboard /></AdminAuthWrapper>} />
           <Route path="/admin/*" element={<AdminAuthWrapper><AdminDashboard /></AdminAuthWrapper>} />
 
+          {/* Phlebotomist Routes */}
+          <Route path="/phlebotomist/login" element={<PhlebotomistLogin />} />
+          <Route path="/phlebotomist/dashboard" element={<PhlebotomistDashboard />} />
+
+
           <Route path="/error" element={<ErrorPage />} />
           <Route path="*" element={<ErrorPage />} />
         </Routes>
       </main>
-      {!isAdminRoute && <Footer />}
+      {!isAdminRoute && !isPhlebotomistRoute && <Footer />}
       <ScrollToTop />
     </div>
   );

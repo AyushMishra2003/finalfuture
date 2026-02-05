@@ -87,7 +87,7 @@ exports.getTests = asyncHandler(async (req, res, next) => {
             data: mockTests
         });
     }
-    
+
     try {
         res.status(200).json(res.advancedResults);
     } catch (error) {
@@ -258,6 +258,53 @@ exports.getSelectedSingleTests = asyncHandler(async (req, res, next) => {
             success: true,
             count: filteredTests.length,
             data: filteredTests
+        });
+    }
+});
+
+// @desc    Search tests
+// @route   GET /api/v1/tests/search
+// @access  Public
+exports.searchTests = asyncHandler(async (req, res, next) => {
+    const query = req.query.q;
+
+    if (!query) {
+        return res.status(400).json({
+            success: false,
+            error: 'Please provide a search term'
+        });
+    }
+
+    if (!isDatabaseConnected()) {
+        const regex = new RegExp(query, 'i');
+        const results = mockTests.filter(test => regex.test(test.name) || regex.test(test.description));
+        return res.status(200).json({
+            success: true,
+            count: results.length,
+            data: results
+        });
+    }
+
+    try {
+        const tests = await Test.find({
+            $or: [
+                { name: { $regex: query, $options: 'i' } },
+                { description: { $regex: query, $options: 'i' } },
+                { category: { $regex: query, $options: 'i' } }
+            ],
+            isActive: true
+        }).limit(20);
+
+        res.status(200).json({
+            success: true,
+            count: tests.length,
+            data: tests
+        });
+    } catch (error) {
+        console.error('Error searching tests:', error);
+        return res.status(500).json({
+            success: false,
+            error: 'Server Error'
         });
     }
 });

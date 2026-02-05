@@ -39,6 +39,47 @@ const TimeSlotSchema = new mongoose.Schema({
             type: String,
             required: true
         },
+        status: {
+            type: String,
+            enum: ['pending', 'reached', 'collected', 'moving_to_next', 'completed'],
+            default: 'pending'
+        },
+        reachedAt: Date,
+        collectedAt: Date,
+        sampleStatus: {
+            blood: {
+                collected: { type: Boolean, default: false },
+                image: String,
+                collectedAt: Date,
+                isRandom: { type: Boolean, default: false }
+            },
+            urine: {
+                collected: { type: Boolean, default: false },
+                image: String,
+                collectedAt: Date,
+                notGiven: { type: Boolean, default: false }
+            },
+            other: {
+                collected: { type: Boolean, default: false },
+                image: String,
+                collectedAt: Date
+            }
+        },
+        paymentCollected: {
+            type: Number,
+            default: 0
+        },
+        paymentCollectedAt: Date,
+        sampleHandedOver: {
+            type: Boolean,
+            default: false
+        },
+        sampleHandoverAt: Date,
+        amountHandedOver: {
+            type: Boolean,
+            default: false
+        },
+        amountHandoverAt: Date,
         bookedAt: {
             type: Date,
             default: Date.now

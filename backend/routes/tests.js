@@ -7,7 +7,8 @@ const {
     getSelectedSingleTests,
     createTest,
     updateTest,
-    deleteTest
+    deleteTest,
+    searchTests
 } = require('../controllers/tests');
 const { protect, authorize } = require('../middleware/auth');
 const advancedResults = require('../middleware/advancedResults');
@@ -30,6 +31,9 @@ router.route('/selected/Single%20Test')
 
 router.route('/category/Exclusive')
     .get(getSelectedSingleTests);
+
+router.route('/search')
+    .get(searchTests);
 
 router.route('/:id')
     .get(getTest)
