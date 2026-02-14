@@ -40,10 +40,12 @@ const UserSchema = new mongoose.Schema({
         default: false
     },
     otp: {
-        type: String
+        type: String,
+        select: false
     },
     otpExpires: {
-        type: Date
+        type: Date,
+        select: false
     },
     addresses: [
         {
@@ -72,6 +74,12 @@ const UserSchema = new mongoose.Schema({
             ref: 'Order'
         }
     ],
+    location: {
+        latitude: Number,
+        longitude: Number,
+        address: String,
+        updatedAt: Date
+    },
     createdAt: {
         type: Date,
         default: Date.now

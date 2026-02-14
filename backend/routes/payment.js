@@ -1,5 +1,7 @@
 const express = require('express');
 const {
+    createRazorpayOrder,
+    verifyRazorpayPayment,
     createHDFCOrder,
     handleHDFCCallback,
     handleHDFCWebhook,
@@ -10,6 +12,10 @@ const {
 const { protect, authorize } = require('../middleware/auth');
 
 const router = express.Router();
+
+// Razorpay routes
+router.post('/razorpay/create-order', protect, createRazorpayOrder);
+router.post('/razorpay/verify', protect, verifyRazorpayPayment);
 
 // Public routes
 router.get('/hdfc/config', getHDFCConfig);

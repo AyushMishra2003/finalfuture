@@ -104,6 +104,23 @@ const Cart = () => {
 
     // For logged-in users, create order first
     try {
+      // Get user's current location
+      let userLocation = null;
+      if (navigator.geolocation) {
+        try {
+          const position = await new Promise((resolve, reject) => {
+            navigator.geolocation.getCurrentPosition(resolve, reject);
+          });
+          userLocation = {
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude,
+            accuracy: position.coords.accuracy
+          };
+        } catch (error) {
+          console.log('Location access denied or unavailable');
+        }
+      }
+
       const orderConfig = {
         headers: { Authorization: `Bearer ${token}` }
       };
@@ -113,8 +130,15 @@ const Cart = () => {
           name: item.name,
           quantity: 1,
           price: item.price,
-          test: item._id
+          itemId: item._id // Store as itemId instead of test ObjectId
         })),
+        shippingAddress: {
+          address: cartItems[0]?.appointment?.location?.address || 'Test Address',
+          city: cartItems[0]?.appointment?.location?.city || 'Bangalore',
+          postalCode: cartItems[0]?.appointment?.location?.pincode || '560001',
+          country: 'India'
+        },
+        location: userLocation,
         itemsPrice: calculateSubtotal(),
         taxPrice: 0,
         shippingPrice: 0,

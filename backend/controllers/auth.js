@@ -173,6 +173,8 @@ exports.generateOTP = async (req, res, next) => {
     try {
         const { phone } = req.body;
 
+        console.log('📱 OTP Generation Request for:', phone);
+
         // Validate phone
         if (!phone) {
             return res.status(400).json({
@@ -183,72 +185,63 @@ exports.generateOTP = async (req, res, next) => {
 
         // Generate 6 digit OTP
         const otp = Math.floor(100000 + Math.random() * 900000).toString();
-
-        // Set OTP expiration (10 minutes)
         const otpExpires = new Date(Date.now() + 10 * 60 * 1000);
+
+        console.log('🔑 Generated OTP:', otp);
 
         let user;
         let isMockMode = false;
         try {
-            // Try to access the database
             user = await User.findOne({ phone });
 
             if (!user) {
-                // Create temporary user with phone
-                user = await User.create({
+                console.log('👤 Creating new user with phone:', phone);
+                user = new User({
                     phone,
+                    name: 'User',
+                    email: `user${phone}@temp.com`,
+                    password: 'temp123456',
                     otp,
                     otpExpires
                 });
+                await user.save();
             } else {
+                console.log('👤 Updating existing user OTP');
                 user.otp = otp;
                 user.otpExpires = otpExpires;
-                await user.save();
+                await user.save({ validateBeforeSave: false });
             }
         } catch (dbError) {
-            // If database is not available, continue without saving to database
-            console.log('Database not available, proceeding with mock mode');
+            console.log('❌ Database error:', dbError.message);
             isMockMode = true;
-            // Store in in-memory store
-            mockOtpStore[phone] = {
-                otp,
-                otpExpires
-            };
+            mockOtpStore[phone] = { otp, otpExpires };
         }
 
-        // Send OTP via SMS service
-        let smsResult;
+        // Send OTP via SMS
         let smsSent = false;
         try {
-            smsResult = await sendSMS({
+            const smsResult = await sendSMS({
                 phone: phone,
-                message: `Your OTP for FutureLabs is: ${otp}. This OTP is valid for 10 minutes.`
+                message: `Your OTP for FutureLabs is: ${otp}. Valid for 10 minutes.`
             });
 
-            console.log('SMS sending result:', smsResult);
-
-            // Check if SMS was sent successfully
-            if (smsResult.success) {
-                console.log(`OTP sent successfully to ${phone}: ${otp}`);
-                smsSent = true;
-            } else {
-                console.error(`Failed to send OTP via SMS to ${phone}:`, smsResult.message, smsResult.error);
-            }
+            console.log('📨 SMS Result:', smsResult);
+            smsSent = smsResult.success;
         } catch (smsError) {
-            console.error('Failed to send OTP via SMS:', smsError);
+            console.error('📨 SMS Error:', smsError.message);
         }
 
-        // Always return success since OTP is generated, but indicate SMS status
+        console.log('✅ OTP generated successfully');
+
         res.status(200).json({
             success: true,
-            message: smsSent ? 'OTP sent successfully' : 'OTP generated successfully (SMS delivery failed, but you can still login)',
+            message: smsSent ? 'OTP sent successfully' : 'OTP generated (SMS failed)',
             phone,
-            // Include OTP in response for testing purposes (should be removed in production)
-            otp: otp,
+            otp: otp, // Include for testing
             smsSent: smsSent
         });
     } catch (err) {
-        console.error(err);
+        console.error('❌ Generate OTP error:', err);
         res.status(500).json({
             success: false,
             error: 'Server error'
@@ -263,7 +256,8 @@ exports.verifyOTP = async (req, res, next) => {
     try {
         const { phone, otp } = req.body;
 
-        // Validate input
+        console.log('🔐 OTP Verification Request:', { phone, otp });
+
         if (!phone || !otp) {
             return res.status(400).json({
                 success: false,
@@ -271,29 +265,38 @@ exports.verifyOTP = async (req, res, next) => {
             });
         }
 
-        // Find user with phone in DB first
         let user;
         let isMockMode = false;
         try {
-            user = await User.findOne({ phone });
+            user = await User.findOne({ phone }).select('+otp +otpExpires');
+            console.log('👤 User found:', user ? 'Yes' : 'No');
+            if (user) {
+                console.log('   - Stored OTP:', user.otp);
+                console.log('   - OTP Expires:', user.otpExpires);
+            }
         } catch (error) {
-            console.log('Database error in verifyOTP, checking mock store');
+            console.log('❌ Database error, checking mock store');
             isMockMode = true;
         }
 
         if (!user) {
-            // Check mock store if user not found in DB or DB error
             const mockData = mockOtpStore[phone];
             if (mockData) {
+                console.log('📦 Using mock data:', mockData);
                 if (mockData.otp === otp && mockData.otpExpires > Date.now()) {
-                    // Verification success in mock mode
+                    const jwt = require('jsonwebtoken');
+                    const token = jwt.sign(
+                        { id: 'mock-user-id-' + phone },
+                        process.env.JWT_SECRET,
+                        { expiresIn: process.env.JWT_EXPIRE }
+                    );
                     return res.status(200).json({
                         success: true,
-                        token: 'mock-jwt-token-for-' + phone,
+                        token,
                         data: {
                             id: 'mock-user-id-' + phone,
-                            name: 'Guest User',
-                            email: 'guest@example.com',
+                            name: 'User',
+                            email: `user${phone}@temp.com`,
                             phone: phone,
                             role: 'user'
                         }
@@ -301,48 +304,39 @@ exports.verifyOTP = async (req, res, next) => {
                 }
             }
 
-            if (!isMockMode) {
-                return res.status(400).json({
-                    success: false,
-                    error: 'User not found'
-                });
-            }
+            return res.status(400).json({
+                success: false,
+                error: 'User not found or invalid OTP'
+            });
         }
 
-        // If we are here and have a user object (DB is working)
-        if (user) {
-            // Check if OTP matches and not expired
-            if (user.otp !== otp) {
-                return res.status(400).json({
-                    success: false,
-                    error: 'Invalid OTP'
-                });
-            }
-
-            if (user.otpExpires < Date.now()) {
-                return res.status(400).json({
-                    success: false,
-                    error: 'OTP has expired'
-                });
-            }
-
-            // Mark user as verified
-            user.isVerified = true;
-            user.otp = undefined;
-            user.otpExpires = undefined;
-            await user.save();
-
-            return sendTokenResponse(user, 200, res);
+        if (user.otp !== otp) {
+            console.log('❌ OTP mismatch');
+            return res.status(400).json({
+                success: false,
+                error: 'Invalid OTP'
+            });
         }
 
-        // Fallback failure
-        return res.status(400).json({
-            success: false,
-            error: 'Invalid or expired OTP'
-        });
+        if (user.otpExpires < Date.now()) {
+            console.log('❌ OTP expired');
+            return res.status(400).json({
+                success: false,
+                error: 'OTP has expired'
+            });
+        }
+
+        console.log('✅ OTP verified successfully');
+
+        user.isVerified = true;
+        user.otp = undefined;
+        user.otpExpires = undefined;
+        await user.save({ validateBeforeSave: false });
+
+        return sendTokenResponse(user, 200, res);
 
     } catch (err) {
-        console.error(err);
+        console.error('❌ Verify OTP error:', err);
         res.status(500).json({
             success: false,
             error: 'Server error'

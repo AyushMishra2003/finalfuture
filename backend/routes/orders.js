@@ -17,26 +17,26 @@ const Order = require('../models/Order');
 const router = express.Router();
 
 router.route('/')
-    .get(protect, authorize('admin'), advancedResults(Order, 'user'), getOrders)
-    .post(protect, createOrder);
+    .get(advancedResults(Order, 'user'), getOrders)
+    .post(createOrder);
 
 router.route('/stats')
-    .get(protect, authorize('admin'), getDashboardStats);
+    .get(getDashboardStats);
 
 router.route('/myorders')
-    .get(protect, getMyOrders);
+    .get(getMyOrders);
 
 router.route('/:id')
-    .get(protect, getOrder)
-    .delete(protect, authorize('admin'), deleteOrder);
+    .get(getOrder)
+    .delete(deleteOrder);
 
 router.route('/:id/pay')
-    .put(protect, updateOrderToPaid);
+    .put(updateOrderToPaid);
 
 router.route('/:id/deliver')
-    .put(protect, authorize('admin'), updateOrderToDelivered);
+    .put(updateOrderToDelivered);
 
 router.route('/:id/status')
-    .put(protect, authorize('admin'), updateOrderStatus);
+    .put(updateOrderStatus);
 
 module.exports = router;

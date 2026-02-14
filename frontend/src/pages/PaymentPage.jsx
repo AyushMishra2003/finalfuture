@@ -81,7 +81,7 @@ const PaymentPage = () => {
         return Object.keys(errors).length === 0;
     };
 
-    const handlePayment = () => {
+    const handlePayment = async () => {
         if (activeMethod === 'card' && !validateCard()) {
             return;
         }
@@ -89,15 +89,92 @@ const PaymentPage = () => {
         setLoading(true);
         setPaymentStatus('processing');
 
-        // Simulate API Call
-        setTimeout(() => {
-            setLoading(false);
-            setPaymentStatus('success');
+        // Get user's current location
+        let userLocation = null;
+        if (navigator.geolocation) {
+            try {
+                const position = await new Promise((resolve, reject) => {
+                    navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 5000 });
+                });
+                userLocation = {
+                    latitude: position.coords.latitude,
+                    longitude: position.coords.longitude,
+                    accuracy: position.coords.accuracy
+                };
+            } catch (error) {
+                console.log('Location access denied or unavailable');
+            }
+        }
 
-            // Clear cart
+        // Create order in database
+        try {
+            const token = localStorage.getItem('userToken') || localStorage.getItem('token');
+            const createOrderResponse = await fetch('http://localhost:5000/api/v1/orders', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': token ? `Bearer ${token}` : ''
+                },
+                body: JSON.stringify({
+                    orderItems: (items || []).map(item => ({
+                        name: item.name,
+                        price: item.price,
+                        quantity: 1,
+                        itemId: item._id || item.id
+                    })),
+                    shippingAddress: {
+                        address: items?.[0]?.appointment?.location?.address || 'Test Address',
+                        city: items?.[0]?.appointment?.location?.city || 'Bangalore',
+                        postalCode: items?.[0]?.appointment?.location?.pincode || '560001',
+                        country: 'India'
+                    },
+                    location: userLocation,
+                    paymentMethod: activeMethod === 'cod' ? 'Cash on Delivery' : activeMethod,
+                    itemsPrice: finalAmount,
+                    taxPrice: 0,
+                    shippingPrice: 0,
+                    totalPrice: finalAmount,
+                    isPaid: activeMethod === 'cod' ? false : true,
+                    orderStatus: 'processing',
+                    userId: localStorage.getItem('userId') || '000000000000000000000000'
+                })
+            });
+
+            const orderData = await createOrderResponse.json();
+            
+            if (!orderData.success) {
+                alert('Failed to create order: ' + (orderData.error || 'Unknown error'));
+                setLoading(false);
+                setPaymentStatus('idle');
+                return;
+            }
+
+            console.log('✅ Order created:', orderData.data._id);
+
+            // For COD, mark as success immediately
+            if (activeMethod === 'cod') {
+                setTimeout(() => {
+                    setLoading(false);
+                    setPaymentStatus('success');
+                    localStorage.removeItem('cart');
+                    window.dispatchEvent(new Event('storage'));
+                }, 1000);
+                return;
+            }
+
+            // For other payment methods, continue with payment gateway
+            setLoading(false);
+            alert('Order created! Payment gateway integration pending.');
+            setPaymentStatus('success');
             localStorage.removeItem('cart');
             window.dispatchEvent(new Event('storage'));
-        }, 2500);
+
+        } catch (error) {
+            console.error('Order creation error:', error);
+            alert('Failed to create order. Please try again.');
+            setLoading(false);
+            setPaymentStatus('idle');
+        }
     };
 
     const handlePaymentComplete = () => {

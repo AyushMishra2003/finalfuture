@@ -194,23 +194,35 @@ exports.getMyBookings = async (req, res) => {
         timeSlots.forEach(slot => {
             slot.bookings.forEach(booking => {
                 if (booking.orderId) {
+                    const order = booking.orderId;
                     bookings.push({
                         _id: booking._id,
-                        orderId: booking.orderId._id,
-                        orderNumber: booking.orderId.orderNumber,
+                        orderId: order._id,
+                        orderNumber: order.orderNumber,
                         patient: {
-                            name: booking.patientName || booking.orderId.user?.name,
-                            phone: booking.patientPhone || booking.orderId.user?.phone,
-                            address: booking.orderId.shippingAddress
+                            name: booking.patientName || order.user?.name,
+                            phone: booking.patientPhone || order.user?.phone,
+                            address: {
+                                address: order.shippingAddress?.address,
+                                city: order.shippingAddress?.city,
+                                postalCode: order.shippingAddress?.postalCode,
+                                country: order.shippingAddress?.country,
+                                location: order.shippingAddress?.location ? {
+                                    latitude: order.shippingAddress.location.latitude,
+                                    longitude: order.shippingAddress.location.longitude,
+                                    coordinates: order.shippingAddress.location.coordinates,
+                                    accuracy: order.shippingAddress.location.accuracy
+                                } : null
+                            }
                         },
                         scheduledTime: {
                             date: slot.date,
                             hour: slot.hour
                         },
-                        tests: booking.orderId.orderItems,
-                        totalAmount: booking.orderId.totalPrice,
-                        paymentMethod: booking.orderId.paymentMethod,
-                        isPaid: booking.orderId.isPaid,
+                        tests: order.orderItems,
+                        totalAmount: order.totalPrice,
+                        paymentMethod: order.paymentMethod,
+                        isPaid: order.isPaid,
                         status: booking.status || 'pending',
                         sampleStatus: booking.sampleStatus || {},
                         paymentCollected: booking.paymentCollected || 0,

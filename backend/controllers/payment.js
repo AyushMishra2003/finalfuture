@@ -3,6 +3,172 @@ const axios = require('axios');
 const asyncHandler = require('../middleware/async');
 const Order = require('../models/Order');
 
+// Razorpay Configuration
+const isTestMode = process.env.RAZORPAY_TEST_MODE === 'true';
+let razorpay = null;
+
+if (!isTestMode) {
+    const Razorpay = require('razorpay');
+    razorpay = new Razorpay({
+        key_id: process.env.RAZORPAY_KEY_ID,
+        key_secret: process.env.RAZORPAY_KEY_SECRET
+    });
+}
+
+/**
+ * @desc    Create Razorpay Order (Test Mode)
+ * @route   POST /api/v1/payment/razorpay/create-order
+ * @access  Private
+ */
+exports.createRazorpayOrder = asyncHandler(async (req, res, next) => {
+    const { orderId, amount } = req.body;
+
+    if (!orderId || !amount) {
+        return res.status(400).json({
+            success: false,
+            message: 'Order ID and amount are required'
+        });
+    }
+
+    const order = await Order.findById(orderId);
+    if (!order) {
+        return res.status(404).json({
+            success: false,
+            message: 'Order not found'
+        });
+    }
+
+    // Test Mode - Simulate Razorpay order
+    if (isTestMode) {
+        const mockOrderId = 'order_' + Date.now() + Math.random().toString(36).substr(2, 9);
+        
+        console.log('🧪 Test Mode: Razorpay order created', mockOrderId);
+        
+        return res.status(200).json({
+            success: true,
+            testMode: true,
+            data: {
+                razorpayOrderId: mockOrderId,
+                amount: amount * 100,
+                currency: 'INR',
+                keyId: 'rzp_test_demo_key'
+            }
+        });
+    }
+
+    // Real Razorpay integration
+    const options = {
+        amount: amount * 100,
+        currency: 'INR',
+        receipt: order._id.toString(),
+        notes: {
+            orderId: order._id.toString(),
+            userId: req.user.id
+        }
+    };
+
+    try {
+        const razorpayOrder = await razorpay.orders.create(options);
+        
+        res.status(200).json({
+            success: true,
+            data: {
+                razorpayOrderId: razorpayOrder.id,
+                amount: razorpayOrder.amount,
+                currency: razorpayOrder.currency,
+                keyId: process.env.RAZORPAY_KEY_ID
+            }
+        });
+    } catch (error) {
+        console.error('Razorpay order creation error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to create Razorpay order'
+        });
+    }
+});
+
+/**
+ * @desc    Verify Razorpay Payment (Test Mode)
+ * @route   POST /api/v1/payment/razorpay/verify
+ * @access  Private
+ */
+exports.verifyRazorpayPayment = asyncHandler(async (req, res, next) => {
+    const { razorpay_order_id, razorpay_payment_id, razorpay_signature, orderId } = req.body;
+
+    const order = await Order.findById(orderId);
+    if (!order) {
+        return res.status(404).json({
+            success: false,
+            message: 'Order not found'
+        });
+    }
+
+    // Test Mode - Auto verify
+    if (isTestMode) {
+        console.log('🧪 Test Mode: Payment verified', razorpay_payment_id);
+        
+        order.isPaid = true;
+        order.paidAt = Date.now();
+        order.paymentMethod = 'Razorpay (Test)';
+        order.paymentResult = {
+            id: razorpay_payment_id || 'pay_test_' + Date.now(),
+            status: 'success',
+            update_time: new Date().toISOString(),
+            razorpay_order_id: razorpay_order_id
+        };
+        order.orderStatus = 'confirmed';
+
+        await order.save();
+
+        return res.status(200).json({
+            success: true,
+            testMode: true,
+            message: 'Payment verified successfully (Test Mode)',
+            data: {
+                orderId: order._id,
+                paymentId: razorpay_payment_id
+            }
+        });
+    }
+
+    // Real signature verification
+    const sign = razorpay_order_id + '|' + razorpay_payment_id;
+    const expectedSign = crypto
+        .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET)
+        .update(sign.toString())
+        .digest('hex');
+
+    if (razorpay_signature === expectedSign) {
+        order.isPaid = true;
+        order.paidAt = Date.now();
+        order.paymentMethod = 'Razorpay';
+        order.paymentResult = {
+            id: razorpay_payment_id,
+            status: 'success',
+            update_time: new Date().toISOString(),
+            razorpay_order_id: razorpay_order_id
+        };
+        order.orderStatus = 'confirmed';
+
+        await order.save();
+
+        res.status(200).json({
+            success: true,
+            message: 'Payment verified successfully',
+            data: {
+                orderId: order._id,
+                paymentId: razorpay_payment_id
+            }
+        });
+    } else {
+        res.status(400).json({
+            success: false,
+            message: 'Invalid payment signature'
+        });
+    }
+});
+
 // HDFC SmartGateway Configuration
 const HDFC_CONFIG = {
     API_KEY: process.env.HDFC_API_KEY || 'A9949FA93754229AB0640140B902BC',

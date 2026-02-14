@@ -39,7 +39,8 @@ import AdminAuthWrapper from './admin/AdminAuthWrapper';
 
 // Import phlebotomist components
 import PhlebotomistLogin from './phlebotomist/PhlebotomistLogin';
-import PhlebotomistDashboard from './phlebotomist/PhlebotomistDashboard';
+import PhlebotomistAuthWrapper from './phlebotomist/PhlebotomistAuthWrapper';
+import PhlebotomistDashboard from './pages/PhlebotomistDashboard';
 
 // Import shared components
 import Header from './components/Header';
@@ -97,7 +98,7 @@ function App() {
 
           {/* Phlebotomist Routes */}
           <Route path="/phlebotomist/login" element={<PhlebotomistLogin />} />
-          <Route path="/phlebotomist/dashboard" element={<PhlebotomistDashboard />} />
+          <Route path="/phlebotomist/dashboard" element={<PhlebotomistAuthWrapper><PhlebotomistDashboard /></PhlebotomistAuthWrapper>} />
 
 
           <Route path="/error" element={<ErrorPage />} />

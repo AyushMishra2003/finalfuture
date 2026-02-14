@@ -22,6 +22,7 @@ import BannerManager from "./BannerManager";
 import LocationManager from "./LocationManager";
 import ReportsManager from "./ReportsManager";
 import CollectorFolderManager from "./CollectorFolderManager";
+import OrderAssignment from "./OrderAssignment";
 import "./AdminDashboard.css";
 
 // Mock data for demonstration
@@ -84,6 +85,8 @@ const AdminDashboard = () => {
         return <ReportsManager />;
       case "bookings":
         return <CollectorFolderManager />;
+      case "order-assignment":
+        return <OrderAssignment />;
       default: // dashboard
         return (
           <div className="admin-content">
@@ -312,6 +315,12 @@ const AdminDashboard = () => {
             onClick={() => setActiveTab("bookings")}
           >
             <i className="fas fa-calendar-check"></i> Booking Management
+          </li>
+          <li
+            className={activeTab === "order-assignment" ? "active" : ""}
+            onClick={() => setActiveTab("order-assignment")}
+          >
+            <i className="fas fa-user-md"></i> Order Assignment
           </li>
           <li onClick={handleLogout}>
             <i className="fas fa-sign-out-alt"></i> Logout

@@ -8,21 +8,48 @@ const OrderSchema = new mongoose.Schema({
     },
     orderItems: [
         {
+            _id: false,
             test: {
                 type: mongoose.Schema.Types.ObjectId,
                 ref: 'Test',
+                required: false
+            },
+            name: {
+                type: String,
                 required: true
             },
-            name: String,
-            price: Number,
-            quantity: Number
+            price: {
+                type: Number,
+                required: true
+            },
+            quantity: {
+                type: Number,
+                default: 1
+            },
+            testId: String,
+            itemId: String // Allow non-ObjectId item references
         }
     ],
     shippingAddress: {
         address: String,
         city: String,
         postalCode: String,
-        country: String
+        country: String,
+        location: {
+            type: {
+                type: String,
+                enum: ['Point'],
+                default: 'Point'
+            },
+            coordinates: {
+                type: [Number],
+                index: '2dsphere'
+            },
+            latitude: Number,
+            longitude: Number,
+            accuracy: Number,
+            timestamp: Date
+        }
     },
     paymentMethod: {
         type: String,

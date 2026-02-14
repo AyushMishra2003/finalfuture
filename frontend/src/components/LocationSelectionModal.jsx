@@ -38,43 +38,66 @@ const LocationSelectionModal = ({ isOpen, onClose, onConfirm, selectedPatients =
     const handleShareLocation = () => {
         setIsSharing(true);
 
-        if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(
-                (position) => {
-                    const { latitude, longitude } = position.coords;
-
-                    // In a real app, reverse geocode to get address
-                    const locationData = {
-                        id: Date.now(),
-                        type: 'current',
-                        label: 'Current Location',
-                        address: `Lat: ${latitude.toFixed(4)}, Long: ${longitude.toFixed(4)}`,
-                        city: 'Bangalore',
-                        state: 'Karnataka',
-                        pincode: 'Detecting...',
-                        latitude,
-                        longitude,
-                        isDefault: false
-                    };
-
-                    setSelectedAddress(locationData);
-                    setIsSharing(false);
-
-                    // Auto-confirm after 1 second
-                    setTimeout(() => {
-                        handleConfirm(locationData);
-                    }, 1000);
-                },
-                (error) => {
-                    console.error('Error getting location:', error);
-                    alert('Unable to get your location. Please add address manually or enable location services.');
-                    setIsSharing(false);
-                }
-            );
-        } else {
+        if (!navigator.geolocation) {
             alert('Geolocation is not supported by your browser. Please add address manually.');
             setIsSharing(false);
+            return;
         }
+
+        navigator.geolocation.getCurrentPosition(
+            (position) => {
+                const { latitude, longitude } = position.coords;
+
+                const locationData = {
+                    id: Date.now(),
+                    type: 'current',
+                    label: 'Current Location',
+                    address: `Lat: ${latitude.toFixed(4)}, Long: ${longitude.toFixed(4)}`,
+                    city: 'Bangalore',
+                    state: 'Karnataka',
+                    pincode: 'Detecting...',
+                    latitude,
+                    longitude,
+                    accuracy: position.coords.accuracy,
+                    isDefault: false
+                };
+
+                console.log('📍 Location captured:', locationData);
+                setSelectedAddress(locationData);
+                setIsSharing(false);
+
+                setTimeout(() => {
+                    handleConfirm(locationData);
+                }, 1000);
+            },
+            (error) => {
+                console.error('Location error:', error);
+                setIsSharing(false);
+                
+                let errorMessage = 'Unable to get your location. ';
+                
+                switch(error.code) {
+                    case error.PERMISSION_DENIED:
+                        errorMessage += 'Please allow location access in your browser settings.';
+                        break;
+                    case error.POSITION_UNAVAILABLE:
+                        errorMessage += 'Location information is unavailable.';
+                        break;
+                    case error.TIMEOUT:
+                        errorMessage += 'Location request timed out. Please try again.';
+                        break;
+                    default:
+                        errorMessage += 'Please add address manually or enable location services.';
+                }
+                
+                alert(errorMessage);
+            },
+            {
+                enableHighAccuracy: true,
+                timeout: 10000,
+                maximumAge: 0
+            }
+        );
     };
 
     const handleSaveAddress = () => {
@@ -211,15 +234,40 @@ const LocationSelectionModal = ({ isOpen, onClose, onConfirm, selectedPatients =
                                             </p>
                                         </div>
 
+                                        {/* Location Permission Alert */}
+                                        <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-xl">
+                                            <div className="flex items-start gap-3">
+                                                <MapPin size={20} className="text-blue-600 flex-shrink-0 mt-0.5" />
+                                                <div className="flex-1">
+                                                    <p className="text-sm font-semibold text-blue-900 mb-2">
+                                                        📍 Location Permission Required
+                                                    </p>
+                                                    <p className="text-xs text-blue-700 mb-3">
+                                                        Click the button below and allow location access when your browser asks.
+                                                    </p>
+                                                    <div className="text-xs text-blue-600 space-y-1">
+                                                        <p><strong>Chrome:</strong> Click 🔒 icon → Site settings → Location → Allow</p>
+                                                        <p><strong>Firefox:</strong> Click 🔒 icon → Permissions → Location → Allow</p>
+                                                        <p><strong>Safari:</strong> Safari → Settings → Websites → Location → Allow</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
                                         {/* Share Location Button */}
                                         <button
                                             onClick={handleShareLocation}
                                             disabled={isSharing}
-                                            className="w-full py-4 bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-bold rounded-xl hover:shadow-lg transition-all mb-4 flex items-center justify-center gap-2"
+                                            className="w-full py-4 bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-bold rounded-xl hover:shadow-lg transition-all mb-2 flex items-center justify-center gap-2"
                                         >
                                             <Navigation size={20} />
-                                            {isSharing ? 'Getting Location...' : 'Share my location'}
+                                            {isSharing ? 'Getting Location...' : '📍 Share my location'}
                                         </button>
+                                        
+                                        {/* Help Text */}
+                                        <p className="text-xs text-center text-gray-500 mb-4">
+                                            Click above and allow when browser asks for permission
+                                        </p>
 
                                         {/* Divider */}
                                         <div className="flex items-center gap-3 mb-4">

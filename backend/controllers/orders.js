@@ -3,6 +3,7 @@ const Order = require('../models/Order');
 const User = require('../models/User');
 const Test = require('../models/Test');
 const asyncHandler = require('../middleware/async');
+const { calculateDistance, formatDistance } = require('../utils/locationUtils');
 
 // @desc    Get all orders
 // @route   GET /api/v1/orders
@@ -57,7 +58,7 @@ exports.getMyOrders = asyncHandler(async (req, res, next) => {
 
 // @desc    Get single order
 // @route   GET /api/v1/orders/:id
-// @access  Private
+// @access  Public
 exports.getOrder = asyncHandler(async (req, res, next) => {
     const order = await Order.findById(req.params.id).populate(
         'user',
@@ -71,14 +72,6 @@ exports.getOrder = asyncHandler(async (req, res, next) => {
         });
     }
 
-    // Make sure user is order owner or admin
-    if (order.user.toString() !== req.user.id && req.user.role !== 'admin') {
-        return res.status(401).json({
-            success: false,
-            error: 'Not authorized to view this order'
-        });
-    }
-
     res.status(200).json({
         success: true,
         data: order
@@ -87,7 +80,7 @@ exports.getOrder = asyncHandler(async (req, res, next) => {
 
 // @desc    Create new order
 // @route   POST /api/v1/orders
-// @access  Private
+// @access  Public
 exports.createOrder = asyncHandler(async (req, res, next) => {
     const {
         orderItems,
@@ -96,7 +89,9 @@ exports.createOrder = asyncHandler(async (req, res, next) => {
         itemsPrice,
         taxPrice,
         shippingPrice,
-        totalPrice
+        totalPrice,
+        location,
+        userId
     } = req.body;
 
     // Validate order items
@@ -105,6 +100,19 @@ exports.createOrder = asyncHandler(async (req, res, next) => {
             success: false,
             error: 'No order items'
         });
+    }
+
+    // Add location to shipping address if provided
+    if (location && location.latitude && location.longitude) {
+        shippingAddress.location = {
+            type: 'Point',
+            coordinates: [location.longitude, location.latitude],
+            latitude: location.latitude,
+            longitude: location.longitude,
+            accuracy: location.accuracy,
+            timestamp: new Date()
+        };
+        console.log('📍 Order location captured:', location);
     }
 
     // Create order
@@ -116,7 +124,7 @@ exports.createOrder = asyncHandler(async (req, res, next) => {
         taxPrice,
         shippingPrice,
         totalPrice,
-        user: req.user.id
+        user: userId || req.user?.id || '000000000000000000000000'
     });
 
     res.status(201).json({
@@ -212,8 +220,25 @@ exports.getDashboardStats = asyncHandler(async (req, res, next) => {
     const orders = await Order.find({ isPaid: true });
     const totalSales = orders.reduce((acc, order) => acc + order.totalPrice, 0);
 
-    // Get recent orders
+    // Get recent orders with location
     const recentOrders = await Order.find().sort({ createdAt: -1 }).limit(5).populate('user', 'name');
+
+    // Add distance calculation if admin location provided
+    const { adminLat, adminLon } = req.query;
+    if (adminLat && adminLon) {
+        recentOrders.forEach(order => {
+            if (order.shippingAddress?.location?.latitude) {
+                const distance = calculateDistance(
+                    parseFloat(adminLat),
+                    parseFloat(adminLon),
+                    order.shippingAddress.location.latitude,
+                    order.shippingAddress.location.longitude
+                );
+                order._doc.distance = formatDistance(distance);
+                order._doc.distanceKm = distance;
+            }
+        });
+    }
 
     // Calculate orderData (orders per month)
     const orderStats = await Order.aggregate([

@@ -1,7 +1,81 @@
 const https = require('https');
 const querystring = require('querystring');
 
-// Primary SMS provider (bhashsms)
+// Twilio Verify Service (Best for OTP)
+const sendSMSTwilioVerify = async (options) => {
+    try {
+        console.log('Attempting to send OTP via Twilio Verify:', options.phone);
+
+        const accountSid = process.env.TWILIO_SID;
+        const authToken = process.env.TWILIO_AUTH_TOKEN;
+        const verifySid = process.env.TWILIO_VERIFY_SERVICE_SID;
+
+        if (!accountSid || !authToken || !verifySid) {
+            console.error('Twilio Verify credentials not configured');
+            return { success: false, message: 'Twilio credentials missing', error: 'Missing credentials' };
+        }
+
+        const twilio = require('twilio')(accountSid, authToken);
+
+        // Extract OTP from message
+        const otpMatch = options.message.match(/\d{6}/);
+        const otp = otpMatch ? otpMatch[0] : null;
+
+        if (!otp) {
+            console.error('Could not extract OTP from message');
+            return { success: false, message: 'Invalid OTP format', error: 'No OTP found' };
+        }
+
+        // Send custom OTP via Twilio Verify
+        const verification = await twilio.verify.v2
+            .services(verifySid)
+            .verifications
+            .create({
+                to: `+91${options.phone}`,
+                channel: 'sms',
+                customCode: otp
+            });
+
+        console.log('Twilio Verify OTP sent successfully:', verification.status);
+        return { success: true, message: 'OTP sent via Twilio Verify', response: verification.status };
+    } catch (error) {
+        console.error('Twilio Verify error:', error.message);
+        return { success: false, message: 'Twilio Verify failed', error: error.message };
+    }
+};
+
+// Twilio SMS with Messaging Service
+const sendSMSTwilio = async (options) => {
+    try {
+        console.log('Attempting to send SMS via Twilio Messaging Service:', options.phone);
+
+        const accountSid = process.env.TWILIO_SID;
+        const authToken = process.env.TWILIO_AUTH_TOKEN;
+        const messagingServiceSid = process.env.TWILIO_MESSAGING_SERVICE_SID;
+
+        if (!accountSid || !authToken || !messagingServiceSid) {
+            console.error('Twilio credentials not configured');
+            return { success: false, message: 'Twilio credentials missing', error: 'Missing credentials' };
+        }
+
+        const twilio = require('twilio')(accountSid, authToken);
+
+        // Send SMS using Messaging Service
+        const message = await twilio.messages.create({
+            body: options.message,
+            messagingServiceSid: messagingServiceSid,
+            to: `+91${options.phone}`
+        });
+
+        console.log('Twilio SMS sent successfully:', message.sid, 'Status:', message.status);
+        return { success: true, message: 'SMS sent via Twilio', response: message.sid };
+    } catch (error) {
+        console.error('Twilio SMS error:', error.message);
+        return { success: false, message: 'Twilio SMS failed', error: error.message };
+    }
+};
+
+// Primary SMS provider (bhashsms) - DISABLED
 const sendSMSBhash = async (options) => {
     try {
         console.log('Attempting to send SMS via bhashsms:', options.phone);
@@ -91,15 +165,14 @@ const sendSMSFallback = async (options) => {
 
 const sendSMS = async (options) => {
     try {
-        // Log the SMS details for debugging
         console.log('Preparing to send SMS:', options);
 
-        // Try primary SMS provider first
-        let result = await sendSMSBhash(options);
+        // Try Twilio Messaging Service (works with trial)
+        let result = await sendSMSTwilio(options);
 
-        // If primary fails, try fallback
+        // If Twilio fails, use fallback
         if (!result.success) {
-            console.log('Primary SMS provider failed, trying fallback method');
+            console.log('Twilio failed, using fallback method');
             result = await sendSMSFallback(options);
         }
 

@@ -119,8 +119,16 @@ const PhlebotomistDashboard = () => {
     const openGPS = () => {
         if (currentBooking?.patient?.address) {
             const address = currentBooking.patient.address;
-            const query = encodeURIComponent(`${address.street}, ${address.city}, ${address.state} ${address.zip}`);
-            window.open(`https://www.google.com/maps/search/?api=1&query=${query}`, '_blank');
+            // Check if we have coordinates
+            if (address.location?.latitude && address.location?.longitude) {
+                const lat = address.location.latitude;
+                const lng = address.location.longitude;
+                window.open(`https://www.google.com/maps/search/?api=1&query=${lat},${lng}`, '_blank');
+            } else {
+                // Fallback to address search
+                const query = encodeURIComponent(`${address.address || address.street || ''}, ${address.city || ''}, ${address.postalCode || address.zip || ''}`);
+                window.open(`https://www.google.com/maps/search/?api=1&query=${query}`, '_blank');
+            }
         }
     };
 
@@ -186,8 +194,15 @@ const PhlebotomistDashboard = () => {
                     <strong>Booking Name:</strong> {currentBooking.patient.name}
                 </p>
                 <p className="patient-address">
-                    <strong>Address:</strong> {currentBooking.patient.address?.street || 'Address not available'}
+                    <strong>Address:</strong> {currentBooking.patient.address?.address || currentBooking.patient.address?.street || 'Address not available'}
+                    {currentBooking.patient.address?.city && `, ${currentBooking.patient.address.city}`}
+                    {currentBooking.patient.address?.postalCode && ` - ${currentBooking.patient.address.postalCode}`}
                 </p>
+                {currentBooking.patient.address?.location?.latitude && (
+                    <p className="patient-location">
+                        <strong>📍 Location:</strong> {currentBooking.patient.address.location.latitude.toFixed(6)}, {currentBooking.patient.address.location.longitude.toFixed(6)}
+                    </p>
+                )}
                 <div className="action-buttons">
                     <button onClick={openGPS} className="btn-gps">
                         <i className="fas fa-map-marker-alt"></i> GPS Location

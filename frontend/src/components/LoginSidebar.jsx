@@ -28,7 +28,9 @@ const LoginSidebar = ({ isOpen, onClose }) => {
     }
 
     setIsLoading(true);
+    setMessage("");
     try {
+      console.log('Sending OTP to:', phoneNumber);
       const response = await fetch(`${baseUrl}/api/v1/auth/otp/generate`, {
         method: "POST",
         headers: {
@@ -38,17 +40,22 @@ const LoginSidebar = ({ isOpen, onClose }) => {
       });
 
       const data = await response.json();
+      console.log('OTP Response:', data);
+      
       if (data.success) {
         setShowOtpForm(true);
         if (data.otp) {
-          setMessage(`OTP sent successfully! (Dev Code: ${data.otp})`);
+          setMessage(`✅ OTP: ${data.otp} (SMS failed, use this code)`);
+          // Show alert for easy visibility
+          alert(`Your OTP is: ${data.otp}\n\n(SMS service unavailable, using test mode)`);
         } else {
-          setMessage("OTP sent successfully!");
+          setMessage(data.message || "OTP sent successfully!");
         }
       } else {
-        setMessage(data.message || "Failed to send OTP");
+        setMessage(data.error || data.message || "Failed to send OTP");
       }
     } catch (error) {
+      console.error('OTP Generation Error:', error);
       setMessage("Error sending OTP. Please try again.");
     } finally {
       setIsLoading(false);
@@ -63,7 +70,9 @@ const LoginSidebar = ({ isOpen, onClose }) => {
     }
 
     setIsLoading(true);
+    setMessage("");
     try {
+      console.log('Verifying OTP:', { phone: phoneNumber, otp });
       const response = await fetch(`${baseUrl}/api/v1/auth/otp/verify`, {
         method: "POST",
         headers: {
@@ -73,6 +82,8 @@ const LoginSidebar = ({ isOpen, onClose }) => {
       });
 
       const data = await response.json();
+      console.log('Verification Response:', data);
+      
       if (data.success) {
         const token = data.token;
         localStorage.setItem("userToken", token);
@@ -83,13 +94,14 @@ const LoginSidebar = ({ isOpen, onClose }) => {
         setMessage("Login successful!");
 
         setTimeout(() => {
-          onClose(); // Close sidebar using prop
+          onClose();
           window.location.reload();
         }, 1000);
       } else {
-        setMessage(data.message || "Invalid OTP");
+        setMessage(data.error || data.message || "Invalid OTP");
       }
     } catch (error) {
+      console.error('OTP Verification Error:', error);
       setMessage("Error verifying OTP. Please try again.");
     } finally {
       setIsLoading(false);
