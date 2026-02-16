@@ -287,7 +287,7 @@ const CategoryCard = ({ item, getImageUrl, index, onNavigate }) => {
                         {/* Placeholder Icon/Text */}
                         <div className="text-center">
                             <div
-                                className="w-20 h-20 mx-auto mb-2 rounded-full flex items-center justify-center text-white text-3xl font-bold"
+                                className="w-20 h-20 mx-auto mb-2 rounded-lg flex items-center justify-center text-white text-3xl font-bold"
                                 style={{ background: 'linear-gradient(135deg, #2D7A6E 0%, #1F5F54 100%)' }}
                             >
                                 {item.name.charAt(0)}

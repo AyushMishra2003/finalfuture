@@ -15,6 +15,7 @@ import './detail.css';
 import './lyfsyle.css';
 import './react-custom.css';
 import './react-fixes.css';
+import './mobile-responsive.css'; // Mobile responsiveness fixes
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(

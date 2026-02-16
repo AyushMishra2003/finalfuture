@@ -579,325 +579,349 @@ const Completehealth = () => {
   const activeTest = selectedTest || {};
 
   return (
-    <div style={{
-      minHeight: "100vh",
-      background: "linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%)",
-      fontFamily: `"Inter", "Segoe UI", sans-serif`,
-      paddingBottom: "40px"
-    }}>
-
-      {/* Toast Notification */}
-      {showToast && (
-        <div style={{
-          position: "fixed",
-          top: "20px",
-          right: "20px",
-          background: "rgba(16, 185, 129, 0.95)",
-          color: "white",
-          padding: "12px 24px",
-          borderRadius: "12px",
-          boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.1)",
-          zIndex: 1000,
-          display: "flex",
-          alignItems: "center",
-          gap: "8px",
-          animation: "slideIn 0.3s ease-out"
-        }}>
-          <CheckCircle size={20} />
-          {toastMessage}
-        </div>
-      )}
-
-      {/* Hero Section */}
+    <>
+      <style>
+        {`
+          @media (max-width: 640px) {
+            .test-card-button {
+              padding: 8px 12px !important;
+              font-size: 13px !important;
+            }
+            .test-card-button-text {
+              display: none;
+            }
+            .test-card-button-text-mobile {
+              display: inline;
+            }
+          }
+          @media (min-width: 641px) {
+            .test-card-button-text {
+              display: inline;
+            }
+            .test-card-button-text-mobile {
+              display: none;
+            }
+          }
+        `}
+      </style>
       <div style={{
-        background: "white",
-        padding: "40px 20px 20px",
-        borderBottomLeftRadius: "30px",
-        borderBottomRightRadius: "30px",
-        boxShadow: "0 4px 20px -5px rgba(0, 0, 0, 0.05)",
-        marginBottom: "30px",
-        position: "relative",
-        overflow: "hidden"
+        minHeight: "100vh",
+        background: "linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%)",
+        fontFamily: `"Inter", "Segoe UI", sans-serif`,
+        paddingBottom: "40px"
       }}>
-        {/* Background Decor */}
-        <div style={{
-          position: "absolute",
-          top: "-50px",
-          right: "-50px",
-          width: "200px",
-          height: "200px",
-          background: "linear-gradient(45deg, #eff6ff, #dbeafe)",
-          borderRadius: "50%",
-          opacity: 0.6,
-          zIndex: 0
-        }} />
 
-        <div style={{ maxWidth: "1200px", margin: "0 auto", position: "relative", zIndex: 1 }}>
-          <div style={{ textAlign: "center", marginBottom: "30px" }}>
-            <span style={{
-              color: "#3b82f6",
-              fontWeight: "600",
-              fontSize: "14px",
-              textTransform: "uppercase",
-              letterSpacing: "1px",
-              background: "#eff6ff",
-              padding: "4px 12px",
-              borderRadius: "20px"
-            }}>
-              Comprehensive Diagnostics
-            </span>
-            <h1 style={{
-              fontSize: "clamp(28px, 5vw, 42px)",
-              fontWeight: "800",
-              color: "#1e293b",
-              margin: "16px 0 8px",
-              background: "linear-gradient(to right, #1e293b, #334155)",
-              WebkitBackgroundClip: "text",
-              WebkitTextFillColor: "transparent"
-            }}>
-              Complete Health Solutions
-            </h1>
-            <p style={{ color: "#64748b", fontSize: "16px", display: "flex", alignItems: "center", justifyContent: "center", gap: "10px", flexWrap: "wrap" }}>
-              <ShieldCheck size={18} color="#10b981" /> 100% Accurate
-              <span style={{ color: "#cbd5e1" }}>|</span>
-              <Home size={18} color="#f59e0b" /> Free Home Collection
-              <span style={{ color: "#cbd5e1" }}>|</span>
-              <Award size={18} color="#6366f1" /> NABL Certified
-            </p>
-          </div>
-
-          {/* Stats Row */}
+        {/* Toast Notification */}
+        {showToast && (
           <div style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))",
-            gap: "15px",
-            marginBottom: "30px"
+            position: "fixed",
+            top: "20px",
+            right: "20px",
+            background: "rgba(16, 185, 129, 0.95)",
+            color: "white",
+            padding: "12px 24px",
+            borderRadius: "12px",
+            boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.1)",
+            zIndex: 1000,
+            display: "flex",
+            alignItems: "center",
+            gap: "8px",
+            animation: "slideIn 0.3s ease-out"
           }}>
-            {stats.map((stat, idx) => (
-              <div key={idx} style={{
-                background: "rgba(255,255,255,0.7)",
-                backdropFilter: "blur(10px)",
-                border: "1px solid #f1f5f9",
-                borderRadius: "16px",
-                padding: "15px",
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                textAlign: "center",
-                boxShadow: "0 2px 10px rgba(0,0,0,0.03)"
-              }}>
-                <stat.icon size={24} color={stat.color} style={{ marginBottom: "8px" }} />
-                <div style={{ fontSize: "20px", fontWeight: "700", color: "#1e293b" }}>{stat.value}</div>
-                <div style={{ fontSize: "12px", color: "#64748b", fontWeight: "500" }}>{stat.label}</div>
-              </div>
-            ))}
-          </div>
-
-          {/* Search Bar */}
-          <div style={{
-            position: "relative",
-            maxWidth: "600px",
-            margin: "0 auto",
-            boxShadow: "0 10px 25px -5px rgba(59, 130, 246, 0.15)"
-          }}>
-            <Search
-              size={20}
-              color="#94a3b8"
-              style={{ position: "absolute", left: "15px", top: "50%", transform: "translateY(-50%)" }}
-            />
-            <input
-              type="text"
-              placeholder="Search checks, tests, or organs..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              style={{
-                width: "100%",
-                padding: "16px 16px 16px 50px",
-                borderRadius: "16px",
-                border: "2px solid white",
-                fontSize: "16px",
-                outline: "none",
-                transition: "all 0.3s",
-                background: "white"
-              }}
-              onFocus={(e) => e.target.style.borderColor = "#3b82f6"}
-              onBlur={(e) => e.target.style.borderColor = "white"}
-            />
-          </div>
-        </div>
-      </div>
-
-      {/* Main Content */}
-      <div style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 20px" }}>
-
-        {/* Categories Filter */}
-        <div style={{
-          display: "flex",
-          gap: "12px",
-          overflowX: "auto",
-          paddingBottom: "20px",
-          marginBottom: "10px",
-          scrollbarWidth: "none"
-        }}>
-          {categories.map(cat => (
-            <button
-              key={cat}
-              onClick={() => setActiveCategory(cat)}
-              style={{
-                padding: "10px 20px",
-                borderRadius: "12px",
-                border: "none",
-                background: activeCategory === cat
-                  ? "linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)"
-                  : "white",
-                color: activeCategory === cat ? "white" : "#64748b",
-                fontWeight: "600",
-                fontSize: "14px",
-                whiteSpace: "nowrap",
-                cursor: "pointer",
-                boxShadow: activeCategory === cat ? "0 4px 12px rgba(37, 99, 235, 0.3)" : "0 2px 5px rgba(0,0,0,0.05)",
-                transition: "all 0.3s ease"
-              }}
-            >
-              {cat}
-            </button>
-          ))}
-        </div>
-
-        {/* Loading Skeleton */}
-        {loading && (
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: "24px" }}>
-            {[1, 2, 3, 4, 5, 6].map(i => (
-              <div key={i} style={{ height: "250px", background: "#e2e8f0", borderRadius: "20px", animation: "pulse 1.5s infinite" }} />
-            ))}
+            <CheckCircle size={20} />
+            {toastMessage}
           </div>
         )}
 
-        {/* Tests Grid */}
+        {/* Hero Section */}
         <div style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))",
-          gap: "24px",
-          opacity: loading ? 0 : 1,
-          transition: "opacity 0.5s"
+          background: "white",
+          padding: "40px 20px 20px",
+          borderBottomLeftRadius: "30px",
+          borderBottomRightRadius: "30px",
+          boxShadow: "0 4px 20px -5px rgba(0, 0, 0, 0.05)",
+          marginBottom: "30px",
+          position: "relative",
+          overflow: "hidden"
         }}>
-          {filteredServices.map((service, index) => (
-            <div
-              key={service.id}
-              onClick={() => handleOpenDrawer(service)}
-              style={{
-                background: "white",
-                borderRadius: "20px",
-                overflow: "hidden",
-                boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03)",
-                cursor: "pointer",
-                transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-                position: "relative",
-                border: "1px solid #f1f5f9",
-                animation: `fadeInUp 0.5s ease forwards ${index * 0.1}s`
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.transform = "translateY(-8px)";
-                e.currentTarget.style.boxShadow = "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = "translateY(0)";
-                e.currentTarget.style.boxShadow = "0 4px 6px -1px rgba(0, 0, 0, 0.05)";
-              }}
-            >
-              {/* Badges */}
-              {service.popular && (
-                <div style={{
-                  position: "absolute",
-                  top: "16px",
-                  right: "16px",
-                  background: "linear-gradient(135deg, #f59e0b 0%, #d97706 100%)",
-                  color: "white",
-                  fontSize: "11px",
-                  fontWeight: "700",
-                  padding: "4px 10px",
-                  borderRadius: "20px",
-                  boxShadow: "0 2px 5px rgba(245, 158, 11, 0.4)",
-                  zIndex: 10
-                }}>
-                  MOST POPULAR
-                </div>
-              )}
-              {service.tier === "Premium" && (
-                <div style={{
-                  position: "absolute",
-                  top: "16px",
-                  left: "16px",
-                  background: "linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%)",
-                  color: "white",
-                  fontSize: "11px",
-                  fontWeight: "700",
-                  padding: "4px 10px",
-                  borderRadius: "20px",
-                  zIndex: 10
-                }}>
-                  PREMIUM
-                </div>
-              )}
+          {/* Background Decor */}
+          <div style={{
+            position: "absolute",
+            top: "-50px",
+            right: "-50px",
+            width: "200px",
+            height: "200px",
+            background: "linear-gradient(45deg, #eff6ff, #dbeafe)",
+            borderRadius: "50%",
+            opacity: 0.6,
+            zIndex: 0
+          }} />
 
-              <div style={{ padding: "24px" }}>
-                {/* Header */}
-                <div style={{ display: "flex", gap: "10px", marginBottom: "12px", marginTop: "15px" }}>
-                  <span style={{
-                    fontSize: "12px", fontWeight: "600", color: "#64748b",
-                    background: "#f1f5f9", padding: "4px 8px", borderRadius: "6px"
-                  }}>
-                    {service.category}
-                  </span>
-                </div>
+          <div style={{ maxWidth: "1200px", margin: "0 auto", position: "relative", zIndex: 1 }}>
+            <div style={{ textAlign: "center", marginBottom: "30px" }}>
+              <span style={{
+                color: "#3b82f6",
+                fontWeight: "600",
+                fontSize: "14px",
+                textTransform: "uppercase",
+                letterSpacing: "1px",
+                background: "#eff6ff",
+                padding: "4px 12px",
+                borderRadius: "20px"
+              }}>
+                Comprehensive Diagnostics
+              </span>
+              <h1 style={{
+                fontSize: "clamp(28px, 5vw, 42px)",
+                fontWeight: "800",
+                color: "#1e293b",
+                margin: "16px 0 8px",
+                background: "linear-gradient(to right, #1e293b, #334155)",
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent"
+              }}>
+                Complete Health Solutions
+              </h1>
+              <p style={{ color: "#64748b", fontSize: "16px", display: "flex", alignItems: "center", justifyContent: "center", gap: "10px", flexWrap: "wrap" }}>
+                <ShieldCheck size={18} color="#10b981" /> 100% Accurate
+                <span style={{ color: "#cbd5e1" }}>|</span>
+                <Home size={18} color="#f59e0b" /> Free Home Collection
+                <span style={{ color: "#cbd5e1" }}>|</span>
+                <Award size={18} color="#6366f1" /> NABL Certified
+              </p>
+            </div>
 
-                <h3 style={{
-                  fontSize: "18px",
-                  fontWeight: "700",
-                  color: "#1e293b",
-                  marginBottom: "12px",
-                  lineHeight: "1.4"
-                }}>
-                  {service.title}
-                </h3>
-
-                {/* Quick Info */}
-                <div style={{
+            {/* Stats Row */}
+            <div style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))",
+              gap: "15px",
+              marginBottom: "30px"
+            }}>
+              {stats.map((stat, idx) => (
+                <div key={idx} style={{
+                  background: "rgba(255,255,255,0.7)",
+                  backdropFilter: "blur(10px)",
+                  border: "1px solid #f1f5f9",
+                  borderRadius: "16px",
+                  padding: "15px",
                   display: "flex",
+                  flexDirection: "column",
                   alignItems: "center",
-                  gap: "16px",
-                  color: "#64748b",
-                  fontSize: "13px",
-                  marginBottom: "20px"
+                  textAlign: "center",
+                  boxShadow: "0 2px 10px rgba(0,0,0,0.03)"
                 }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                    <Beaker size={16} color="#3b82f6" />
-                    {service.testCount} Tests
-                  </div>
-                  <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                    <Clock size={16} color="#10b981" />
-                    {service.reportTime}
-                  </div>
+                  <stat.icon size={24} color={stat.color} style={{ marginBottom: "8px" }} />
+                  <div style={{ fontSize: "20px", fontWeight: "700", color: "#1e293b" }}>{stat.value}</div>
+                  <div style={{ fontSize: "12px", color: "#64748b", fontWeight: "500" }}>{stat.label}</div>
                 </div>
+              ))}
+            </div>
 
-                {/* Preview Features */}
-                <div style={{ borderTop: "1px dashed #e2e8f0", paddingTop: "16px", marginBottom: "16px" }}>
-                  {service.features.slice(0, 2).map((feature, i) => (
-                    <div key={i} style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "13px", color: "#475569", marginBottom: "6px" }}>
-                      <CheckCircle size={14} color="#10b981" />
-                      {feature}
-                    </div>
-                  ))}
-                  {service.features.length > 2 && (
-                    <div style={{ fontSize: "12px", color: "#94a3b8", marginLeft: "22px" }}>
-                      + {service.features.length - 2} more parameters
-                    </div>
-                  )}
-                </div>
+            {/* Search Bar */}
+            <div style={{
+              position: "relative",
+              maxWidth: "600px",
+              margin: "0 auto",
+              boxShadow: "0 10px 25px -5px rgba(59, 130, 246, 0.15)"
+            }}>
+              <Search
+                size={20}
+                color="#94a3b8"
+                style={{ position: "absolute", left: "15px", top: "50%", transform: "translateY(-50%)" }}
+              />
+              <input
+                type="text"
+                placeholder="Search checks, tests, or organs..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                style={{
+                  width: "100%",
+                  padding: "16px 16px 16px 50px",
+                  borderRadius: "16px",
+                  border: "2px solid white",
+                  fontSize: "16px",
+                  outline: "none",
+                  transition: "all 0.3s",
+                  background: "white"
+                }}
+                onFocus={(e) => e.target.style.borderColor = "#3b82f6"}
+                onBlur={(e) => e.target.style.borderColor = "white"}
+              />
+            </div>
+          </div>
+        </div>
 
-                {/* Footer */}
-                <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between" }}>
-                  <div>
+        {/* Main Content */}
+        <div style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 20px" }}>
+
+          {/* Categories Filter */}
+          <div style={{
+            display: "flex",
+            gap: "12px",
+            overflowX: "auto",
+            paddingBottom: "20px",
+            marginBottom: "10px",
+            scrollbarWidth: "none"
+          }}>
+            {categories.map(cat => (
+              <button
+                key={cat}
+                onClick={() => setActiveCategory(cat)}
+                style={{
+                  padding: "10px 20px",
+                  borderRadius: "12px",
+                  border: "none",
+                  background: activeCategory === cat
+                    ? "linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)"
+                    : "white",
+                  color: activeCategory === cat ? "white" : "#64748b",
+                  fontWeight: "600",
+                  fontSize: "14px",
+                  whiteSpace: "nowrap",
+                  cursor: "pointer",
+                  boxShadow: activeCategory === cat ? "0 4px 12px rgba(37, 99, 235, 0.3)" : "0 2px 5px rgba(0,0,0,0.05)",
+                  transition: "all 0.3s ease"
+                }}
+              >
+                {cat}
+              </button>
+            ))}
+          </div>
+
+          {/* Loading Skeleton */}
+          {loading && (
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: "24px" }}>
+              {[1, 2, 3, 4, 5, 6].map(i => (
+                <div key={i} style={{ height: "250px", background: "#e2e8f0", borderRadius: "20px", animation: "pulse 1.5s infinite" }} />
+              ))}
+            </div>
+          )}
+
+          {/* Tests Grid */}
+          <div style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))",
+            gap: "24px",
+            opacity: loading ? 0 : 1,
+            transition: "opacity 0.5s"
+          }}>
+            {filteredServices.map((service, index) => (
+              <div
+                key={service.id}
+                onClick={() => handleOpenDrawer(service)}
+                style={{
+                  background: "white",
+                  borderRadius: "20px",
+                  overflow: "hidden",
+                  boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03)",
+                  cursor: "pointer",
+                  transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+                  position: "relative",
+                  border: "1px solid #f1f5f9",
+                  animation: `fadeInUp 0.5s ease forwards ${index * 0.1}s`
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = "translateY(-8px)";
+                  e.currentTarget.style.boxShadow = "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = "translateY(0)";
+                  e.currentTarget.style.boxShadow = "0 4px 6px -1px rgba(0, 0, 0, 0.05)";
+                }}
+              >
+                {/* Badges */}
+                {service.popular && (
+                  <div style={{
+                    position: "absolute",
+                    top: "16px",
+                    right: "16px",
+                    background: "linear-gradient(135deg, #f59e0b 0%, #d97706 100%)",
+                    color: "white",
+                    fontSize: "11px",
+                    fontWeight: "700",
+                    padding: "4px 10px",
+                    borderRadius: "20px",
+                    boxShadow: "0 2px 5px rgba(245, 158, 11, 0.4)",
+                    zIndex: 10
+                  }}>
+                    MOST POPULAR
+                  </div>
+                )}
+                {service.tier === "Premium" && (
+                  <div style={{
+                    position: "absolute",
+                    top: "16px",
+                    left: "16px",
+                    background: "linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%)",
+                    color: "white",
+                    fontSize: "11px",
+                    fontWeight: "700",
+                    padding: "4px 10px",
+                    borderRadius: "20px",
+                    zIndex: 10
+                  }}>
+                    PREMIUM
+                  </div>
+                )}
+
+                <div style={{ padding: "24px" }}>
+                  {/* Header */}
+                  <div style={{ display: "flex", gap: "10px", marginBottom: "12px", marginTop: "15px" }}>
+                    <span style={{
+                      fontSize: "12px", fontWeight: "600", color: "#64748b",
+                      background: "#f1f5f9", padding: "4px 8px", borderRadius: "6px"
+                    }}>
+                      {service.category}
+                    </span>
+                  </div>
+
+                  <h3 style={{
+                    fontSize: "18px",
+                    fontWeight: "700",
+                    color: "#1e293b",
+                    marginBottom: "12px",
+                    lineHeight: "1.4"
+                  }}>
+                    {service.title}
+                  </h3>
+
+                  {/* Quick Info */}
+                  <div style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "16px",
+                    color: "#64748b",
+                    fontSize: "13px",
+                    marginBottom: "20px"
+                  }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                      <Beaker size={16} color="#3b82f6" />
+                      {service.testCount} Tests
+                    </div>
+                    <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                      <Clock size={16} color="#10b981" />
+                      {service.reportTime}
+                    </div>
+                  </div>
+
+                  {/* Preview Features */}
+                  <div style={{ borderTop: "1px dashed #e2e8f0", paddingTop: "16px", marginBottom: "16px" }}>
+                    {service.features.slice(0, 2).map((feature, i) => (
+                      <div key={i} style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "13px", color: "#475569", marginBottom: "6px" }}>
+                        <CheckCircle size={14} color="#10b981" />
+                        {feature}
+                      </div>
+                    ))}
+                    {service.features.length > 2 && (
+                      <div style={{ fontSize: "12px", color: "#94a3b8", marginLeft: "22px" }}>
+                        + {service.features.length - 2} more parameters
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Pricing */}
+                  <div style={{ marginBottom: "16px" }}>
                     <div style={{ fontSize: "12px", color: "#94a3b8", textDecoration: "line-through", marginBottom: "2px" }}>
                       ₹{service.mrp}
                     </div>
@@ -911,467 +935,529 @@ const Completehealth = () => {
                     </div>
                   </div>
 
-                  <div style={{
-                    width: "32px",
-                    height: "32px",
-                    borderRadius: "50%",
-                    background: "#3b82f6",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    boxShadow: "0 4px 6px rgba(59, 130, 246, 0.3)"
-                  }}>
-                    <ArrowRight size={18} color="white" />
+                  {/* Action Buttons */}
+                  <div style={{ display: "flex", gap: "10px" }}>
+                    <button
+                      className="test-card-button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleOpenDrawer(service);
+                      }}
+                      style={{
+                        flex: 1,
+                        padding: "10px 16px",
+                        borderRadius: "10px",
+                        border: "2px solid #3b82f6",
+                        background: "white",
+                        color: "#3b82f6",
+                        fontWeight: "600",
+                        fontSize: "14px",
+                        cursor: "pointer",
+                        transition: "all 0.3s ease",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        gap: "6px"
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.background = "#eff6ff";
+                        e.currentTarget.style.transform = "translateY(-2px)";
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.background = "white";
+                        e.currentTarget.style.transform = "translateY(0)";
+                      }}
+                    >
+                      <Info size={16} />
+                      <span className="test-card-button-text">Know More</span>
+                      <span className="test-card-button-text-mobile">More</span>
+                    </button>
+
+                    <button
+                      className="test-card-button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleBookTest(service);
+                      }}
+                      style={{
+                        flex: 1,
+                        padding: "10px 16px",
+                        borderRadius: "10px",
+                        border: "none",
+                        background: "linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)",
+                        color: "white",
+                        fontWeight: "600",
+                        fontSize: "14px",
+                        cursor: "pointer",
+                        transition: "all 0.3s ease",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        gap: "6px",
+                        boxShadow: "0 4px 6px rgba(59, 130, 246, 0.3)"
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.transform = "translateY(-2px)";
+                        e.currentTarget.style.boxShadow = "0 6px 12px rgba(59, 130, 246, 0.4)";
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.transform = "translateY(0)";
+                        e.currentTarget.style.boxShadow = "0 4px 6px rgba(59, 130, 246, 0.3)";
+                      }}
+                    >
+                      <ShoppingCart size={16} />
+                      <span className="test-card-button-text">Add to Cart</span>
+                      <span className="test-card-button-text-mobile">Cart</span>
+                    </button>
                   </div>
                 </div>
               </div>
+            ))}
+          </div>
+
+          {/* Empty State */}
+          {!loading && filteredServices.length === 0 && (
+            <div style={{ textAlign: "center", padding: "60px 20px" }}>
+              <div style={{ background: "#f1f5f9", width: "80px", height: "80px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 20px" }}>
+                <Search size={32} color="#94a3b8" />
+              </div>
+              <h3 style={{ color: "#1e293b", fontSize: "18px", fontWeight: "600", marginBottom: "8px" }}>No packages found</h3>
+              <p style={{ color: "#64748b" }}>Try adjusting your search or category filter.</p>
             </div>
-          ))}
+          )}
         </div>
 
-        {/* Empty State */}
-        {!loading && filteredServices.length === 0 && (
-          <div style={{ textAlign: "center", padding: "60px 20px" }}>
-            <div style={{ background: "#f1f5f9", width: "80px", height: "80px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 20px" }}>
-              <Search size={32} color="#94a3b8" />
-            </div>
-            <h3 style={{ color: "#1e293b", fontSize: "18px", fontWeight: "600", marginBottom: "8px" }}>No packages found</h3>
-            <p style={{ color: "#64748b" }}>Try adjusting your search or category filter.</p>
-          </div>
-        )}
-      </div>
-
-      {/* Test Details Drawer (Right Side / Bottom Sheet) */}
-      {/* Backdrop */}
-      {isDrawerOpen && (
-        <div
-          onClick={handleCloseDrawer}
-          style={{
-            position: "fixed",
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            background: "rgba(0,0,0,0.4)",
-            backdropFilter: "blur(4px)",
-            zIndex: 40,
-            animation: "fadeIn 0.3s"
-          }}
-        />
-      )}
-
-      {/* Drawer */}
-      <div style={{
-        position: "fixed",
-        top: 0,
-        right: 0,
-        width: "100%",
-        maxWidth: "500px",
-        height: "100dvh",
-        background: "white",
-        zIndex: 9999,
-        boxShadow: "-10px 0 25px rgba(0,0,0,0.1)",
-        transform: isDrawerOpen ? "translateX(0)" : "translateX(100%)",
-        transition: "transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-        display: "flex",
-        flexDirection: "column"
-      }}>
-        {/* Drawer Header */}
-        <div style={{
-          padding: "20px 24px",
-          borderBottom: "1px solid #f1f5f9",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          background: "rgba(255,255,255,0.95)",
-          backdropFilter: "blur(10px)"
-        }}>
-          <h2 style={{ fontSize: "18px", fontWeight: "700", color: "#0f172a", margin: 0 }}>Package Details</h2>
-          <button
+        {/* Test Details Drawer (Right Side / Bottom Sheet) */}
+        {/* Backdrop */}
+        {isDrawerOpen && (
+          <div
             onClick={handleCloseDrawer}
             style={{
-              border: "none",
-              background: "#f1f5f9",
-              borderRadius: "50%",
-              width: "36px",
-              height: "36px",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              cursor: "pointer",
-              transition: "background 0.2s"
+              position: "fixed",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              background: "rgba(0,0,0,0.4)",
+              backdropFilter: "blur(4px)",
+              zIndex: 40,
+              animation: "fadeIn 0.3s"
             }}
-            onMouseOver={(e) => e.currentTarget.style.background = "#e2e8f0"}
-            onMouseOut={(e) => e.currentTarget.style.background = "#f1f5f9"}
-          >
-            <X size={20} color="#64748b" />
-          </button>
-        </div>
+          />
+        )}
 
-        {/* Drawer Content - Scrollable */}
-        <div style={{ flex: 1, overflowY: "auto", padding: "24px" }}>
-          {activeTest && (
-            <>
-              {/* Title Block */}
-              <div style={{ marginBottom: "24px" }}>
-                <div style={{ display: "flex", gap: "10px", marginBottom: "12px" }}>
-                  <span style={{ fontSize: "12px", fontWeight: "600", color: "#3b82f6", background: "#eff6ff", padding: "4px 8px", borderRadius: "6px" }}>
-                    {activeTest.category}
-                  </span>
-                  {activeTest.popular && (
-                    <span style={{ fontSize: "12px", fontWeight: "600", color: "#d97706", background: "#fef3c7", padding: "4px 8px", borderRadius: "6px" }}>
-                      Most Popular
+        {/* Drawer */}
+        <div style={{
+          position: "fixed",
+          top: 0,
+          right: 0,
+          width: "100%",
+          maxWidth: "500px",
+          height: "100dvh",
+          background: "white",
+          zIndex: 9999,
+          boxShadow: "-10px 0 25px rgba(0,0,0,0.1)",
+          transform: isDrawerOpen ? "translateX(0)" : "translateX(100%)",
+          transition: "transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+          display: "flex",
+          flexDirection: "column"
+        }}>
+          {/* Drawer Header */}
+          <div style={{
+            padding: "20px 24px",
+            borderBottom: "1px solid #f1f5f9",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            background: "rgba(255,255,255,0.95)",
+            backdropFilter: "blur(10px)"
+          }}>
+            <h2 style={{ fontSize: "18px", fontWeight: "700", color: "#0f172a", margin: 0 }}>Package Details</h2>
+            <button
+              onClick={handleCloseDrawer}
+              style={{
+                border: "none",
+                background: "#f1f5f9",
+                borderRadius: "50%",
+                width: "36px",
+                height: "36px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                cursor: "pointer",
+                transition: "background 0.2s"
+              }}
+              onMouseOver={(e) => e.currentTarget.style.background = "#e2e8f0"}
+              onMouseOut={(e) => e.currentTarget.style.background = "#f1f5f9"}
+            >
+              <X size={20} color="#64748b" />
+            </button>
+          </div>
+
+          {/* Drawer Content - Scrollable */}
+          <div style={{ flex: 1, overflowY: "auto", padding: "24px" }}>
+            {activeTest && (
+              <>
+                {/* Title Block */}
+                <div style={{ marginBottom: "24px" }}>
+                  <div style={{ display: "flex", gap: "10px", marginBottom: "12px" }}>
+                    <span style={{ fontSize: "12px", fontWeight: "600", color: "#3b82f6", background: "#eff6ff", padding: "4px 8px", borderRadius: "6px" }}>
+                      {activeTest.category}
                     </span>
-                  )}
+                    {activeTest.popular && (
+                      <span style={{ fontSize: "12px", fontWeight: "600", color: "#d97706", background: "#fef3c7", padding: "4px 8px", borderRadius: "6px" }}>
+                        Most Popular
+                      </span>
+                    )}
+                  </div>
+                  <h1 style={{ fontSize: "24px", fontWeight: "800", color: "#1e293b", marginBottom: "12px", lineHeight: "1.3" }}>
+                    {activeTest.title}
+                  </h1>
+                  <p style={{ fontSize: "15px", color: "#64748b", lineHeight: "1.6" }}>
+                    {activeTest.description}
+                  </p>
                 </div>
-                <h1 style={{ fontSize: "24px", fontWeight: "800", color: "#1e293b", marginBottom: "12px", lineHeight: "1.3" }}>
-                  {activeTest.title}
-                </h1>
-                <p style={{ fontSize: "15px", color: "#64748b", lineHeight: "1.6" }}>
-                  {activeTest.description}
-                </p>
-              </div>
 
-              {/* Info Grid */}
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", marginBottom: "24px" }}>
-                <div style={{ background: "#f8fafc", padding: "16px", borderRadius: "12px", border: "1px solid #e2e8f0" }}>
-                  <Clock size={20} color="#3b82f6" style={{ marginBottom: "8px" }} />
-                  <div style={{ fontSize: "12px", color: "#64748b", marginBottom: "4px" }}>Report Time</div>
-                  <div style={{ fontSize: "14px", fontWeight: "600", color: "#0f172a" }}>{activeTest.reportTime}</div>
+                {/* Info Grid */}
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", marginBottom: "24px" }}>
+                  <div style={{ background: "#f8fafc", padding: "16px", borderRadius: "12px", border: "1px solid #e2e8f0" }}>
+                    <Clock size={20} color="#3b82f6" style={{ marginBottom: "8px" }} />
+                    <div style={{ fontSize: "12px", color: "#64748b", marginBottom: "4px" }}>Report Time</div>
+                    <div style={{ fontSize: "14px", fontWeight: "600", color: "#0f172a" }}>{activeTest.reportTime}</div>
+                  </div>
+                  <div style={{ background: "#f8fafc", padding: "16px", borderRadius: "12px", border: "1px solid #e2e8f0" }}>
+                    <Beaker size={20} color="#8b5cf6" style={{ marginBottom: "8px" }} />
+                    <div style={{ fontSize: "12px", color: "#64748b", marginBottom: "4px" }}>Sample Type</div>
+                    <div style={{ fontSize: "14px", fontWeight: "600", color: "#0f172a" }}>{activeTest.sampleType}</div>
+                  </div>
+                  <div style={{ background: "#f8fafc", padding: "16px", borderRadius: "12px", border: "1px solid #e2e8f0" }}>
+                    <Activity size={20} color="#ef4444" style={{ marginBottom: "8px" }} />
+                    <div style={{ fontSize: "12px", color: "#64748b", marginBottom: "4px" }}>Fasting</div>
+                    <div style={{ fontSize: "14px", fontWeight: "600", color: "#0f172a" }}>{activeTest.fasting}</div>
+                  </div>
+                  <div style={{ background: "#f8fafc", padding: "16px", borderRadius: "12px", border: "1px solid #e2e8f0" }}>
+                    <Award size={20} color="#f59e0b" style={{ marginBottom: "8px" }} />
+                    <div style={{ fontSize: "12px", color: "#64748b", marginBottom: "4px" }}>Certified</div>
+                    <div style={{ fontSize: "14px", fontWeight: "600", color: "#0f172a" }}>NABL Labs</div>
+                  </div>
                 </div>
-                <div style={{ background: "#f8fafc", padding: "16px", borderRadius: "12px", border: "1px solid #e2e8f0" }}>
-                  <Beaker size={20} color="#8b5cf6" style={{ marginBottom: "8px" }} />
-                  <div style={{ fontSize: "12px", color: "#64748b", marginBottom: "4px" }}>Sample Type</div>
-                  <div style={{ fontSize: "14px", fontWeight: "600", color: "#0f172a" }}>{activeTest.sampleType}</div>
+
+                {/* Sections */}
+                <div style={{ marginBottom: "30px" }}>
+                  <h3 style={{ fontSize: "16px", fontWeight: "700", color: "#1e293b", marginBottom: "16px", display: "flex", alignItems: "center", gap: "8px" }}>
+                    <Info size={18} color="#3b82f6" /> Why is this test needed?
+                  </h3>
+                  <p style={{ fontSize: "14px", color: "#475569", lineHeight: "1.6", background: "#eff6ff", padding: "16px", borderRadius: "12px" }}>
+                    {activeTest.whyNeeded}
+                  </p>
                 </div>
-                <div style={{ background: "#f8fafc", padding: "16px", borderRadius: "12px", border: "1px solid #e2e8f0" }}>
-                  <Activity size={20} color="#ef4444" style={{ marginBottom: "8px" }} />
-                  <div style={{ fontSize: "12px", color: "#64748b", marginBottom: "4px" }}>Fasting</div>
-                  <div style={{ fontSize: "14px", fontWeight: "600", color: "#0f172a" }}>{activeTest.fasting}</div>
-                </div>
-                <div style={{ background: "#f8fafc", padding: "16px", borderRadius: "12px", border: "1px solid #e2e8f0" }}>
-                  <Award size={20} color="#f59e0b" style={{ marginBottom: "8px" }} />
-                  <div style={{ fontSize: "12px", color: "#64748b", marginBottom: "4px" }}>Certified</div>
-                  <div style={{ fontSize: "14px", fontWeight: "600", color: "#0f172a" }}>NABL Labs</div>
-                </div>
-              </div>
 
-              {/* Sections */}
-              <div style={{ marginBottom: "30px" }}>
-                <h3 style={{ fontSize: "16px", fontWeight: "700", color: "#1e293b", marginBottom: "16px", display: "flex", alignItems: "center", gap: "8px" }}>
-                  <Info size={18} color="#3b82f6" /> Why is this test needed?
-                </h3>
-                <p style={{ fontSize: "14px", color: "#475569", lineHeight: "1.6", background: "#eff6ff", padding: "16px", borderRadius: "12px" }}>
-                  {activeTest.whyNeeded}
-                </p>
-              </div>
+                <div style={{ marginBottom: "30px" }}>
+                  <h3 style={{ fontSize: "16px", fontWeight: "700", color: "#1e293b", marginBottom: "16px", display: "flex", alignItems: "center", gap: "8px" }}>
+                    <FileText size={18} color="#10b981" /> Tests Included ({activeTest.testCount})
+                  </h3>
 
-              <div style={{ marginBottom: "30px" }}>
-                <h3 style={{ fontSize: "16px", fontWeight: "700", color: "#1e293b", marginBottom: "16px", display: "flex", alignItems: "center", gap: "8px" }}>
-                  <FileText size={18} color="#10b981" /> Tests Included ({activeTest.testCount})
-                </h3>
+                  {/* Expandable Test Categories */}
+                  <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+                    {activeTest.features?.map((categoryName, categoryIndex) => {
+                      const categoryData = testDatabase[categoryName];
+                      const isExpanded = expandedCategories.includes(categoryName);
 
-                {/* Expandable Test Categories */}
-                <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-                  {activeTest.features?.map((categoryName, categoryIndex) => {
-                    const categoryData = testDatabase[categoryName];
-                    const isExpanded = expandedCategories.includes(categoryName);
+                      // If category not in database, show simple version
+                      if (!categoryData) {
+                        return (
+                          <div key={categoryIndex} style={{
+                            border: "1px solid #e2e8f0",
+                            borderRadius: "12px",
+                            overflow: "hidden",
+                            background: "white"
+                          }}>
+                            <div style={{
+                              padding: "14px 16px",
+                              display: "flex",
+                              alignItems: "center",
+                              gap: "10px",
+                              background: "#f8fafc"
+                            }}>
+                              <div style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#10b981" }} />
+                              <span style={{ fontSize: "14px", fontWeight: "600", color: "#334155" }}>
+                                {categoryName}
+                              </span>
+                              <span style={{
+                                marginLeft: "auto",
+                                fontSize: "11px",
+                                fontWeight: "600",
+                                color: "#10b981",
+                                background: "#d1fae5",
+                                padding: "3px 8px",
+                                borderRadius: "12px"
+                              }}>
+                                Included
+                              </span>
+                            </div>
+                          </div>
+                        );
+                      }
 
-                    // If category not in database, show simple version
-                    if (!categoryData) {
+                      const CategoryIcon = categoryData.icon;
+
                       return (
                         <div key={categoryIndex} style={{
-                          border: "1px solid #e2e8f0",
-                          borderRadius: "12px",
+                          border: "2px solid #e2e8f0",
+                          borderRadius: "14px",
                           overflow: "hidden",
-                          background: "white"
+                          background: "white",
+                          transition: "all 0.3s ease",
+                          boxShadow: isExpanded ? "0 4px 12px rgba(0,0,0,0.08)" : "0 1px 3px rgba(0,0,0,0.05)"
                         }}>
-                          <div style={{
-                            padding: "14px 16px",
-                            display: "flex",
-                            alignItems: "center",
-                            gap: "10px",
-                            background: "#f8fafc"
-                          }}>
-                            <div style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#10b981" }} />
-                            <span style={{ fontSize: "14px", fontWeight: "600", color: "#334155" }}>
-                              {categoryName}
-                            </span>
+                          {/* Category Header - Clickable */}
+                          <div
+                            onClick={() => toggleCategory(categoryName)}
+                            style={{
+                              padding: "16px",
+                              display: "flex",
+                              alignItems: "center",
+                              gap: "12px",
+                              cursor: "pointer",
+                              background: isExpanded ? `${categoryData.color}10` : "#f8fafc",
+                              transition: "all 0.3s ease",
+                              userSelect: "none"
+                            }}
+                            onMouseEnter={(e) => {
+                              if (!isExpanded) e.currentTarget.style.background = "#f1f5f9";
+                            }}
+                            onMouseLeave={(e) => {
+                              if (!isExpanded) e.currentTarget.style.background = "#f8fafc";
+                            }}
+                          >
+                            {/* Icon */}
+                            <div style={{
+                              width: "36px",
+                              height: "36px",
+                              borderRadius: "10px",
+                              background: `${categoryData.color}15`,
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              flexShrink: 0
+                            }}>
+                              <CategoryIcon size={20} color={categoryData.color} />
+                            </div>
+
+                            {/* Category Name */}
+                            <div style={{ flex: 1 }}>
+                              <div style={{ fontSize: "15px", fontWeight: "700", color: "#1e293b", marginBottom: "2px" }}>
+                                {categoryName}
+                              </div>
+                              <div style={{ fontSize: "12px", color: "#64748b" }}>
+                                {categoryData.tests.length} test{categoryData.tests.length > 1 ? 's' : ''}
+                              </div>
+                            </div>
+
+                            {/* Badge */}
                             <span style={{
-                              marginLeft: "auto",
                               fontSize: "11px",
                               fontWeight: "600",
                               color: "#10b981",
                               background: "#d1fae5",
-                              padding: "3px 8px",
-                              borderRadius: "12px"
+                              padding: "4px 10px",
+                              borderRadius: "12px",
+                              whiteSpace: "nowrap"
                             }}>
                               Included
                             </span>
+
+                            {/* Expand Icon */}
+                            <div style={{
+                              width: "28px",
+                              height: "28px",
+                              borderRadius: "8px",
+                              background: isExpanded ? categoryData.color : "#e2e8f0",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              transition: "all 0.3s ease",
+                              flexShrink: 0
+                            }}>
+                              {isExpanded ? (
+                                <ChevronUp size={18} color="white" />
+                              ) : (
+                                <ChevronDown size={18} color="#64748b" />
+                              )}
+                            </div>
+                          </div>
+
+                          {/* Expanded Content - Individual Tests */}
+                          <div style={{
+                            maxHeight: isExpanded ? "2000px" : "0",
+                            overflow: "hidden",
+                            transition: "max-height 0.5s cubic-bezier(0.4, 0, 0.2, 1)",
+                          }}>
+                            <div style={{ padding: "0 16px 16px 16px" }}>
+                              {categoryData.tests.map((test, testIndex) => (
+                                <div key={testIndex} style={{
+                                  padding: "14px",
+                                  marginTop: "10px",
+                                  background: "#f8fafc",
+                                  borderRadius: "10px",
+                                  border: "1px solid #e2e8f0",
+                                  transition: "all 0.2s ease"
+                                }}
+                                  onMouseEnter={(e) => {
+                                    e.currentTarget.style.background = "#f1f5f9";
+                                    e.currentTarget.style.borderColor = categoryData.color;
+                                  }}
+                                  onMouseLeave={(e) => {
+                                    e.currentTarget.style.background = "#f8fafc";
+                                    e.currentTarget.style.borderColor = "#e2e8f0";
+                                  }}
+                                >
+                                  {/* Test Name */}
+                                  <div style={{
+                                    fontSize: "14px",
+                                    fontWeight: "700",
+                                    color: "#1e293b",
+                                    marginBottom: "8px",
+                                    display: "flex",
+                                    alignItems: "center",
+                                    gap: "8px"
+                                  }}>
+                                    <div style={{
+                                      width: "6px",
+                                      height: "6px",
+                                      borderRadius: "50%",
+                                      background: categoryData.color
+                                    }} />
+                                    {test.name}
+                                  </div>
+
+                                  {/* Description */}
+                                  <div style={{
+                                    fontSize: "13px",
+                                    color: "#475569",
+                                    lineHeight: "1.5",
+                                    marginBottom: "8px",
+                                    paddingLeft: "14px"
+                                  }}>
+                                    <strong style={{ color: "#64748b" }}>What it measures:</strong> {test.description}
+                                  </div>
+
+                                  {/* Importance */}
+                                  <div style={{
+                                    fontSize: "13px",
+                                    color: "#334155",
+                                    lineHeight: "1.5",
+                                    paddingLeft: "14px",
+                                    borderLeft: `3px solid ${categoryData.color}`,
+                                    background: "white",
+                                    padding: "8px 12px",
+                                    borderRadius: "6px",
+                                    marginTop: "8px"
+                                  }}>
+                                    <strong style={{ color: categoryData.color }}>Why it matters:</strong> {test.importance}
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
                           </div>
                         </div>
                       );
-                    }
-
-                    const CategoryIcon = categoryData.icon;
-
-                    return (
-                      <div key={categoryIndex} style={{
-                        border: "2px solid #e2e8f0",
-                        borderRadius: "14px",
-                        overflow: "hidden",
-                        background: "white",
-                        transition: "all 0.3s ease",
-                        boxShadow: isExpanded ? "0 4px 12px rgba(0,0,0,0.08)" : "0 1px 3px rgba(0,0,0,0.05)"
-                      }}>
-                        {/* Category Header - Clickable */}
-                        <div
-                          onClick={() => toggleCategory(categoryName)}
-                          style={{
-                            padding: "16px",
-                            display: "flex",
-                            alignItems: "center",
-                            gap: "12px",
-                            cursor: "pointer",
-                            background: isExpanded ? `${categoryData.color}10` : "#f8fafc",
-                            transition: "all 0.3s ease",
-                            userSelect: "none"
-                          }}
-                          onMouseEnter={(e) => {
-                            if (!isExpanded) e.currentTarget.style.background = "#f1f5f9";
-                          }}
-                          onMouseLeave={(e) => {
-                            if (!isExpanded) e.currentTarget.style.background = "#f8fafc";
-                          }}
-                        >
-                          {/* Icon */}
-                          <div style={{
-                            width: "36px",
-                            height: "36px",
-                            borderRadius: "10px",
-                            background: `${categoryData.color}15`,
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            flexShrink: 0
-                          }}>
-                            <CategoryIcon size={20} color={categoryData.color} />
-                          </div>
-
-                          {/* Category Name */}
-                          <div style={{ flex: 1 }}>
-                            <div style={{ fontSize: "15px", fontWeight: "700", color: "#1e293b", marginBottom: "2px" }}>
-                              {categoryName}
-                            </div>
-                            <div style={{ fontSize: "12px", color: "#64748b" }}>
-                              {categoryData.tests.length} test{categoryData.tests.length > 1 ? 's' : ''}
-                            </div>
-                          </div>
-
-                          {/* Badge */}
-                          <span style={{
-                            fontSize: "11px",
-                            fontWeight: "600",
-                            color: "#10b981",
-                            background: "#d1fae5",
-                            padding: "4px 10px",
-                            borderRadius: "12px",
-                            whiteSpace: "nowrap"
-                          }}>
-                            Included
-                          </span>
-
-                          {/* Expand Icon */}
-                          <div style={{
-                            width: "28px",
-                            height: "28px",
-                            borderRadius: "8px",
-                            background: isExpanded ? categoryData.color : "#e2e8f0",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            transition: "all 0.3s ease",
-                            flexShrink: 0
-                          }}>
-                            {isExpanded ? (
-                              <ChevronUp size={18} color="white" />
-                            ) : (
-                              <ChevronDown size={18} color="#64748b" />
-                            )}
-                          </div>
-                        </div>
-
-                        {/* Expanded Content - Individual Tests */}
-                        <div style={{
-                          maxHeight: isExpanded ? "2000px" : "0",
-                          overflow: "hidden",
-                          transition: "max-height 0.5s cubic-bezier(0.4, 0, 0.2, 1)",
-                        }}>
-                          <div style={{ padding: "0 16px 16px 16px" }}>
-                            {categoryData.tests.map((test, testIndex) => (
-                              <div key={testIndex} style={{
-                                padding: "14px",
-                                marginTop: "10px",
-                                background: "#f8fafc",
-                                borderRadius: "10px",
-                                border: "1px solid #e2e8f0",
-                                transition: "all 0.2s ease"
-                              }}
-                                onMouseEnter={(e) => {
-                                  e.currentTarget.style.background = "#f1f5f9";
-                                  e.currentTarget.style.borderColor = categoryData.color;
-                                }}
-                                onMouseLeave={(e) => {
-                                  e.currentTarget.style.background = "#f8fafc";
-                                  e.currentTarget.style.borderColor = "#e2e8f0";
-                                }}
-                              >
-                                {/* Test Name */}
-                                <div style={{
-                                  fontSize: "14px",
-                                  fontWeight: "700",
-                                  color: "#1e293b",
-                                  marginBottom: "8px",
-                                  display: "flex",
-                                  alignItems: "center",
-                                  gap: "8px"
-                                }}>
-                                  <div style={{
-                                    width: "6px",
-                                    height: "6px",
-                                    borderRadius: "50%",
-                                    background: categoryData.color
-                                  }} />
-                                  {test.name}
-                                </div>
-
-                                {/* Description */}
-                                <div style={{
-                                  fontSize: "13px",
-                                  color: "#475569",
-                                  lineHeight: "1.5",
-                                  marginBottom: "8px",
-                                  paddingLeft: "14px"
-                                }}>
-                                  <strong style={{ color: "#64748b" }}>What it measures:</strong> {test.description}
-                                </div>
-
-                                {/* Importance */}
-                                <div style={{
-                                  fontSize: "13px",
-                                  color: "#334155",
-                                  lineHeight: "1.5",
-                                  paddingLeft: "14px",
-                                  borderLeft: `3px solid ${categoryData.color}`,
-                                  background: "white",
-                                  padding: "8px 12px",
-                                  borderRadius: "6px",
-                                  marginTop: "8px"
-                                }}>
-                                  <strong style={{ color: categoryData.color }}>Why it matters:</strong> {test.importance}
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
+                    })}
+                  </div>
                 </div>
-              </div>
 
-              <div style={{ marginBottom: "30px" }}>
-                <h3 style={{ fontSize: "16px", fontWeight: "700", color: "#1e293b", marginBottom: "16px", display: "flex", alignItems: "center", gap: "8px" }}>
-                  <CoffeeIcon /> Preparation
-                </h3>
-                <ul style={{ padding: "0", margin: "0", listStyle: "none" }}>
-                  {activeTest.preparation?.map((step, i) => (
-                    <li key={i} style={{
-                      display: "flex",
-                      gap: "12px",
-                      marginBottom: "12px",
-                      fontSize: "14px",
-                      color: "#475569",
-                      lineHeight: "1.5"
-                    }}>
-                      <span style={{
-                        background: "#e2e8f0",
-                        color: "#64748b",
-                        width: "24px",
-                        height: "24px",
-                        borderRadius: "50%",
+                <div style={{ marginBottom: "30px" }}>
+                  <h3 style={{ fontSize: "16px", fontWeight: "700", color: "#1e293b", marginBottom: "16px", display: "flex", alignItems: "center", gap: "8px" }}>
+                    <CoffeeIcon /> Preparation
+                  </h3>
+                  <ul style={{ padding: "0", margin: "0", listStyle: "none" }}>
+                    {activeTest.preparation?.map((step, i) => (
+                      <li key={i} style={{
                         display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        fontSize: "12px",
-                        fontWeight: "700",
-                        flexShrink: 0
-                      }}>{i + 1}</span>
-                      {step}
-                    </li>
-                  ))}
-                </ul>
+                        gap: "12px",
+                        marginBottom: "12px",
+                        fontSize: "14px",
+                        color: "#475569",
+                        lineHeight: "1.5"
+                      }}>
+                        <span style={{
+                          background: "#e2e8f0",
+                          color: "#64748b",
+                          width: "24px",
+                          height: "24px",
+                          borderRadius: "50%",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          fontSize: "12px",
+                          fontWeight: "700",
+                          flexShrink: 0
+                        }}>{i + 1}</span>
+                        {step}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </>
+            )}
+          </div>
+
+          {/* Drawer Footer - Sticky */}
+          <div style={{
+            padding: "20px 24px",
+            paddingBottom: "max(20px, env(safe-area-inset-bottom))",
+            borderTop: "1px solid #f1f5f9",
+            background: "white",
+            boxShadow: "0 -4px 6px -1px rgba(0, 0, 0, 0.05)"
+          }}>
+            {activeTest && (
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "20px" }}>
+                <div>
+                  <div style={{ fontSize: "12px", color: "#94a3b8", textDecoration: "line-through" }}>
+                    Total MRP ₹{activeTest.mrp}
+                  </div>
+                  <div style={{ fontSize: "24px", fontWeight: "700", color: "#0f172a" }}>
+                    ₹{activeTest.price}
+                  </div>
+                </div>
+                <button
+                  onClick={() => handleBookTest(activeTest)}
+                  style={{
+                    flex: 1,
+                    background: bookedItems[activeTest.id] ? "linear-gradient(135deg, #FF8C00 0%, #FF7A00 100%)" : "linear-gradient(135deg, #10b981 0%, #059669 100%)",
+                    color: "white",
+                    border: "none",
+                    padding: "16px",
+                    borderRadius: "14px",
+                    fontSize: "16px",
+                    fontWeight: "600",
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: "10px",
+                    transition: "all 0.3s ease"
+                  }}
+                  onMouseOver={(e) => {
+                    e.currentTarget.style.transform = "translateY(-2px)";
+                    e.currentTarget.style.boxShadow = bookedItems[activeTest.id] ? "0 10px 15px -3px rgba(255, 140, 0, 0.4)" : "0 10px 15px -3px rgba(16, 185, 129, 0.4)";
+                  }}
+                  onMouseOut={(e) => {
+                    e.currentTarget.style.transform = "translateY(0)";
+                    e.currentTarget.style.boxShadow = "none";
+                  }}
+                >
+                  {bookedItems[activeTest.id]
+                    ? `${bookedItems[activeTest.id]} Patient${bookedItems[activeTest.id] > 1 ? 's' : ''} Booked`
+                    : 'Book This Test'}
+                  <ArrowRight size={18} />
+                </button>
               </div>
-            </>
-          )}
+            )}
+          </div>
         </div>
 
-        {/* Drawer Footer - Sticky */}
-        <div style={{
-          padding: "20px 24px",
-          paddingBottom: "max(20px, env(safe-area-inset-bottom))",
-          borderTop: "1px solid #f1f5f9",
-          background: "white",
-          boxShadow: "0 -4px 6px -1px rgba(0, 0, 0, 0.05)"
-        }}>
-          {activeTest && (
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "20px" }}>
-              <div>
-                <div style={{ fontSize: "12px", color: "#94a3b8", textDecoration: "line-through" }}>
-                  Total MRP ₹{activeTest.mrp}
-                </div>
-                <div style={{ fontSize: "24px", fontWeight: "700", color: "#0f172a" }}>
-                  ₹{activeTest.price}
-                </div>
-              </div>
-              <button
-                onClick={() => handleBookTest(activeTest)}
-                style={{
-                  flex: 1,
-                  background: bookedItems[activeTest.id] ? "linear-gradient(135deg, #FF8C00 0%, #FF7A00 100%)" : "linear-gradient(135deg, #10b981 0%, #059669 100%)",
-                  color: "white",
-                  border: "none",
-                  padding: "16px",
-                  borderRadius: "14px",
-                  fontSize: "16px",
-                  fontWeight: "600",
-                  cursor: "pointer",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  gap: "10px",
-                  transition: "all 0.3s ease"
-                }}
-                onMouseOver={(e) => {
-                  e.currentTarget.style.transform = "translateY(-2px)";
-                  e.currentTarget.style.boxShadow = bookedItems[activeTest.id] ? "0 10px 15px -3px rgba(255, 140, 0, 0.4)" : "0 10px 15px -3px rgba(16, 185, 129, 0.4)";
-                }}
-                onMouseOut={(e) => {
-                  e.currentTarget.style.transform = "translateY(0)";
-                  e.currentTarget.style.boxShadow = "none";
-                }}
-              >
-                {bookedItems[activeTest.id]
-                  ? `${bookedItems[activeTest.id]} Patient${bookedItems[activeTest.id] > 1 ? 's' : ''} Booked`
-                  : 'Book This Test'}
-                <ArrowRight size={18} />
-              </button>
-            </div>
-          )}
-        </div>
-      </div>
-
-      <style jsx>{`
+        <style jsx>{`
         @keyframes fadeInUp {
           from { opacity: 0; transform: translateY(20px); }
           to { opacity: 1; transform: translateY(0); }
@@ -1389,99 +1475,100 @@ const Completehealth = () => {
           to { opacity: 1; }
         }
       `}</style>
-      <PatientSelectionModal
-        isOpen={isPatientModalOpen}
-        onClose={() => {
-          setIsPatientModalOpen(false);
-          setSelectedTestForBooking(null);
-          setSelectedPatientsForBooking([]);
-        }}
-        onNext={(selectedPatients) => {
-          setSelectedPatientsForBooking(selectedPatients);
-          setIsPatientModalOpen(false);
-          setIsAppointmentModalOpen(true);
-        }}
-      />
+        <PatientSelectionModal
+          isOpen={isPatientModalOpen}
+          onClose={() => {
+            setIsPatientModalOpen(false);
+            setSelectedTestForBooking(null);
+            setSelectedPatientsForBooking([]);
+          }}
+          onNext={(selectedPatients) => {
+            setSelectedPatientsForBooking(selectedPatients);
+            setIsPatientModalOpen(false);
+            setIsAppointmentModalOpen(true);
+          }}
+        />
 
-      <AppointmentTimeModal
-        isOpen={isAppointmentModalOpen}
-        onClose={() => {
-          setIsAppointmentModalOpen(false);
-          setSelectedTestForBooking(null);
-          setSelectedPatientsForBooking([]);
-          setAppointmentDetailsForBooking(null);
-        }}
-        onNext={(appointmentDetails) => {
-          setAppointmentDetailsForBooking(appointmentDetails);
-          setIsAppointmentModalOpen(false);
-          setIsLocationModalOpen(true);
-        }}
-        selectedPatients={selectedPatientsForBooking}
-      />
+        <AppointmentTimeModal
+          isOpen={isAppointmentModalOpen}
+          onClose={() => {
+            setIsAppointmentModalOpen(false);
+            setSelectedTestForBooking(null);
+            setSelectedPatientsForBooking([]);
+            setAppointmentDetailsForBooking(null);
+          }}
+          onNext={(appointmentDetails) => {
+            setAppointmentDetailsForBooking(appointmentDetails);
+            setIsAppointmentModalOpen(false);
+            setIsLocationModalOpen(true);
+          }}
+          selectedPatients={selectedPatientsForBooking}
+        />
 
-      <LocationSelectionModal
-        isOpen={isLocationModalOpen}
-        onClose={() => {
-          setIsLocationModalOpen(false);
-          setSelectedTestForBooking(null);
-          setSelectedPatientsForBooking([]);
-          setAppointmentDetailsForBooking(null);
-        }}
-        onConfirm={(finalBookingDetails) => {
-          const test = selectedTestForBooking;
-          if (!test) return;
+        <LocationSelectionModal
+          isOpen={isLocationModalOpen}
+          onClose={() => {
+            setIsLocationModalOpen(false);
+            setSelectedTestForBooking(null);
+            setSelectedPatientsForBooking([]);
+            setAppointmentDetailsForBooking(null);
+          }}
+          onConfirm={(finalBookingDetails) => {
+            const test = selectedTestForBooking;
+            if (!test) return;
 
-          // Update booked items state
-          setBookedItems(prev => ({
-            ...prev,
-            [test.id]: (prev[test.id] || 0) + finalBookingDetails.patients.length
-          }));
+            // Update booked items state
+            setBookedItems(prev => ({
+              ...prev,
+              [test.id]: (prev[test.id] || 0) + finalBookingDetails.patients.length
+            }));
 
-          const existingCart = JSON.parse(localStorage.getItem('cart') || '[]');
+            const existingCart = JSON.parse(localStorage.getItem('cart') || '[]');
 
-          finalBookingDetails.patients.forEach(patient => {
-            const newItem = {
-              _id: test.id,
-              name: test.title,
-              price: test.price,
-              originalPrice: test.mrp,
-              category: test.category,
-              description: test.description,
-              testCount: test.testCount,
-              reportTime: test.reportTime,
-              quantity: 1,
-              patient: patient,
-              appointment: {
-                date: finalBookingDetails.date,
-                time: finalBookingDetails.time,
-                location: finalBookingDetails.location
-              }
-            };
-            existingCart.push(newItem);
-          });
+            finalBookingDetails.patients.forEach(patient => {
+              const newItem = {
+                _id: test.id,
+                name: test.title,
+                price: test.price,
+                originalPrice: test.mrp,
+                category: test.category,
+                description: test.description,
+                testCount: test.testCount,
+                reportTime: test.reportTime,
+                quantity: 1,
+                patient: patient,
+                appointment: {
+                  date: finalBookingDetails.date,
+                  time: finalBookingDetails.time,
+                  location: finalBookingDetails.location
+                }
+              };
+              existingCart.push(newItem);
+            });
 
-          localStorage.setItem('cart', JSON.stringify(existingCart));
-          setCart(existingCart);
+            localStorage.setItem('cart', JSON.stringify(existingCart));
+            setCart(existingCart);
 
-          const event = new CustomEvent('cartUpdated', { detail: { count: existingCart.length } });
-          window.dispatchEvent(event);
-          window.dispatchEvent(new Event("storage"));
+            const event = new CustomEvent('cartUpdated', { detail: { count: existingCart.length } });
+            window.dispatchEvent(event);
+            window.dispatchEvent(new Event("storage"));
 
-          setToastMessage(`${test.title} - Appointment booked for ${finalBookingDetails.patients.length} patient(s)!`);
-          setShowToast(true);
-          setTimeout(() => setShowToast(false), 3000);
+            setToastMessage(`${test.title} - Appointment booked for ${finalBookingDetails.patients.length} patient(s)!`);
+            setShowToast(true);
+            setTimeout(() => setShowToast(false), 3000);
 
-          setIsLocationModalOpen(false);
-          setIsAppointmentModalOpen(false);
-          setIsPatientModalOpen(false);
-          setSelectedTestForBooking(null);
-          setSelectedPatientsForBooking([]);
-          setAppointmentDetailsForBooking(null);
-        }}
-        selectedPatients={selectedPatientsForBooking}
-        appointmentDetails={appointmentDetailsForBooking}
-      />
-    </div>
+            setIsLocationModalOpen(false);
+            setIsAppointmentModalOpen(false);
+            setIsPatientModalOpen(false);
+            setSelectedTestForBooking(null);
+            setSelectedPatientsForBooking([]);
+            setAppointmentDetailsForBooking(null);
+          }}
+          selectedPatients={selectedPatientsForBooking}
+          appointmentDetails={appointmentDetailsForBooking}
+        />
+      </div>
+    </>
   );
 };
 
