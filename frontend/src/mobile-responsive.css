@@ -1,0 +1,501 @@
+/* ========================================
+   MOBILE RESPONSIVENESS FIXES
+   ======================================== */
+
+/* Ensure viewport is set correctly */
+@viewport {
+    width: device-width;
+    zoom: 1.0;
+}
+
+/* Base mobile fixes */
+* {
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+}
+
+/* Prevent horizontal scroll on mobile */
+body,
+html {
+    overflow-x: hidden !important;
+    max-width: 100vw;
+}
+
+/* ========================================
+   TEST CARDS - MOBILE OPTIMIZATION
+   ======================================== */
+
+/* Ensure test cards are responsive on all devices */
+@media (max-width: 640px) {
+
+    /* Test card buttons - already handled in Completehealth.jsx */
+    .test-card-button {
+        padding: 8px 12px !important;
+        font-size: 13px !important;
+    }
+
+    /* Test card grid */
+    .test-cards-grid {
+        grid-template-columns: 1fr !important;
+        gap: 16px !important;
+    }
+
+    /* Test card content */
+    .test-card {
+        margin: 0 !important;
+        border-radius: 16px !important;
+    }
+}
+
+/* ========================================
+   HEADER - MOBILE FIXES
+   ======================================== */
+
+@media (max-width: 767px) {
+
+    /* Mobile header spacing */
+    .logo-container {
+        padding: 8px 12px !important;
+    }
+
+    /* Cart and hamburger spacing */
+    .mobile-header-actions {
+        gap: 8px !important;
+    }
+
+    /* Ensure hamburger menu is accessible */
+    .hamburger {
+        z-index: 1000;
+        padding: 8px;
+    }
+
+    /* Mobile drawer should overlay everything */
+    .mobile-drawer {
+        z-index: 9999 !important;
+    }
+
+    .mobile-overlay {
+        z-index: 9998 !important;
+    }
+}
+
+/* ========================================
+   SEARCH BAR - MOBILE
+   ======================================== */
+
+@media (max-width: 640px) {
+    .search-container {
+        padding: 8px 12px !important;
+    }
+
+    .search-container input {
+        font-size: 14px !important;
+        padding: 10px 12px !important;
+    }
+}
+
+/* ========================================
+   FOOTER - MOBILE OPTIMIZATION
+   ======================================== */
+
+.mobile-footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: white;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    padding: 10px 0;
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+    z-index: 100;
+    height: 70px;
+}
+
+@media (max-width: 480px) {
+    .mobile-footer {
+        padding: 8px 0;
+        height: 65px;
+    }
+
+    .mobile-footer a,
+    .mobile-footer button {
+        font-size: 11px !important;
+    }
+
+    .mobile-footer svg {
+        width: 22px !important;
+        height: 22px !important;
+    }
+}
+
+/* ========================================
+   CONTENT SPACING - MOBILE
+   ======================================== */
+
+@media (max-width: 767px) {
+
+    /* Add bottom padding to content to prevent footer overlap */
+    main,
+    .main-content,
+    .page-content {
+        padding-bottom: 90px !important;
+    }
+
+    /* Reduce top padding on mobile */
+    .container,
+    .container-fluid {
+        padding-left: 12px !important;
+        padding-right: 12px !important;
+    }
+}
+
+/* ========================================
+   BUTTONS - MOBILE TOUCH OPTIMIZATION
+   ======================================== */
+
+@media (max-width: 640px) {
+
+    /* Ensure all buttons are touch-friendly (min 44px) */
+    button,
+    .btn,
+    a.btn {
+        min-height: 44px;
+        min-width: 44px;
+    }
+
+    /* Button text sizing */
+    .btn {
+        font-size: 14px !important;
+        padding: 10px 16px !important;
+    }
+
+    .btn-sm {
+        font-size: 13px !important;
+        padding: 8px 12px !important;
+        min-height: 38px;
+    }
+}
+
+/* ========================================
+   FORMS - MOBILE OPTIMIZATION
+   ======================================== */
+
+@media (max-width: 640px) {
+
+    /* Form inputs */
+    input,
+    textarea,
+    select {
+        font-size: 16px !important;
+        /* Prevents zoom on iOS */
+        padding: 12px !important;
+        border-radius: 8px !important;
+    }
+
+    /* Form labels */
+    label {
+        font-size: 14px !important;
+        margin-bottom: 6px !important;
+    }
+}
+
+/* ========================================
+   MODALS - MOBILE FIXES
+   ======================================== */
+
+@media (max-width: 640px) {
+    .modal-dialog {
+        margin: 10px !important;
+        max-width: calc(100% - 20px) !important;
+    }
+
+    .modal-content {
+        border-radius: 16px !important;
+    }
+
+    .modal-header,
+    .modal-body,
+    .modal-footer {
+        padding: 16px !important;
+    }
+}
+
+/* ========================================
+   CARDS - MOBILE OPTIMIZATION
+   ======================================== */
+
+@media (max-width: 640px) {
+    .card {
+        border-radius: 12px !important;
+        margin-bottom: 16px !important;
+    }
+
+    .card-body {
+        padding: 16px !important;
+    }
+
+    .card-title {
+        font-size: 18px !important;
+    }
+
+    .card-text {
+        font-size: 14px !important;
+    }
+}
+
+/* ========================================
+   TABLES - MOBILE RESPONSIVE
+   ======================================== */
+
+@media (max-width: 640px) {
+
+    /* Make tables scrollable */
+    .table-responsive {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    table {
+        font-size: 13px !important;
+    }
+
+    th,
+    td {
+        padding: 8px !important;
+    }
+}
+
+/* ========================================
+   IMAGES - MOBILE OPTIMIZATION
+   ======================================== */
+
+@media (max-width: 640px) {
+    img {
+        max-width: 100%;
+        height: auto;
+    }
+
+    /* Product images */
+    .product-image,
+    .test-image {
+        border-radius: 12px;
+    }
+}
+
+/* ========================================
+   TYPOGRAPHY - MOBILE SCALING
+   ======================================== */
+
+@media (max-width: 640px) {
+    h1 {
+        font-size: 24px !important;
+        line-height: 1.3 !important;
+    }
+
+    h2 {
+        font-size: 20px !important;
+        line-height: 1.3 !important;
+    }
+
+    h3 {
+        font-size: 18px !important;
+        line-height: 1.3 !important;
+    }
+
+    h4 {
+        font-size: 16px !important;
+        line-height: 1.3 !important;
+    }
+
+    p,
+    li,
+    span {
+        font-size: 14px !important;
+        line-height: 1.5 !important;
+    }
+
+    small {
+        font-size: 12px !important;
+    }
+}
+
+/* ========================================
+   SPACING - MOBILE ADJUSTMENTS
+   ======================================== */
+
+@media (max-width: 640px) {
+
+    /* Reduce section spacing */
+    section {
+        padding: 30px 0 !important;
+    }
+
+    /* Reduce margin between elements */
+    .mb-4,
+    .my-4 {
+        margin-bottom: 20px !important;
+    }
+
+    .mt-4,
+    .my-4 {
+        margin-top: 20px !important;
+    }
+
+    .mb-5,
+    .my-5 {
+        margin-bottom: 30px !important;
+    }
+
+    .mt-5,
+    .my-5 {
+        margin-top: 30px !important;
+    }
+}
+
+/* ========================================
+   NAVIGATION - MOBILE DRAWER
+   ======================================== */
+
+@media (max-width: 640px) {
+
+    /* Ensure drawer doesn't go under notch on iPhone */
+    .mobile-drawer {
+        padding-top: max(20px, env(safe-area-inset-top));
+        padding-bottom: max(20px, env(safe-area-inset-bottom));
+    }
+
+    /* User card in drawer */
+    .mobile-user-card {
+        margin-bottom: 16px !important;
+        padding: 12px !important;
+    }
+
+    .mobile-user-card strong {
+        font-size: 16px !important;
+    }
+
+    .mobile-user-card small {
+        font-size: 12px !important;
+    }
+
+    /* Menu items */
+    .mobile-menu a,
+    .mobile-menu button {
+        padding: 12px !important;
+        font-size: 14px !important;
+    }
+}
+
+/* ========================================
+   LANDSCAPE MODE - MOBILE
+   ======================================== */
+
+@media (max-width: 896px) and (orientation: landscape) {
+
+    /* Reduce header height in landscape */
+    .logo-container {
+        padding: 4px 12px !important;
+    }
+
+    .logo-container img {
+        max-height: 40px !important;
+    }
+
+    /* Reduce drawer width in landscape */
+    .mobile-drawer {
+        width: 60%;
+        max-width: 280px;
+    }
+
+    /* Adjust footer in landscape */
+    .mobile-footer {
+        height: 55px;
+        padding: 5px 0;
+    }
+}
+
+/* ========================================
+   SMALL MOBILE DEVICES (< 375px)
+   ======================================== */
+
+@media (max-width: 374px) {
+
+    /* Extra small screens */
+    .test-card-button {
+        padding: 6px 10px !important;
+        font-size: 12px !important;
+    }
+
+    .btn {
+        font-size: 13px !important;
+        padding: 8px 12px !important;
+    }
+
+    h1 {
+        font-size: 22px !important;
+    }
+
+    h2 {
+        font-size: 18px !important;
+    }
+
+    /* Reduce container padding */
+    .container,
+    .container-fluid {
+        padding-left: 8px !important;
+        padding-right: 8px !important;
+    }
+}
+
+/* ========================================
+   ACCESSIBILITY - MOBILE
+   ======================================== */
+
+/* Ensure focus states are visible on mobile */
+button:focus,
+a:focus,
+input:focus,
+select:focus,
+textarea:focus {
+    outline: 2px solid #3b82f6 !important;
+    outline-offset: 2px !important;
+}
+
+/* Improve touch target sizes */
+@media (pointer: coarse) {
+
+    a,
+    button,
+    input[type="checkbox"],
+    input[type="radio"] {
+        min-height: 44px;
+        min-width: 44px;
+    }
+}
+
+/* ========================================
+   PERFORMANCE - MOBILE
+   ======================================== */
+
+/* Optimize animations on mobile */
+@media (prefers-reduced-motion: reduce) {
+
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+/* Hardware acceleration for smooth scrolling */
+.mobile-drawer,
+.mobile-overlay,
+.modal {
+    transform: translateZ(0);
+    -webkit-transform: translateZ(0);
+    will-change: transform;
+}

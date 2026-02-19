@@ -536,7 +536,7 @@ const Header = () => {
       {/* Mobile Drawer */}
       <div className={`mobile-drawer ${mobileMenuOpen ? "open" : ""}`}>
 
-        {/* User Card */}
+        {/* User Greeting */}
         <div className="mobile-user-card">
           <img src="/images/icon-svg/login.svg" alt="User" />
           <div>
@@ -572,6 +572,7 @@ const Header = () => {
               🔐 Login / Signup
             </button>
           )}
+
         </nav>
       </div>
 
