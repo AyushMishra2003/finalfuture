@@ -10,6 +10,7 @@ const PhlebotomistDashboard = () => {
     const [loading, setLoading] = useState(true);
     const [collectorInfo, setCollectorInfo] = useState(null);
     const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
+    const [locationAddress, setLocationAddress] = useState('');
 
     useEffect(() => {
         // Check if user is logged in
@@ -22,11 +23,44 @@ const PhlebotomistDashboard = () => {
         fetchBookings();
     }, [selectedDate]);
 
+    useEffect(() => {
+        // Fetch readable address when current booking changes
+        if (currentBooking?.patient?.address?.location?.latitude) {
+            fetchLocationAddress(
+                currentBooking.patient.address.location.latitude,
+                currentBooking.patient.address.location.longitude
+            );
+        }
+    }, [currentBooking]);
+
+    const fetchLocationAddress = async (lat, lon) => {
+        try {
+            const response = await axios.get(
+                `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&zoom=18&addressdetails=1`,
+                {
+                    headers: {
+                        'User-Agent': 'FutureLabs Phlebotomist App'
+                    }
+                }
+            );
+            if (response.data && response.data.display_name) {
+                setLocationAddress(response.data.display_name);
+            } else {
+                // Use stored address as fallback
+                setLocationAddress(currentBooking?.patient?.address?.address || `${lat.toFixed(4)}, ${lon.toFixed(4)}`);
+            }
+        } catch (error) {
+            console.error('Error fetching location address:', error);
+            // Use stored address as fallback
+            setLocationAddress(currentBooking?.patient?.address?.address || `${lat.toFixed(4)}, ${lon.toFixed(4)}`);
+        }
+    };
+
     const fetchBookings = async () => {
         try {
             const token = localStorage.getItem('collectorToken');
             const response = await axios.get(
-                `http://localhost:5000/api/v1/collector/bookings?date=${selectedDate}`,
+                `http://147.93.27.120:3000/api/v1/collector/bookings?date=${selectedDate}`,
                 {
                     headers: { Authorization: `Bearer ${token}` }
                 }
@@ -54,7 +88,7 @@ const PhlebotomistDashboard = () => {
         try {
             const token = localStorage.getItem('collectorToken');
             await axios.put(
-                `http://localhost:5000/api/v1/collector/bookings/${currentBooking._id}/status`,
+                `http://147.93.27.120:3000/api/v1/collector/bookings/${currentBooking._id}/status`,
                 { status },
                 { headers: { Authorization: `Bearer ${token}` } }
             );
@@ -68,7 +102,7 @@ const PhlebotomistDashboard = () => {
         try {
             const token = localStorage.getItem('collectorToken');
             await axios.put(
-                `http://localhost:5000/api/v1/collector/bookings/${currentBooking._id}/sample`,
+                `http://147.93.27.120:3000/api/v1/collector/bookings/${currentBooking._id}/sample`,
                 { sampleType, ...data },
                 { headers: { Authorization: `Bearer ${token}` } }
             );
@@ -82,7 +116,7 @@ const PhlebotomistDashboard = () => {
         try {
             const token = localStorage.getItem('collectorToken');
             await axios.put(
-                `http://localhost:5000/api/v1/collector/bookings/${currentBooking._id}/payment`,
+                `http://147.93.27.120:3000/api/v1/collector/bookings/${currentBooking._id}/payment`,
                 { paymentCollected: amount, paymentMethod: 'Cash on Collection' },
                 { headers: { Authorization: `Bearer ${token}` } }
             );
@@ -100,7 +134,7 @@ const PhlebotomistDashboard = () => {
                 : { amountHandedOver: true };
 
             await axios.put(
-                `http://localhost:5000/api/v1/collector/bookings/${currentBooking._id}/handover`,
+                `http://147.93.27.120:3000/api/v1/collector/bookings/${currentBooking._id}/handover`,
                 data,
                 { headers: { Authorization: `Bearer ${token}` } }
             );
@@ -200,7 +234,7 @@ const PhlebotomistDashboard = () => {
                 </p>
                 {currentBooking.patient.address?.location?.latitude && (
                     <p className="patient-location">
-                        <strong>📍 Location:</strong> {currentBooking.patient.address.location.latitude.toFixed(6)}, {currentBooking.patient.address.location.longitude.toFixed(6)}
+                        <strong>📍 Your Location:</strong> {locationAddress || currentBooking.patient.address?.address || 'Loading address...'}
                     </p>
                 )}
                 <div className="action-buttons">

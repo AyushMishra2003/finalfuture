@@ -47,13 +47,60 @@ const UserSchema = new mongoose.Schema({
         type: Date,
         select: false
     },
+    familyMembers: [
+        {
+            name: {
+                type: String,
+                required: true
+            },
+            age: {
+                type: Number,
+                required: true
+            },
+            gender: {
+                type: String,
+                enum: ['M', 'F', 'Other'],
+                required: true
+            },
+            relation: {
+                type: String,
+                default: 'Other'
+            },
+            createdAt: {
+                type: Date,
+                default: Date.now
+            }
+        }
+    ],
     addresses: [
         {
-            street: String,
+            type: {
+                type: String,
+                enum: ['home', 'work', 'other', 'current'],
+                default: 'home'
+            },
+            label: String,
+            address: String,
+            flatNo: String,
+            building: String,
+            area: String,
+            landmark: String,
             city: String,
-            state: String,
-            zip: String,
-            country: { type: String, default: 'India' }
+            state: {
+                type: String,
+                default: 'Karnataka'
+            },
+            pincode: String,
+            latitude: Number,
+            longitude: Number,
+            isDefault: {
+                type: Boolean,
+                default: false
+            },
+            createdAt: {
+                type: Date,
+                default: Date.now
+            }
         }
     ],
     cart: [

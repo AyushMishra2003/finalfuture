@@ -4,6 +4,8 @@ const User = require('../models/User');
 const Test = require('../models/Test');
 const asyncHandler = require('../middleware/async');
 const { calculateDistance, formatDistance } = require('../utils/locationUtils');
+const sendSMS = require('../utils/sendSMS');
+const { sendEmail } = require('../utils/sendEmail');
 
 // @desc    Get all orders
 // @route   GET /api/v1/orders
@@ -127,9 +129,48 @@ exports.createOrder = asyncHandler(async (req, res, next) => {
         user: userId || req.user?.id || '000000000000000000000000'
     });
 
+    // Generate OTP for order
+    const orderOTP = Math.floor(100000 + Math.random() * 900000).toString();
+
+    // Get user details
+    const user = await User.findById(order.user);
+
+    if (user && user.phone) {
+        // Send OTP via SMS
+        try {
+            await sendSMS({
+                phone: user.phone,
+                message: `Order created successfully! Order ID: ${order._id}. Your OTP: ${orderOTP}. Total: ₹${totalPrice}. -FutureLab`
+            });
+        } catch (error) {
+            console.error('SMS sending failed:', error);
+        }
+
+        // Send OTP via Email
+        try {
+            if (user.email) {
+                await sendEmail({
+                    email: user.email,
+                    subject: 'Order Created - FutureLab',
+                    html: `
+                        <h2>Order Created Successfully!</h2>
+                        <p>Dear ${user.name},</p>
+                        <p><strong>Order ID:</strong> ${order._id}</p>
+                        <p><strong>Total Amount:</strong> ₹${totalPrice}</p>
+                        <p><strong>Your OTP:</strong> <span style="font-size:24px;color:#3498db;font-weight:bold;">${orderOTP}</span></p>
+                        <p>Thank you for choosing FutureLab!</p>
+                    `
+                });
+            }
+        } catch (error) {
+            console.error('Email sending failed:', error);
+        }
+    }
+
     res.status(201).json({
         success: true,
-        data: order
+        data: order,
+        otpSent: true
     });
 });
 
@@ -294,7 +335,7 @@ exports.getDashboardStats = asyncHandler(async (req, res, next) => {
 // @route   PUT /api/v1/orders/:id/status
 // @access  Private/Admin
 exports.updateOrderStatus = asyncHandler(async (req, res, next) => {
-    const order = await Order.findById(req.params.id);
+    const order = await Order.findById(req.params.id).populate('user');
 
     if (!order) {
         return res.status(404).json({
@@ -303,6 +344,7 @@ exports.updateOrderStatus = asyncHandler(async (req, res, next) => {
         });
     }
 
+    const oldStatus = order.orderStatus;
     order.orderStatus = req.body.status;
 
     if (req.body.status === 'delivered') {
@@ -312,8 +354,105 @@ exports.updateOrderStatus = asyncHandler(async (req, res, next) => {
 
     await order.save();
 
+    // Generate OTP for status update
+    const statusOTP = Math.floor(100000 + Math.random() * 900000).toString();
+
+    // Send notification to customer
+    if (order.user && order.user.phone) {
+        try {
+            await sendSMS({
+                phone: order.user.phone,
+                message: `Order ${order._id} status updated to ${req.body.status}. OTP: ${statusOTP}. -FutureLab`
+            });
+        } catch (error) {
+            console.error('SMS sending failed:', error);
+        }
+
+        try {
+            if (order.user.email) {
+                await sendEmail({
+                    email: order.user.email,
+                    subject: `Order Status Updated - ${order._id}`,
+                    html: `
+                        <h2>Order Status Updated</h2>
+                        <p>Dear ${order.user.name},</p>
+                        <p><strong>Order ID:</strong> ${order._id}</p>
+                        <p><strong>Old Status:</strong> ${oldStatus}</p>
+                        <p><strong>New Status:</strong> ${req.body.status}</p>
+                        <p><strong>OTP:</strong> <span style="font-size:24px;color:#3498db;font-weight:bold;">${statusOTP}</span></p>
+                        <p>Thank you for choosing FutureLab!</p>
+                    `
+                });
+            }
+        } catch (error) {
+            console.error('Email sending failed:', error);
+        }
+    }
+
     res.status(200).json({
         success: true,
-        data: order
+        data: order,
+        otpSent: true
+    });
+});
+
+// @desc    Update order (assign collector, etc.)
+// @route   PUT /api/v1/orders/:id
+// @access  Private/Admin
+exports.updateOrder = asyncHandler(async (req, res, next) => {
+    const order = await Order.findById(req.params.id).populate('user');
+
+    if (!order) {
+        return res.status(404).json({
+            success: false,
+            error: `Order not found with id of ${req.params.id}`
+        });
+    }
+
+    // Update assignedCollector if provided
+    if (req.body.assignedCollector) {
+        order.assignedCollector = req.body.assignedCollector;
+    }
+
+    await order.save();
+
+    // Generate OTP for order update
+    const updateOTP = Math.floor(100000 + Math.random() * 900000).toString();
+
+    // Send notification to customer
+    if (order.user && order.user.phone) {
+        try {
+            await sendSMS({
+                phone: order.user.phone,
+                message: `Order ${order._id} has been updated by admin. OTP: ${updateOTP}. -FutureLab`
+            });
+        } catch (error) {
+            console.error('SMS sending failed:', error);
+        }
+
+        try {
+            if (order.user.email) {
+                await sendEmail({
+                    email: order.user.email,
+                    subject: `Order Updated - ${order._id}`,
+                    html: `
+                        <h2>Order Updated</h2>
+                        <p>Dear ${order.user.name},</p>
+                        <p><strong>Order ID:</strong> ${order._id}</p>
+                        <p>Your order has been updated by our team.</p>
+                        <p><strong>OTP:</strong> <span style="font-size:24px;color:#3498db;font-weight:bold;">${updateOTP}</span></p>
+                        <p>Thank you for choosing FutureLab!</p>
+                    `
+                });
+            }
+        } catch (error) {
+            console.error('Email sending failed:', error);
+        }
+    }
+
+    res.status(200).json({
+        success: true,
+        data: order,
+        otpSent: true
     });
 });

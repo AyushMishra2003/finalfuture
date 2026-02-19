@@ -2,6 +2,7 @@ const CollectorFolder = require('../models/CollectorFolder');
 const TimeSlot = require('../models/TimeSlot');
 const Order = require('../models/Order');
 const asyncHandler = require('../middleware/async');
+const { sendBookingConfirmation, sendStatusUpdate } = require('../utils/sendBookingNotification');
 
 // @desc    Get available time slots for a pincode
 // @route   GET /api/v1/bookings/available-slots
@@ -242,6 +243,9 @@ exports.bookTimeSlot = asyncHandler(async (req, res) => {
         });
     }
 
+    // Generate 6-digit OTP
+    const verificationOTP = Math.floor(100000 + Math.random() * 900000).toString();
+
     // Add booking to slot
     slot.bookings.push({
         orderId: order._id,
@@ -259,20 +263,32 @@ exports.bookTimeSlot = asyncHandler(async (req, res) => {
         scheduledDate: requestedDate,
         scheduledHour: parseInt(hour),
         timeRange: slot.timeRange,
-        bookedAt: new Date()
+        bookedAt: new Date(),
+        verificationOTP: verificationOTP,
+        otpVerified: false,
+        collectorStatus: 'pending',
+        statusUpdates: [{
+            status: 'booking_confirmed',
+            updatedAt: new Date(),
+            updatedBy: 'system'
+        }]
     };
     order.orderStatus = 'scheduled';
     await order.save();
 
+    // Send confirmation notifications with OTP
+    await sendBookingConfirmation(order, verificationOTP);
+
     res.status(200).json({
         success: true,
-        message: 'Booking confirmed successfully',
+        message: 'Booking confirmed successfully. OTP sent to customer.',
         data: {
             orderId: order._id,
             collectorName: folder.name,
             scheduledDate: requestedDate,
             timeRange: slot.timeRange,
-            remainingSlots: slot.remainingSlots
+            remainingSlots: slot.remainingSlots,
+            verificationOTPSent: true
         }
     });
 });
@@ -391,3 +407,133 @@ async function findNextSlotHelper(folderId, date, currentHour, endHour, maxBooki
         message: 'No more slots available today'
     };
 }
+
+// @desc    Verify OTP by collector
+// @route   POST /api/v1/bookings/verify-otp
+// @access  Private (Collector)
+exports.verifyBookingOTP = asyncHandler(async (req, res) => {
+    const { orderId, otp } = req.body;
+
+    if (!orderId || !otp) {
+        return res.status(400).json({
+            success: false,
+            error: 'Please provide order ID and OTP'
+        });
+    }
+
+    const order = await Order.findById(orderId).populate('user');
+
+    if (!order) {
+        return res.status(404).json({
+            success: false,
+            error: 'Order not found'
+        });
+    }
+
+    if (!order.bookingDetails || !order.bookingDetails.verificationOTP) {
+        return res.status(400).json({
+            success: false,
+            error: 'No OTP found for this booking'
+        });
+    }
+
+    if (order.bookingDetails.verificationOTP !== otp) {
+        return res.status(400).json({
+            success: false,
+            error: 'Invalid OTP'
+        });
+    }
+
+    // Mark OTP as verified
+    order.bookingDetails.otpVerified = true;
+    order.bookingDetails.otpVerifiedAt = new Date();
+    order.bookingDetails.collectorStatus = 'reached';
+    order.bookingDetails.statusUpdates.push({
+        status: 'otp_verified',
+        updatedAt: new Date(),
+        updatedBy: req.user.name || 'collector'
+    });
+    await order.save();
+
+    res.status(200).json({
+        success: true,
+        message: 'OTP verified successfully',
+        data: {
+            orderId: order._id,
+            patientName: order.user.name,
+            verified: true
+        }
+    });
+});
+
+// @desc    Update booking status by collector/pathology
+// @route   PUT /api/v1/bookings/update-status/:orderId
+// @access  Private (Collector/Admin)
+exports.updateBookingStatus = asyncHandler(async (req, res) => {
+    const { orderId } = req.params;
+    const { status, notes } = req.body;
+
+    const validStatuses = ['pending', 'on_way', 'reached', 'collected', 'completed'];
+    
+    if (!status || !validStatuses.includes(status)) {
+        return res.status(400).json({
+            success: false,
+            error: `Invalid status. Must be one of: ${validStatuses.join(', ')}`
+        });
+    }
+
+    const order = await Order.findById(orderId).populate('user');
+
+    if (!order) {
+        return res.status(404).json({
+            success: false,
+            error: 'Order not found'
+        });
+    }
+
+    if (!order.bookingDetails) {
+        return res.status(400).json({
+            success: false,
+            error: 'No booking found for this order'
+        });
+    }
+
+    // Generate new OTP for status update
+    const statusOTP = Math.floor(100000 + Math.random() * 900000).toString();
+
+    // Update status
+    const oldStatus = order.bookingDetails.collectorStatus;
+    order.bookingDetails.collectorStatus = status;
+    order.bookingDetails.verificationOTP = statusOTP;
+    order.bookingDetails.statusUpdates.push({
+        status: status,
+        updatedAt: new Date(),
+        updatedBy: req.user.name || req.user.role
+    });
+
+    // Update order status based on collector status
+    if (status === 'collected') {
+        order.orderStatus = 'processing';
+    } else if (status === 'completed') {
+        order.orderStatus = 'delivered';
+        order.isDelivered = true;
+        order.deliveredAt = new Date();
+    }
+
+    await order.save();
+
+    // Send notification to customer with new OTP
+    await sendStatusUpdate(order, status, notes, statusOTP);
+
+    res.status(200).json({
+        success: true,
+        message: 'Status updated successfully. OTP sent to customer.',
+        data: {
+            orderId: order._id,
+            oldStatus,
+            newStatus: status,
+            orderStatus: order.orderStatus,
+            otpSent: true
+        }
+    });
+});

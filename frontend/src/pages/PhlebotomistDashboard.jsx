@@ -6,13 +6,38 @@ const PhlebotomistDashboard = () => {
   const [dashboardData, setDashboardData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [selectedOrder, setSelectedOrder] = useState(null);
+  const [locationAddress, setLocationAddress] = useState('');
 
-  const baseUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000/api/v1';
+  const baseUrl = process.env.REACT_APP_API_URL || 'http://147.93.27.120:3000/api/v1';
 
   useEffect(() => {
     fetchDashboard();
     requestLocation();
   }, []);
+
+  useEffect(() => {
+    if (dashboardData?.phlebotomistLocation?.latitude) {
+      fetchLocationAddress(
+        dashboardData.phlebotomistLocation.latitude,
+        dashboardData.phlebotomistLocation.longitude
+      );
+    }
+  }, [dashboardData]);
+
+  const fetchLocationAddress = async (lat, lon) => {
+    try {
+      const response = await axios.get(
+        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&zoom=18&addressdetails=1`,
+        { headers: { 'User-Agent': 'FutureLabs Phlebotomist App' } }
+      );
+      if (response.data?.display_name) {
+        setLocationAddress(response.data.display_name);
+      }
+    } catch (error) {
+      console.error('Error fetching location address:', error);
+      setLocationAddress(`${lat.toFixed(4)}, ${lon.toFixed(4)}`);
+    }
+  };
 
   const requestLocation = () => {
     if (navigator.geolocation) {
@@ -160,7 +185,7 @@ const PhlebotomistDashboard = () => {
       {phlebotomistLocation && (
         <div className="location-info">
           <span className="location-icon">📍</span>
-          <span>Your Location: {phlebotomistLocation.latitude?.toFixed(4)}, {phlebotomistLocation.longitude?.toFixed(4)}</span>
+          <span>Your Location: {locationAddress || 'Loading address...'}</span>
           <button className="btn-refresh-location" onClick={requestLocation}>🔄 Update Location</button>
         </div>
       )}

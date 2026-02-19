@@ -10,13 +10,13 @@ const OrderAssignment = () => {
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('unassigned');
 
-  const baseUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000/api/v1';
+  const baseUrl = process.env.REACT_APP_API_URL || 'http://147.93.27.120:3000/api/v1';
 
   useEffect(() => {
     fetchOrders();
   }, [activeTab]);
 
-  const fetchOrders = async () => {
+  const fetchOrders = async () => {     
     setLoading(true);
     try {
       const token = localStorage.getItem('adminToken');
@@ -84,6 +84,8 @@ const OrderAssignment = () => {
       setLoading(false);
     }
   };
+
+  console.log('Unassigned Orders:', unassignedOrders);
 
   return (
     <div className="order-assignment-container">
@@ -183,6 +185,7 @@ const OrderAssignment = () => {
                     <p><strong>Pincodes:</strong> {collector.pincodes.join(', ')}</p>
                     <p><strong>Capacity:</strong> {collector.maxOrdersPerHour} orders/hour</p>
                     <p><strong>Working Hours:</strong> {collector.workingHours.start}:00 - {collector.workingHours.end}:00</p>
+                    <p><strong>📍 Location:</strong> {collector.location || `Serving ${collector.pincodes.length} pincode area${collector.pincodes.length > 1 ? 's' : ''}`}</p>
                   </div>
 
                   <div className="distance-info">

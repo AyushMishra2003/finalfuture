@@ -60,9 +60,8 @@ exports.getAvailableCollectors = asyncHandler(async (req, res) => {
     });
   }
 
-  // Find collectors by pincode
+  // Get ALL active collectors (not filtered by pincode)
   const collectors = await CollectorFolder.find({
-    pincodes: order.shippingAddress.postalCode,
     isActive: true
   }).populate('phlebotomistId', 'name phone email');
 
@@ -73,7 +72,9 @@ exports.getAvailableCollectors = asyncHandler(async (req, res) => {
       
       let distance = null;
       let fare = null;
+      let collectorLocation = 'Service area: ' + collector.pincodes.join(', ');
       
+      // Try to get distance from phlebotomist location if available
       if (phlebotomist?.location?.latitude && phlebotomist?.location?.longitude) {
         distance = calculateDistance(
           orderLat,
@@ -82,6 +83,17 @@ exports.getAvailableCollectors = asyncHandler(async (req, res) => {
           phlebotomist.location.longitude
         );
         fare = calculateFare(distance);
+      } else {
+        // If no phlebotomist location, estimate based on pincode match
+        const orderPincode = order.shippingAddress?.postalCode;
+        if (orderPincode && collector.pincodes.includes(orderPincode)) {
+          distance = 2; // Assume 2km for same pincode area
+          fare = calculateFare(distance);
+          collectorLocation = `Same area (${orderPincode})`;
+        } else {
+          distance = 5; // Assume 5km for nearby areas
+          fare = calculateFare(distance);
+        }
       }
 
       return {
@@ -96,8 +108,9 @@ exports.getAvailableCollectors = asyncHandler(async (req, res) => {
         maxOrdersPerHour: collector.maxOrdersPerHour,
         workingHours: collector.workingHours,
         distance: distance ? formatDistance(distance) : 'N/A',
-        distanceKm: distance,
-        estimatedFare: fare ? `₹${fare}` : 'N/A'
+        distanceKm: distance || 0,
+        estimatedFare: fare ? `₹${fare}` : '₹50',
+        location: collectorLocation
       };
     })
   );

@@ -20,7 +20,7 @@ console.log(`
 
 2️⃣  CUSTOMER PLACES ORDER
     ↓
-    - Enters address with pincode
+    - Enters address with pincode  
     - System captures location (lat/lng)
     - Order saved in database
 

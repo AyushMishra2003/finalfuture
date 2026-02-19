@@ -20,8 +20,8 @@ const CreatePackage = () => {
         try {
             setLoading(true);
             const [testsResponse, categoriesResponse] = await Promise.all([
-                fetch("http://localhost:5000/api/v1/tests"),
-                fetch("http://localhost:5000/api/v1/category"),
+                fetch("http://147.93.27.120:3000/api/v1/tests"),
+                fetch("http://147.93.27.120:3000/api/v1/category"),
             ]);
 
             const testsData = await testsResponse.json();

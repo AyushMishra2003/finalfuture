@@ -289,6 +289,13 @@ const CollectorFolderManager = () => {
                                             </p>
 
                                             <p>
+                                                <strong><i className="fas fa-map-marker-alt"></i> Location:</strong><br />
+                                                <span className="text-muted">
+                                                    {folder.pincodes.length > 0 ? `Serving ${folder.pincodes.length} pincode area${folder.pincodes.length > 1 ? 's' : ''}` : 'No location assigned'}
+                                                </span>
+                                            </p>
+
+                                            <p>
                                                 <strong><i className="fas fa-clock"></i> Max Orders/Hour:</strong>
                                                 <span className="badge bg-success ms-2">{folder.maxOrdersPerHour}</span>
                                             </p>

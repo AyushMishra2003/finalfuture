@@ -1,20 +1,16 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, Plus, User, Users, UserPlus } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import axios from 'axios';
+import { baseUrl } from '../utils/config';
 
 const PatientSelectionModal = ({ isOpen, onClose, onNext }) => {
-    // State for existing family members (in real app, fetch from backend)
-    const [familyMembers, setFamilyMembers] = useState([
-        { id: 1, name: 'Rahul', age: 75, gender: 'M' },
-        { id: 2, name: 'Chakravarthi', age: 43, gender: 'M' },
-        { id: 3, name: 'Fazil', age: 25, gender: 'M' }
-    ]);
-
+    const [familyMembers, setFamilyMembers] = useState([]);
+    const [loading, setLoading] = useState(false);
     const [selectedPatients, setSelectedPatients] = useState([]);
     const [showAddForm, setShowAddForm] = useState(false);
-    const [addingType, setAddingType] = useState(''); // 'self', 'mom', 'dad', 'spouse', 'other'
+    const [addingType, setAddingType] = useState('');
 
-    // Form state for adding new patient
     const [newPatient, setNewPatient] = useState({
         name: '',
         age: '',
@@ -22,12 +18,42 @@ const PatientSelectionModal = ({ isOpen, onClose, onNext }) => {
         relation: ''
     });
 
+    // Fetch family members on mount
+    useEffect(() => {
+        if (isOpen) {
+            fetchFamilyMembers();
+        }
+    }, [isOpen]);
+
+    const fetchFamilyMembers = async () => {
+        try {
+            setLoading(true);
+            const token = localStorage.getItem('userToken');
+            if (!token) {
+                setLoading(false);
+                return;
+            }
+
+            const response = await axios.get(`${baseUrl}/api/v1/family-members`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+
+            if (response.data.success) {
+                setFamilyMembers(response.data.data);
+            }
+        } catch (error) {
+            console.error('Error fetching family members:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
     // Toggle patient selection
     const togglePatient = (patient) => {
         setSelectedPatients(prev => {
-            const isSelected = prev.find(p => p.id === patient.id);
+            const isSelected = prev.find(p => p._id === patient._id);
             if (isSelected) {
-                return prev.filter(p => p.id !== patient.id);
+                return prev.filter(p => p._id !== patient._id);
             } else {
                 return [...prev, patient];
             }
@@ -57,27 +83,46 @@ const PatientSelectionModal = ({ isOpen, onClose, onNext }) => {
     };
 
     // Save new family member
-    const handleSaveNewMember = () => {
+    const handleSaveNewMember = async () => {
         if (!newPatient.name || !newPatient.age || !newPatient.gender) {
             alert('Please fill all required fields');
             return;
         }
 
-        const newMember = {
-            id: Date.now(),
-            name: newPatient.name,
-            age: parseInt(newPatient.age),
-            gender: newPatient.gender,
-            relation: newPatient.relation
-        };
+        try {
+            const token = localStorage.getItem('userToken');
+            if (!token) {
+                alert('Please login to add family members');
+                return;
+            }
 
-        setFamilyMembers(prev => [...prev, newMember]);
-        setSelectedPatients(prev => [...prev, newMember]);
+            const response = await axios.post(
+                `${baseUrl}/api/v1/family-members`,
+                {
+                    name: newPatient.name,
+                    age: parseInt(newPatient.age),
+                    gender: newPatient.gender,
+                    relation: newPatient.relation
+                },
+                {
+                    headers: { Authorization: `Bearer ${token}` }
+                }
+            );
 
-        // Reset form
-        setShowAddForm(false);
-        setNewPatient({ name: '', age: '', gender: '', relation: '' });
-        setAddingType('');
+            if (response.data.success) {
+                const newMember = response.data.data;
+                setFamilyMembers(prev => [...prev, newMember]);
+                setSelectedPatients(prev => [...prev, newMember]);
+
+                // Reset form
+                setShowAddForm(false);
+                setNewPatient({ name: '', age: '', gender: '', relation: '' });
+                setAddingType('');
+            }
+        } catch (error) {
+            console.error('Error adding family member:', error);
+            alert(error.response?.data?.error || 'Failed to add family member');
+        }
     };
 
     // Handle confirm
@@ -165,48 +210,73 @@ const PatientSelectionModal = ({ isOpen, onClose, onNext }) => {
 
                                         {/* Family Members List */}
                                         <div className="space-y-2 lg:space-y-3 mb-4 lg:mb-6">
-                                            {familyMembers.map((member) => {
-                                                const isSelected = selectedPatients.find(p => p.id === member.id);
-                                                return (
-                                                    <motion.button
-                                                        key={member.id}
-                                                        onClick={() => togglePatient(member)}
-                                                        whileTap={{ scale: 0.98 }}
-                                                        className={`w-full flex items-center justify-between p-3 lg:p-4 rounded-xl lg:rounded-2xl border-2 transition-all ${isSelected
-                                                            ? 'border-emerald-500 bg-emerald-50'
-                                                            : 'border-gray-200 bg-white hover:border-gray-300'
-                                                            }`}
-                                                    >
-                                                        <div className="flex items-center gap-2 lg:gap-3">
-                                                            <div className={`w-8 h-8 lg:w-10 lg:h-10 rounded-full flex items-center justify-center ${isSelected ? 'bg-emerald-100' : 'bg-gray-100'
-                                                                }`}>
-                                                                <User size={18} className={`lg:w-5 lg:h-5 ${isSelected ? 'text-emerald-600' : 'text-gray-600'}`} />
+                                            {loading ? (
+                                                <div className="text-center py-8">
+                                                    <div className="spinner-border text-emerald-600" role="status">
+                                                        <span className="visually-hidden">Loading...</span>
+                                                    </div>
+                                                    <p className="text-sm text-gray-500 mt-2">Loading family members...</p>
+                                                </div>
+                                            ) : familyMembers.length === 0 ? (
+                                                <div className="text-center py-8">
+                                                    <Users size={48} className="mx-auto text-gray-300 mb-3" />
+                                                    <p className="text-gray-500 text-sm">No family members added yet</p>
+                                                    <p className="text-gray-400 text-xs mt-1">Add yourself or family members below</p>
+                                                </div>
+                                            ) : (
+                                                familyMembers.map((member) => {
+                                                    const isSelected = selectedPatients.find(p => p._id === member._id);
+                                                    return (
+                                                        <motion.button
+                                                            key={member._id}
+                                                            onClick={() => togglePatient(member)}
+                                                            whileTap={{ scale: 0.98 }}
+                                                            className={`w-full flex items-center justify-between p-3 lg:p-4 rounded-xl lg:rounded-2xl border-2 transition-all ${isSelected
+                                                                ? 'border-emerald-500 bg-emerald-50'
+                                                                : 'border-gray-200 bg-white hover:border-gray-300'
+                                                                }`}
+                                                        >
+                                                            <div className="flex items-center gap-2 lg:gap-3">
+                                                                <div className={`w-8 h-8 lg:w-10 lg:h-10 rounded-full flex items-center justify-center ${isSelected ? 'bg-emerald-100' : 'bg-gray-100'
+                                                                    }`}>
+                                                                    <User size={18} className={`lg:w-5 lg:h-5 ${isSelected ? 'text-emerald-600' : 'text-gray-600'}`} />
+                                                                </div>
+                                                                <div className="text-left">
+                                                                    <p className="font-semibold text-gray-900 text-sm lg:text-base">{member.name}</p>
+                                                                    <p className="text-xs lg:text-sm text-gray-500">({member.age}/{member.gender}){member.relation && ` - ${member.relation}`}</p>
+                                                                </div>
                                                             </div>
-                                                            <div className="text-left">
-                                                                <p className="font-semibold text-gray-900 text-sm lg:text-base">{member.name}</p>
-                                                                <p className="text-xs lg:text-sm text-gray-500">({member.age}/{member.gender})</p>
-                                                            </div>
-                                                        </div>
 
-                                                        <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${isSelected
-                                                            ? 'border-emerald-500 bg-emerald-500'
-                                                            : 'border-gray-300'
-                                                            }`}>
-                                                            {isSelected && (
-                                                                <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                                                                </svg>
-                                                            )}
-                                                        </div>
-                                                    </motion.button>
-                                                );
-                                            })}
+                                                            <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${isSelected
+                                                                ? 'border-emerald-500 bg-emerald-500'
+                                                                : 'border-gray-300'
+                                                                }`}>
+                                                                {isSelected && (
+                                                                    <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                                                                    </svg>
+                                                                )}
+                                                            </div>
+                                                        </motion.button>
+                                                    );
+                                                })
+                                            )}
                                         </div>
 
                                         {/* Add Family Member Section */}
                                         <div className="border-t pt-4 lg:pt-6">
                                             <h3 className="font-bold text-gray-900 mb-3 lg:mb-4 text-sm lg:text-base">Add Family Member</h3>
-                                            <div className="grid grid-cols-4 gap-2 lg:gap-3">
+                                            <div className="grid grid-cols-5 gap-2 lg:gap-3">
+                                                <button
+                                                    onClick={() => handleAddMember('self')}
+                                                    className="flex flex-col items-center gap-1 lg:gap-2 p-2 lg:p-3 rounded-xl hover:bg-gray-50 transition-colors"
+                                                >
+                                                    <div className="w-12 h-12 lg:w-14 lg:h-14 rounded-full bg-blue-100 flex items-center justify-center">
+                                                        <User size={20} className="text-blue-600 lg:w-6 lg:h-6" />
+                                                    </div>
+                                                    <span className="text-[10px] lg:text-xs font-medium text-gray-700 text-center leading-tight">Add Myself</span>
+                                                </button>
+
                                                 <button
                                                     onClick={() => handleAddMember('other')}
                                                     className="flex flex-col items-center gap-1 lg:gap-2 p-2 lg:p-3 rounded-xl hover:bg-gray-50 transition-colors"

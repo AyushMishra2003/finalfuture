@@ -8,6 +8,9 @@ const OrderManager = () => {
   const [filter, setFilter] = useState("all");
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [showDetails, setShowDetails] = useState(false);
+  const [showCollectorModal, setShowCollectorModal] = useState(false);
+  const [collectors, setCollectors] = useState([]);
+  const [loadingCollectors, setLoadingCollectors] = useState(false);
 
   useEffect(() => {
     fetchOrders();
@@ -15,7 +18,7 @@ const OrderManager = () => {
 
   const fetchOrders = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/api/v1/orders');
+      const response = await axios.get('http://147.93.27.120:3000/api/v1/orders');
       
       if (response.data.success) {
         // Add readable address for each order
@@ -84,7 +87,7 @@ const OrderManager = () => {
   const handleStatusChange = async (orderId, newStatus) => {
     try {
       await axios.put(
-        `http://localhost:5000/api/v1/orders/${orderId}/status`,
+        `http://147.93.27.120:3000/api/v1/orders/${orderId}/status`,
         { status: newStatus }
       );
       fetchOrders();
@@ -96,6 +99,49 @@ const OrderManager = () => {
   const viewOrderDetails = (order) => {
     setSelectedOrder(order);
     setShowDetails(true);
+  };
+
+  const findCollector = async (order) => {
+    setSelectedOrder(order);
+    setShowCollectorModal(true);
+    setLoadingCollectors(true);
+    
+    try {
+      const response = await fetch('http://147.93.27.120:3000/api/v1/admin/collector-folders');
+      const data = await response.json();
+      
+      console.log('Collectors API response:', data);
+      
+      if (data.success && data.data) {
+        setCollectors(data.data);
+        console.log('Collectors loaded:', data.data.length);
+      } else {
+        setCollectors([]);
+        console.log('No collectors found in response');
+      }
+    } catch (error) {
+      console.error('Error fetching collectors:', error);
+      setCollectors([]);
+      alert('Error fetching collectors: ' + error.message);
+    } finally {
+      setLoadingCollectors(false);
+    }
+  };
+
+  const assignCollector = async (collectorId) => {
+    try {
+      await axios.put(
+        `http://147.93.27.120:3000/api/v1/orders/${selectedOrder._id}`,
+        { assignedCollector: collectorId }
+      );
+      
+      alert('Collector assigned successfully!');
+      setShowCollectorModal(false);
+      fetchOrders();
+    } catch (error) {
+      console.error('Error assigning collector:', error);
+      alert('Error assigning collector. Please try again.');
+    }
   };
 
   const openLocation = (order) => {
@@ -179,6 +225,9 @@ const OrderManager = () => {
                   </td>
                   <td>
                     <button onClick={() => viewOrderDetails(order)} className="btn-view">View</button>
+                    <button onClick={() => findCollector(order)} className="btn-collector" title="Find Collector">
+                      🔍 Collector
+                    </button>
                     <select
                       value={order.orderStatus}
                       onChange={(e) =>
@@ -264,6 +313,71 @@ const OrderManager = () => {
                   </div>
                 ))}
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Collector Assignment Modal */}
+      {showCollectorModal && (
+        <div className="modal-overlay" onClick={() => setShowCollectorModal(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>Assign Collector</h2>
+              <button onClick={() => setShowCollectorModal(false)} className="close-btn">&times;</button>
+            </div>
+            <div className="modal-body">
+              {selectedOrder && (
+                <div className="order-info" style={{ marginBottom: '20px', padding: '15px', background: '#f8fdff', borderRadius: '8px' }}>
+                  <p><strong>Order ID:</strong> {selectedOrder._id?.slice(-8)}</p>
+                  <p><strong>Customer:</strong> {selectedOrder.user?.name}</p>
+                  <p><strong>Location:</strong> {selectedOrder.shippingAddress?.city}, {selectedOrder.shippingAddress?.postalCode}</p>
+                </div>
+              )}
+              
+              <h3 style={{ marginBottom: '15px', color: '#007c6f' }}>Available Collectors</h3>
+              
+              {loadingCollectors ? (
+                <p style={{ textAlign: 'center', padding: '20px' }}>Loading collectors...</p>
+              ) : collectors.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '30px', background: '#fff3cd', borderRadius: '8px', border: '1px solid #ffc107' }}>
+                  <p style={{ margin: '0 0 15px 0', fontSize: '1.1rem', color: '#856404' }}>
+                    ⚠️ No collectors available
+                  </p>
+                  <p style={{ margin: '0 0 15px 0', color: '#856404' }}>
+                    Please create collector folders first in the Collector Management section.
+                  </p>
+                  <button 
+                    onClick={() => {
+                      setShowCollectorModal(false);
+                      // You can add navigation to collector management here
+                    }}
+                    className="btn-primary btn-sm"
+                  >
+                    Go to Collector Management
+                  </button>
+                </div>
+              ) : (
+                <div className="collector-list">
+                  {collectors.map((collector) => (
+                    <div key={collector._id} className="collector-item">
+                      <div className="collector-info">
+                        <h4>{collector.name}</h4>
+                        <p><strong>Phlebotomist:</strong> {collector.phlebotomistId?.name || 'N/A'}</p>
+                        <p><strong>Phone:</strong> {collector.phlebotomistId?.phone || 'N/A'}</p>
+                        <p><strong>Pincodes:</strong> {collector.pincodes?.join(', ') || 'N/A'}</p>
+                        <p><strong>Max Orders/Hour:</strong> {collector.maxOrdersPerHour || 5}</p>
+                      </div>
+                      <button 
+                        onClick={() => assignCollector(collector._id)}
+                        className="btn-primary btn-sm"
+                      >
+                        Assign
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         </div>

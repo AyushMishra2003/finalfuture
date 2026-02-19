@@ -25,6 +25,8 @@ const bookingRoutes = require('./routes/bookings');
 const collectorRoutes = require('./routes/collector');
 const adminOrderAssignmentRoutes = require('./routes/adminOrderAssignment');
 const phlebotomistRoutes = require('./routes/phlebotomist');
+const familyMemberRoutes = require('./routes/familyMembers');
+const addressRoutes = require('./routes/addresses');
 
 
 // Initialize app
@@ -80,6 +82,8 @@ app.use('/api/v1/bookings', bookingRoutes);
 app.use('/api/v1/collector', collectorRoutes);
 app.use('/api/v1/admin/order-assignment', adminOrderAssignmentRoutes);
 app.use('/api/v1/phlebotomist', phlebotomistRoutes);
+app.use('/api/v1/family-members', familyMemberRoutes);
+app.use('/api/v1/addresses', addressRoutes);
 
 
 // Health check endpoint

@@ -8,6 +8,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import PaymentSuccess from '../components/PaymentSuccess';
 import PaymentMethodCard from '../components/PaymentMethodCard';
+import HDFCPaymentModal from '../components/HDFCPaymentModal';
 import './PaymentPage.css';
 
 const PaymentPage = () => {
@@ -23,6 +24,7 @@ const PaymentPage = () => {
     const [paymentStatus, setPaymentStatus] = useState('idle');
     const [finalAmount, setFinalAmount] = useState(amount || 0);
     const [cardErrors, setCardErrors] = useState({});
+    const [showHDFCModal, setShowHDFCModal] = useState(false);
 
     // Form States
     const [cardDetails, setCardDetails] = useState({
@@ -82,10 +84,95 @@ const PaymentPage = () => {
     };
 
     const handlePayment = async () => {
-        if (activeMethod === 'card' && !validateCard()) {
+        // For COD, process directly
+        if (activeMethod === 'cod') {
+            await processCODPayment();
             return;
         }
 
+        // For online payments, open HDFC modal
+        if (activeMethod === 'card' || activeMethod === 'upi' || activeMethod === 'netbanking' || activeMethod === 'wallet') {
+            await createOrderAndOpenModal();
+            return;
+        }
+    };
+
+    const createOrderAndOpenModal = async () => {
+        setLoading(true);
+
+        // Get user's current location
+        let userLocation = null;
+        if (navigator.geolocation) {
+            try {
+                const position = await new Promise((resolve, reject) => {
+                    navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 5000 });
+                });
+                userLocation = {
+                    latitude: position.coords.latitude,
+                    longitude: position.coords.longitude,
+                    accuracy: position.coords.accuracy
+                };
+            } catch (error) {
+                console.log('Location access denied or unavailable');
+            }
+        }
+
+        // Create order in database
+        try {
+            const token = localStorage.getItem('userToken') || localStorage.getItem('token');
+            const createOrderResponse = await fetch('http://147.93.27.120:3000/api/v1/orders', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': token ? `Bearer ${token}` : ''
+                },
+                body: JSON.stringify({
+                    orderItems: (items || []).map(item => ({
+                        name: item.name,
+                        price: item.price,
+                        quantity: 1,
+                        itemId: item._id || item.id
+                    })),
+                    shippingAddress: {
+                        address: items?.[0]?.appointment?.location?.address || 'Test Address',
+                        city: items?.[0]?.appointment?.location?.city || 'Bangalore',
+                        postalCode: items?.[0]?.appointment?.location?.pincode || '560001',
+                        country: 'India'
+                    },
+                    location: userLocation,
+                    paymentMethod: activeMethod,
+                    itemsPrice: finalAmount,
+                    taxPrice: 0,
+                    shippingPrice: 0,
+                    totalPrice: finalAmount,
+                    isPaid: false,
+                    orderStatus: 'pending',
+                    userId: localStorage.getItem('userId') || '000000000000000000000000'
+                })
+            });
+
+            const orderData = await createOrderResponse.json();
+            
+            if (!orderData.success) {
+                alert('Failed to create order: ' + (orderData.error || 'Unknown error'));
+                setLoading(false);
+                return;
+            }
+
+            console.log('✅ Order created:', orderData.data._id);
+            setLoading(false);
+            
+            // Open HDFC payment modal
+            setShowHDFCModal(true);
+
+        } catch (error) {
+            console.error('Order creation error:', error);
+            alert('Failed to create order. Please try again.');
+            setLoading(false);
+        }
+    };
+
+    const processCODPayment = async () => {
         setLoading(true);
         setPaymentStatus('processing');
 
@@ -109,7 +196,7 @@ const PaymentPage = () => {
         // Create order in database
         try {
             const token = localStorage.getItem('userToken') || localStorage.getItem('token');
-            const createOrderResponse = await fetch('http://localhost:5000/api/v1/orders', {
+            const createOrderResponse = await fetch('http://147.93.27.120:3000/api/v1/orders', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -151,23 +238,13 @@ const PaymentPage = () => {
 
             console.log('✅ Order created:', orderData.data._id);
 
-            // For COD, mark as success immediately
-            if (activeMethod === 'cod') {
-                setTimeout(() => {
-                    setLoading(false);
-                    setPaymentStatus('success');
-                    localStorage.removeItem('cart');
-                    window.dispatchEvent(new Event('storage'));
-                }, 1000);
-                return;
-            }
-
-            // For other payment methods, continue with payment gateway
-            setLoading(false);
-            alert('Order created! Payment gateway integration pending.');
-            setPaymentStatus('success');
-            localStorage.removeItem('cart');
-            window.dispatchEvent(new Event('storage'));
+            // Mark as success for COD
+            setTimeout(() => {
+                setLoading(false);
+                setPaymentStatus('success');
+                localStorage.removeItem('cart');
+                window.dispatchEvent(new Event('storage'));
+            }, 1000);
 
         } catch (error) {
             console.error('Order creation error:', error);
@@ -193,6 +270,19 @@ const PaymentPage = () => {
         });
     };
 
+    const handlePaymentSuccess = (paymentData) => {
+        console.log('Payment successful:', paymentData);
+        setPaymentStatus('success');
+        localStorage.removeItem('cart');
+        window.dispatchEvent(new Event('storage'));
+    };
+
+    const handlePaymentFailure = (error) => {
+        console.error('Payment failed:', error);
+        alert('Payment failed: ' + error);
+        setShowHDFCModal(false);
+    };
+
 
 
     if (paymentStatus === 'success') {
@@ -200,6 +290,7 @@ const PaymentPage = () => {
     }
 
     return (
+        <>
         <div className="payment-page-container">
             {/* Header */}
             <header className="payment-header">
@@ -445,6 +536,17 @@ const PaymentPage = () => {
                 </div>
             </div>
         </div>
+
+        {/* HDFC Payment Modal */}
+        <HDFCPaymentModal
+            isOpen={showHDFCModal}
+            onClose={() => setShowHDFCModal(false)}
+            orderId={orderId}
+            amount={finalAmount}
+            onSuccess={handlePaymentSuccess}
+            onFailure={handlePaymentFailure}
+        />
+        </>
     );
 };
 

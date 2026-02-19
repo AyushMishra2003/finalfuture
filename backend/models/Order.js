@@ -111,7 +111,26 @@ const OrderSchema = new mongoose.Schema({
         scheduledDate: Date,
         scheduledHour: Number,
         timeRange: String,
-        bookedAt: Date
+        bookedAt: Date,
+        verificationOTP: String,
+        otpVerified: {
+            type: Boolean,
+            default: false
+        },
+        otpVerifiedAt: Date,
+        collectorStatus: {
+            type: String,
+            enum: ['pending', 'on_way', 'reached', 'collected', 'completed'],
+            default: 'pending'
+        },
+        statusUpdates: [{
+            status: String,
+            updatedAt: {
+                type: Date,
+                default: Date.now
+            },
+            updatedBy: String
+        }]
     },
     createdAt: {
         type: Date,

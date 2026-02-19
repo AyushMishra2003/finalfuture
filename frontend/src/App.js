@@ -31,6 +31,7 @@ import PaymentPage from './pages/PaymentPage';
 import OrderSummary from './pages/OrderSummary';
 import Contact from './pages/Contact';
 import BookingFlowDemo from './pages/BookingFlowDemo';
+import HDFCPaymentDemo from './pages/HDFCPaymentDemo';
 
 // Import admin components
 import AdminDashboard from './admin/AdminDashboard';
@@ -88,6 +89,7 @@ function App() {
 
           <Route path="/payment/callback" element={<PaymentCallback />} />
           <Route path="/payment" element={<PaymentPage />} />
+          <Route path="/payment-demo" element={<HDFCPaymentDemo />} />
           <Route path="/order-summary" element={<OrderSummary />} />
           <Route path="/booking-demo" element={<BookingFlowDemo />} />
 

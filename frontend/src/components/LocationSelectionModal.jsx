@@ -1,26 +1,45 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, MapPin, Plus, Navigation, Home, Building2, Check } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import axios from 'axios';
+import { baseUrl } from '../utils/config';
 
 const LocationSelectionModal = ({ isOpen, onClose, onConfirm, selectedPatients = [], appointmentDetails = null }) => {
     const [showAddAddressForm, setShowAddAddressForm] = useState(false);
     const [selectedAddress, setSelectedAddress] = useState(null);
     const [isSharing, setIsSharing] = useState(false);
+    const [savedAddresses, setSavedAddresses] = useState([]);
+    const [loading, setLoading] = useState(false);
 
-    // Sample saved addresses (in real app, fetch from backend)
-    const [savedAddresses, setSavedAddresses] = useState([
-        {
-            id: 1,
-            type: 'home',
-            label: 'Home',
-            address: '13, Rajajinagar, Rajajinagar',
-            city: 'Bangalore',
-            state: 'Karnataka',
-            pincode: '560021',
-            landmark: 'Near Metro Station',
-            isDefault: true
+    // Fetch addresses on mount
+    useEffect(() => {
+        if (isOpen) {
+            fetchAddresses();
         }
-    ]);
+    }, [isOpen]);
+
+    const fetchAddresses = async () => {
+        try {
+            setLoading(true);
+            const token = localStorage.getItem('userToken');
+            if (!token) {
+                setLoading(false);
+                return;
+            }
+
+            const response = await axios.get(`${baseUrl}/api/v1/addresses`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+
+            if (response.data.success) {
+                setSavedAddresses(response.data.data);
+            }
+        } catch (error) {
+            console.error('Error fetching addresses:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     // Form state for new address
     const [newAddress, setNewAddress] = useState({
@@ -35,7 +54,7 @@ const LocationSelectionModal = ({ isOpen, onClose, onConfirm, selectedPatients =
         pincode: ''
     });
 
-    const handleShareLocation = () => {
+    const handleShareLocation = async () => {
         setIsSharing(true);
 
         if (!navigator.geolocation) {
@@ -45,11 +64,10 @@ const LocationSelectionModal = ({ isOpen, onClose, onConfirm, selectedPatients =
         }
 
         navigator.geolocation.getCurrentPosition(
-            (position) => {
+            async (position) => {
                 const { latitude, longitude } = position.coords;
 
                 const locationData = {
-                    id: Date.now(),
                     type: 'current',
                     label: 'Current Location',
                     address: `Lat: ${latitude.toFixed(4)}, Long: ${longitude.toFixed(4)}`,
@@ -58,9 +76,27 @@ const LocationSelectionModal = ({ isOpen, onClose, onConfirm, selectedPatients =
                     pincode: 'Detecting...',
                     latitude,
                     longitude,
-                    accuracy: position.coords.accuracy,
-                    isDefault: false
+                    flatNo: 'GPS',
+                    area: 'Current Location'
                 };
+
+                // Save to backend
+                try {
+                    const token = localStorage.getItem('userToken');
+                    if (token) {
+                        const response = await axios.post(
+                            `${baseUrl}/api/v1/addresses`,
+                            locationData,
+                            { headers: { Authorization: `Bearer ${token}` } }
+                        );
+                        if (response.data.success) {
+                            locationData._id = response.data.data._id;
+                            setSavedAddresses(prev => [...prev, response.data.data]);
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error saving location:', error);
+                }
 
                 console.log('📍 Location captured:', locationData);
                 setSelectedAddress(locationData);
@@ -100,47 +136,53 @@ const LocationSelectionModal = ({ isOpen, onClose, onConfirm, selectedPatients =
         );
     };
 
-    const handleSaveAddress = () => {
-        // Validate required fields
+    const handleSaveAddress = async () => {
         if (!newAddress.flatNo || !newAddress.area || !newAddress.city || !newAddress.pincode) {
             alert('Please fill all required fields');
             return;
         }
 
-        // Validate Karnataka pincode (starts with 5)
         if (!newAddress.pincode.startsWith('5') || newAddress.pincode.length !== 6) {
             alert('Please enter a valid Karnataka pincode (6 digits starting with 5)');
             return;
         }
 
-        const addressToSave = {
-            id: Date.now(),
-            type: newAddress.type,
-            label: newAddress.label || (newAddress.type === 'home' ? 'Home' : newAddress.type === 'work' ? 'Work' : 'Other'),
-            address: `${newAddress.flatNo}, ${newAddress.building ? newAddress.building + ', ' : ''}${newAddress.area}`,
-            city: newAddress.city,
-            state: newAddress.state,
-            pincode: newAddress.pincode,
-            landmark: newAddress.landmark,
-            isDefault: savedAddresses.length === 0
-        };
+        try {
+            const token = localStorage.getItem('userToken');
+            if (!token) {
+                alert('Please login to save addresses');
+                return;
+            }
 
-        setSavedAddresses([...savedAddresses, addressToSave]);
-        setSelectedAddress(addressToSave);
-        setShowAddAddressForm(false);
+            const response = await axios.post(
+                `${baseUrl}/api/v1/addresses`,
+                newAddress,
+                { headers: { Authorization: `Bearer ${token}` } }
+            );
 
-        // Reset form
-        setNewAddress({
-            type: 'home',
-            label: '',
-            flatNo: '',
-            building: '',
-            area: '',
-            landmark: '',
-            city: '',
-            state: 'Karnataka',
-            pincode: ''
-        });
+            if (response.data.success) {
+                const savedAddress = response.data.data;
+                setSavedAddresses(prev => [...prev, savedAddress]);
+                setSelectedAddress(savedAddress);
+                setShowAddAddressForm(false);
+
+                // Reset form
+                setNewAddress({
+                    type: 'home',
+                    label: '',
+                    flatNo: '',
+                    building: '',
+                    area: '',
+                    landmark: '',
+                    city: '',
+                    state: 'Karnataka',
+                    pincode: ''
+                });
+            }
+        } catch (error) {
+            console.error('Error saving address:', error);
+            alert(error.response?.data?.error || 'Failed to save address');
+        }
     };
 
     const handleConfirm = (address = selectedAddress) => {
@@ -280,51 +322,59 @@ const LocationSelectionModal = ({ isOpen, onClose, onConfirm, selectedPatients =
                                         {savedAddresses.length > 0 && (
                                             <div className="mb-4">
                                                 <h4 className="text-sm font-semibold text-gray-700 mb-3">Saved Addresses</h4>
-                                                <div className="space-y-2">
-                                                    {savedAddresses.map((addr) => (
-                                                        <button
-                                                            key={addr.id}
-                                                            onClick={() => setSelectedAddress(addr)}
-                                                            className={`w-full p-4 rounded-xl border-2 transition-all text-left ${selectedAddress?.id === addr.id
-                                                                    ? 'border-emerald-500 bg-emerald-50'
-                                                                    : 'border-gray-200 bg-white hover:border-gray-300'
-                                                                }`}
-                                                        >
-                                                            <div className="flex items-start gap-3">
-                                                                <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${selectedAddress?.id === addr.id ? 'bg-emerald-100' : 'bg-gray-100'
-                                                                    }`}>
-                                                                    {addr.type === 'home' ? (
-                                                                        <Home size={18} className={selectedAddress?.id === addr.id ? 'text-emerald-600' : 'text-gray-600'} />
-                                                                    ) : addr.type === 'work' ? (
-                                                                        <Building2 size={18} className={selectedAddress?.id === addr.id ? 'text-emerald-600' : 'text-gray-600'} />
-                                                                    ) : (
-                                                                        <MapPin size={18} className={selectedAddress?.id === addr.id ? 'text-emerald-600' : 'text-gray-600'} />
-                                                                    )}
-                                                                </div>
-                                                                <div className="flex-1">
-                                                                    <div className="flex items-center gap-2 mb-1">
-                                                                        <p className="font-semibold text-gray-900 text-sm">{addr.label}</p>
-                                                                        {addr.isDefault && (
-                                                                            <span className="text-xs bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full">Default</span>
+                                                {loading ? (
+                                                    <div className="text-center py-4">
+                                                        <div className="spinner-border text-emerald-600" role="status">
+                                                            <span className="visually-hidden">Loading...</span>
+                                                        </div>
+                                                    </div>
+                                                ) : (
+                                                    <div className="space-y-2">
+                                                        {savedAddresses.map((addr) => (
+                                                            <button
+                                                                key={addr._id}
+                                                                onClick={() => setSelectedAddress(addr)}
+                                                                className={`w-full p-4 rounded-xl border-2 transition-all text-left ${selectedAddress?._id === addr._id
+                                                                        ? 'border-emerald-500 bg-emerald-50'
+                                                                        : 'border-gray-200 bg-white hover:border-gray-300'
+                                                                    }`}
+                                                            >
+                                                                <div className="flex items-start gap-3">
+                                                                    <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${selectedAddress?._id === addr._id ? 'bg-emerald-100' : 'bg-gray-100'
+                                                                        }`}>
+                                                                        {addr.type === 'home' ? (
+                                                                            <Home size={18} className={selectedAddress?._id === addr._id ? 'text-emerald-600' : 'text-gray-600'} />
+                                                                        ) : addr.type === 'work' ? (
+                                                                            <Building2 size={18} className={selectedAddress?._id === addr._id ? 'text-emerald-600' : 'text-gray-600'} />
+                                                                        ) : (
+                                                                            <MapPin size={18} className={selectedAddress?._id === addr._id ? 'text-emerald-600' : 'text-gray-600'} />
                                                                         )}
                                                                     </div>
-                                                                    <p className="text-sm text-gray-600">{addr.address}</p>
-                                                                    <p className="text-xs text-gray-500 mt-1">
-                                                                        {addr.city}, {addr.state} - {addr.pincode}
-                                                                    </p>
-                                                                    {addr.landmark && (
-                                                                        <p className="text-xs text-gray-500 mt-1">Near: {addr.landmark}</p>
+                                                                    <div className="flex-1">
+                                                                        <div className="flex items-center gap-2 mb-1">
+                                                                            <p className="font-semibold text-gray-900 text-sm">{addr.label}</p>
+                                                                            {addr.isDefault && (
+                                                                                <span className="text-xs bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full">Default</span>
+                                                                            )}
+                                                                        </div>
+                                                                        <p className="text-sm text-gray-600">{addr.address}</p>
+                                                                        <p className="text-xs text-gray-500 mt-1">
+                                                                            {addr.city}, {addr.state} - {addr.pincode}
+                                                                        </p>
+                                                                        {addr.landmark && (
+                                                                            <p className="text-xs text-gray-500 mt-1">Near: {addr.landmark}</p>
+                                                                        )}
+                                                                    </div>
+                                                                    {selectedAddress?._id === addr._id && (
+                                                                        <div className="w-6 h-6 rounded-full bg-emerald-500 flex items-center justify-center flex-shrink-0">
+                                                                            <Check size={16} className="text-white" />
+                                                                        </div>
                                                                     )}
                                                                 </div>
-                                                                {selectedAddress?.id === addr.id && (
-                                                                    <div className="w-6 h-6 rounded-full bg-emerald-500 flex items-center justify-center flex-shrink-0">
-                                                                        <Check size={16} className="text-white" />
-                                                                    </div>
-                                                                )}
-                                                            </div>
-                                                        </button>
-                                                    ))}
-                                                </div>
+                                                            </button>
+                                                        ))}
+                                                    </div>
+                                                )}
                                             </div>
                                         )}
 

@@ -13,7 +13,8 @@ export const getImagePath = (imagePath) => {
 
 // API Configuration
 // Option 1: Local development server
-export const baseUrl = "http://localhost:5000";
+// export const baseUrl = "http://localhost:5000";
+export const baseUrl = "http://147.93.27.120:3000";
 
 export const API_ENDPOINTS = {
   // Main banners

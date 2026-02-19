@@ -1,4 +1,4 @@
-# 🔐 Environment Variables (.env) - Complete Configuration
+cd # 🔐 Environment Variables (.env) - Complete Configuration
 
 ## 📋 Current .env File Contents
 

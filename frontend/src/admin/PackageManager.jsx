@@ -30,7 +30,7 @@ const PackageManager = () => {
         tags: "",
     });
 
-    const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:5000/api/v1";
+    const API_BASE_URL = process.env.REACT_APP_API_URL || "http://147.93.27.120:3000/api/v1";
 
     // Fetch packages and tests
     useEffect(() => {

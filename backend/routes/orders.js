@@ -8,7 +8,8 @@ const {
     updateOrderToDelivered,
     deleteOrder,
     getDashboardStats,
-    updateOrderStatus
+    updateOrderStatus,
+    updateOrder
 } = require('../controllers/orders');
 const { protect, authorize } = require('../middleware/auth');
 const advancedResults = require('../middleware/advancedResults');
@@ -28,6 +29,7 @@ router.route('/myorders')
 
 router.route('/:id')
     .get(getOrder)
+    .put(updateOrder)
     .delete(deleteOrder);
 
 router.route('/:id/pay')
