@@ -40,7 +40,7 @@ const Footer = () => {
                 <p className="ft-p py-4">
                   Your trusted partner for convenient and reliable lab test
                   bookings. Delivering accuracy and care for your health, every
-                  step of the way.
+                  step of the way 123.
                 </p>
               </div>
 

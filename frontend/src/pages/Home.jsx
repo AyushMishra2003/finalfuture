@@ -10,7 +10,7 @@ import TestimonialsSlider from "../components/TestimonialsSlider";
 import PincodeChecker from "./Pincode";
 import Carousel from "react-bootstrap/Carousel";
 import PremiumCarousel from "../components/PremiumCarousel";
-import SpecialOffersCarousel from "../components/SpecialOffersCarousel";
+
 import MoneySavingPackages from "../components/MoneySavingPackage";
 import PatientSelectionModal from "../components/PatientSelectionModal";
 import AppointmentTimeModal from "../components/AppointmentTimeModal";
@@ -622,18 +622,9 @@ const Home = () => {
         </div>
       </section>
 
-
-
       {/* Cards Section */}
 
       <MoneySavingPackages />
-
-
-
-
-
-
-
 
       {/* Healthcare Banner Section */}
       <section className="py-4 bg-light">
@@ -721,32 +712,14 @@ const Home = () => {
 
 
           {/* Premium Carousel */}
-          <SpecialOffersCarousel
-            offers={packages.map(pkg => ({
-              id: pkg.id,
-              _id: pkg.id, // For cart compatibility
-              title: pkg.title,
-              name: pkg.title, // For cart display
-              originalPrice: parseInt(pkg.oldPrice.replace(/[₹,]/g, '')),
-              discountedPrice: parseInt(pkg.price.replace(/[₹,]/g, '')),
-              price: parseInt(pkg.price.replace(/[₹,]/g, '')), // For cart
-              discount: parseInt(pkg.discount.replace(/[%OFF ]/g, '')),
-              discountPercentage: parseInt(pkg.discount.replace(/[%OFF ]/g, '')),
-              badge: pkg.discount,
-              features: pkg.details.inclusions,
-              description: `${pkg.tests} included with ${pkg.details.homeCollection}`,
-              category: "Health Package",
-              imageUrl: pkg.image,
-              tests: pkg.tests,
-              homeSampleCollection: true,
-              reportsIn: pkg.details.reportTime
-            }))}
-            onAddToCart={(offerId) => {
-              const pkg = packages.find(p => p.id === offerId);
+          <PremiumCarousel
+            items={packages}
+            onAddToCart={(item) => {
+              const pkg = packages.find(p => p.id === item.id);
               if (pkg) {
                 // Check if item already exists in cart
                 const existingCart = JSON.parse(localStorage.getItem("cart")) || [];
-                const existingItemIndex = existingCart.findIndex(item => item._id === pkg.id);
+                const existingItemIndex = existingCart.findIndex(cartItem => cartItem._id === pkg.id);
 
                 if (existingItemIndex !== -1) {
                   alert("This package is already in your cart!");
@@ -758,7 +731,23 @@ const Home = () => {
                 setIsPatientModalOpen(true);
               }
             }}
+            onViewDetails={(item) => {
+              const pkg = packages.find(p => p.id === item.id);
+              if (pkg) {
+                setSelectedPackage(pkg);
+                setShowDetails(true);
+              }
+            }}
           />
+
+          {/* Details Modal */}
+          {showDetails && selectedPackage && (
+            <div className="position-fixed top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-center p-3" style={{ zIndex: 1050, background: "rgba(255, 255, 255, 0.7)", backdropFilter: "blur(1px)" }}>
+              <div className="position-relative w-100" style={{ maxWidth: "450px" }}>
+                <DetailCard pkg={selectedPackage} onClose={() => setShowDetails(false)} />
+              </div>
+            </div>
+          )}
 
           {/* Patient Selection Modal */}
           <PatientSelectionModal

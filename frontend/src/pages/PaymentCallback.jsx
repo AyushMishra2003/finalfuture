@@ -1,122 +1,117 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import axios from 'axios';
-import './PaymentCallback.css';
+import { baseUrl } from '../utils/config';
 
 const PaymentCallback = () => {
-    const [searchParams] = useSearchParams();
-    const navigate = useNavigate();
-    const [status, setStatus] = useState('processing');
-    const [message, setMessage] = useState('Processing your payment...');
-    const [orderDetails, setOrderDetails] = useState(null);
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const [status, setStatus] = useState('processing');
+  const [message, setMessage] = useState('Processing your payment...');
 
-    useEffect(() => {
-        handlePaymentCallback();
-    }, []);
+  useEffect(() => {
+    handleCallback();
+  }, []);
 
-    const handlePaymentCallback = async () => {
-        try {
-            // Get payment response from URL parameters
-            const paymentData = {
-                orderId: searchParams.get('orderId'),
-                amount: searchParams.get('amount'),
-                status: searchParams.get('status'),
-                transactionId: searchParams.get('transactionId'),
-                hash: searchParams.get('hash'),
-                paymentMode: searchParams.get('paymentMode'),
-                bankRefNo: searchParams.get('bankRefNo'),
-                responseMessage: searchParams.get('responseMessage')
-            };
+  const handleCallback = async () => {
+    try {
+      const orderId = searchParams.get('orderId');
+      const transactionId = searchParams.get('transactionId');
+      const paymentStatus = searchParams.get('status');
+      const amount = searchParams.get('amount');
+      const hash = searchParams.get('hash');
 
-            // Send to backend for verification
-            const response = await axios.post('/api/v1/payment/hdfc/callback', paymentData);
+      if (!orderId) {
+        setStatus('error');
+        setMessage('Invalid payment response');
+        return;
+      }
 
-            if (response.data.success) {
-                setStatus('success');
-                setMessage('Payment successful!');
-                setOrderDetails(response.data.data);
+      const token = localStorage.getItem('userToken') || localStorage.getItem('token');
 
-                // Redirect to success page after 3 seconds
-                setTimeout(() => {
-                    navigate(`/order-success/${paymentData.orderId}`);
-                }, 3000);
-            } else {
-                setStatus('failed');
-                setMessage(response.data.message || 'Payment failed');
-            }
-        } catch (error) {
-            console.error('Payment callback error:', error);
-            setStatus('failed');
-            setMessage(error.response?.data?.message || 'Payment verification failed');
-        }
-    };
+      // Verify payment with backend
+      const response = await fetch(`${baseUrl}/api/v1/payment/hdfc/callback`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          orderId,
+          transactionId,
+          status: paymentStatus,
+          amount,
+          hash
+        })
+      });
 
-    return (
-        <div className="payment-callback-container">
-            <div className="payment-callback-card">
-                {status === 'processing' && (
-                    <div className="payment-status processing">
-                        <div className="spinner-large"></div>
-                        <h2>Processing Payment</h2>
-                        <p>{message}</p>
-                    </div>
-                )}
+      const data = await response.json();
 
-                {status === 'success' && (
-                    <div className="payment-status success">
-                        <div className="success-icon">
-                            <i className="fas fa-check-circle"></i>
-                        </div>
-                        <h2>Payment Successful!</h2>
-                        <p>{message}</p>
-                        {orderDetails && (
-                            <div className="order-details">
-                                <div className="detail-row">
-                                    <span>Order ID:</span>
-                                    <strong>{orderDetails.orderId}</strong>
-                                </div>
-                                <div className="detail-row">
-                                    <span>Transaction ID:</span>
-                                    <strong>{orderDetails.transactionId}</strong>
-                                </div>
-                                <div className="detail-row">
-                                    <span>Amount Paid:</span>
-                                    <strong>₹{orderDetails.amount?.toLocaleString()}</strong>
-                                </div>
-                            </div>
-                        )}
-                        <p className="redirect-message">
-                            Redirecting to order details...
-                        </p>
-                    </div>
-                )}
+      if (data.success) {
+        setStatus('success');
+        setMessage('Payment successful! Redirecting...');
+        setTimeout(() => {
+          navigate(`/order-confirmation/${orderId}`);
+        }, 2000);
+      } else {
+        setStatus('error');
+        setMessage(data.message || 'Payment verification failed');
+      }
+    } catch (error) {
+      console.error('Callback error:', error);
+      setStatus('error');
+      setMessage('An error occurred while processing your payment');
+    }
+  };
 
-                {status === 'failed' && (
-                    <div className="payment-status failed">
-                        <div className="failed-icon">
-                            <i className="fas fa-times-circle"></i>
-                        </div>
-                        <h2>Payment Failed</h2>
-                        <p>{message}</p>
-                        <div className="action-buttons">
-                            <button
-                                onClick={() => navigate('/cart')}
-                                className="btn btn-primary"
-                            >
-                                Return to Cart
-                            </button>
-                            <button
-                                onClick={() => navigate('/')}
-                                className="btn btn-secondary"
-                            >
-                                Go to Home
-                            </button>
-                        </div>
-                    </div>
-                )}
+  return (
+    <div className="container mt-5">
+      <div className="row justify-content-center">
+        <div className="col-md-6">
+          <div className={`card text-center ${status === 'success' ? 'border-success' : status === 'error' ? 'border-danger' : ''}`}>
+            <div className="card-body p-5">
+              {status === 'processing' && (
+                <>
+                  <div className="spinner-border text-primary mb-3" style={{ width: '3rem', height: '3rem' }} />
+                  <h3>Processing Payment</h3>
+                  <p className="text-muted">{message}</p>
+                </>
+              )}
+              
+              {status === 'success' && (
+                <>
+                  <div className="text-success mb-3">
+                    <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                  <h3 className="text-success">Payment Successful!</h3>
+                  <p className="text-muted">{message}</p>
+                </>
+              )}
+              
+              {status === 'error' && (
+                <>
+                  <div className="text-danger mb-3">
+                    <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                  <h3 className="text-danger">Payment Failed</h3>
+                  <p className="text-muted">{message}</p>
+                  <button 
+                    className="btn btn-primary mt-3"
+                    onClick={() => navigate('/cart')}
+                  >
+                    Try Again
+                  </button>
+                </>
+              )}
             </div>
+          </div>
         </div>
-    );
+      </div>
+    </div>
+  );
 };
 
 export default PaymentCallback;

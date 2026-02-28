@@ -1,348 +1,254 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
-import '../scrollbar-hide.css';
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import apiService from '../utils/api';
 
 const MoneySavingPackages = () => {
-    const [currentSlide, setCurrentSlide] = useState(0);
-    const [cardsPerView, setCardsPerView] = useState(4);
-    const [isMobile, setIsMobile] = useState(window.innerWidth < 1280);
-    const [activeMobileIndex, setActiveMobileIndex] = useState(0);
-    const scrollContainerRef = useRef(null);
-    const navigate = useNavigate();
+  const [categories, setCategories] = useState([]);
+  const [savingCurrent, setSavingCurrent] = useState(0);
+  const navigate = useNavigate();
 
-    // Handle Mobile Scroll for Pagination Dots
-    const handleScroll = () => {
-        if (!scrollContainerRef.current) return;
-        const container = scrollContainerRef.current;
-        const scrollLeft = container.scrollLeft;
-        // Approximation: card width (min 260/300) + gap (16)
-        // Better: Use center point calc
-        const containerCenter = scrollLeft + container.clientWidth / 2;
-
-        let minDiff = Infinity;
-        let closestIndex = 0;
-
-        // Iterate through child nodes (the spacer divs)
-        // The first child of container is the flex wrapper
-        const flexWrapper = container.firstElementChild;
-        if (!flexWrapper) return;
-
-        const children = flexWrapper.children;
-        for (let i = 0; i < children.length; i++) {
-            const child = children[i];
-            // Get position relative to container
-            const childLeft = child.offsetLeft;
-            const childWidth = child.offsetWidth;
-            const childCenter = childLeft + childWidth / 2;
-
-            const diff = Math.abs(childCenter - containerCenter);
-            if (diff < minDiff) {
-                minDiff = diff;
-                closestIndex = i;
-            }
+  // Fetch categories from API using existing apiService
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const data = await apiService.getSelectedLessPrice();
+        if (data?.data) {
+          setCategories(data.data);
         }
-
-        if (activeMobileIndex !== closestIndex) {
-            setActiveMobileIndex(closestIndex);
-        }
+      } catch (error) {
+        console.error('Error fetching categories:', error);
+      }
     };
 
-    // Category Mapping for URL params
-    const categoryMap = {
-        "Complete Health Checkup": "Full Body",
-        "Diabetes Care": "Diabetes",
-        "Heart Health": "Cardiac",
-        "Thyroid Profile": "Thyroid",
-        "Liver Function": "Liver",
-        "Kidney Profile": "Kidney",
-        "Vitamin Package": "Vitamin",
-        "Women's Health": "Women's Health",
-        "Men's Health": "Men's Health",
-        "Senior Citizen": "Senior Citizen"
-    };
+    fetchCategories();
+  }, []);
 
-    // Sample categories data
-    const categories = [
-        { id: 1, name: "Complete Health Checkup", imagePath: "health-checkup.jpg" },
-        { id: 2, name: "Diabetes Care", imagePath: "diabetes.jpg" },
-        { id: 3, name: "Heart Health", imagePath: "heart.jpg" },
-        { id: 4, name: "Thyroid Profile", imagePath: "thyroid.jpg" },
-        { id: 5, name: "Liver Function", imagePath: "liver.jpg" },
-        { id: 6, name: "Kidney Profile", imagePath: "kidney.jpg" },
-        { id: 7, name: "Vitamin Package", imagePath: "vitamin.jpg" },
-        { id: 8, name: "Women's Health", imagePath: "women.jpg" },
-        { id: 9, name: "Men's Health", imagePath: "men.jpg" },
-        { id: 10, name: "Senior Citizen", imagePath: "senior.jpg" },
-    ];
+  const getImageUrl = (imagePath) => {
+    if (!imagePath) return `${process.env.PUBLIC_URL}/images/placeholder.png`;
+    if (imagePath.startsWith('http')) return imagePath;
+    // Remove 'images/' prefix if it exists since PUBLIC_URL already includes it
+    const cleanPath = imagePath.replace(/^images\//, '');
+    return `${process.env.PUBLIC_URL}/images/${cleanPath}`;
+  };
 
-    // Update cards per view based on screen size
-    useEffect(() => {
-        const handleResize = () => {
-            const mobile = window.innerWidth < 1280;
-            setIsMobile(mobile);
+  const chunkedCategories = [];
+  for (let i = 0; i < categories.length; i += 4) {
+    chunkedCategories.push(categories.slice(i, i + 4));
+  }
 
-            if (window.innerWidth >= 1280) {
-                setCardsPerView(4);
-            } else if (window.innerWidth >= 1024) {
-                setCardsPerView(3);
-            } else if (window.innerWidth >= 768) {
-                setCardsPerView(3);
-            } else if (window.innerWidth >= 640) {
-                setCardsPerView(2);
-            } else {
-                setCardsPerView(2);
-            }
-        };
+  const nextSavingSlide = () => {
+    if (savingCurrent < chunkedCategories.length - 1) {
+      setSavingCurrent((prev) => prev + 1);
+    }
+  };
 
-        handleResize();
-        window.addEventListener('resize', handleResize);
-        return () => window.removeEventListener('resize', handleResize);
-    }, []);
+  const prevSavingSlide = () => {
+    if (savingCurrent > 0) {
+      setSavingCurrent((prev) => prev - 1);
+    }
+  };
 
-    // Calculate total slides
-    const totalSlides = Math.ceil(categories.length / cardsPerView);
+  return (
+    <section className="py-5">
+      <div className="container">
+        {/* Section Header */}
+        <div className="d-flex flex-column flex-md-row justify-content-between align-items-center mb-4">
+          <div className="align-items-md-center">
+            <h2 className="fw-bold mb-1" style={{ color: "rgb(0, 162, 173)", fontSize: "1.5rem" }}>
+              Money-Saving Packages
+            </h2>
+            <p className="mb-0 fw-semibold" style={{ color: "rgb(255, 128, 0)" }}>
+              Upto 75% Discount
+            </p>
+          </div>
 
-    // Get current visible cards
-    const getCurrentCards = () => {
-        const start = currentSlide * cardsPerView;
-        return categories.slice(start, start + cardsPerView);
-    };
-
-    const handlePrevious = () => {
-        setCurrentSlide((prev) => (prev === 0 ? totalSlides - 1 : prev - 1));
-    };
-
-    const handleNext = () => {
-        setCurrentSlide((prev) => (prev === totalSlides - 1 ? 0 : prev + 1));
-    };
-
-    // Placeholder image generator
-    const getImageUrl = (imagePath) => {
-        const hash = imagePath.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
-        const colors = ['4A90E2', '50C878', 'FF6B6B', 'FFD93D', '9B59B6', 'E67E22'];
-        const color = colors[hash % colors.length];
-        return `https://via.placeholder.com/400x300/${color}/FFFFFF?text=${encodeURIComponent(imagePath.split('.')[0])}`;
-    };
-
-    return (
-        <section className="py-12 bg-gradient-to-b from-gray-50 to-white">
-            <div className="max-w-7xl mx-auto px-4">
-                {/* Section Header */}
-                {/* Section Header */}
-                {/* Section Header */}
-                <div className="text-center mt-12 mb-8 section-header-row">
-                    <div className="section-header-text mb-4">
-                        <h2 className="section-title font-bold mb-2" style={{ fontSize: '2.25rem', letterSpacing: '-0.02em', color: '#115e59' }}>
-                            Money-Saving Packages
-                        </h2>
-                        <p className="section-subtitle text-gray-500 font-medium mx-auto" style={{ fontSize: '1rem', lineHeight: '1.5', maxWidth: '600px' }}>
-                            Up to 75% Discount. <br className="block md:hidden" /> Comprehensive care at best prices.
-                        </p>
-                    </div>
-
-                    <div className="section-header-actions flex justify-center">
-                        <button
-                            className="btn-premium"
-                            onClick={() => navigate('/completehealth')}
-                        >
-                            VIEW ALL
-                        </button>
-                    </div>
-                </div>
-
-                {/* Carousel Container */}
-                <div className="relative">
-                    {/* Navigation Buttons */}
-                    {!isMobile && (
-                        <>
-                            <button
-                                onClick={handlePrevious}
-                                className="hidden lg:flex absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 z-10 w-12 h-12 rounded-full bg-white shadow-lg items-center justify-center text-gray-700 hover:bg-teal-50 transition-all duration-300 hover:scale-110 disabled:opacity-50"
-                                style={{ boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
-                            >
-                                <ChevronLeft size={24} />
-                            </button>
-
-                            <button
-                                onClick={handleNext}
-                                className="hidden lg:flex absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 z-10 w-12 h-12 rounded-full bg-white shadow-lg items-center justify-center text-gray-700 hover:bg-teal-50 transition-all duration-300 hover:scale-110 disabled:opacity-50"
-                                style={{ boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
-                            >
-                                <ChevronRight size={24} />
-                            </button>
-                        </>
-                    )}
-
-                    {/* Cards Grid */}
-                    <div
-                        ref={scrollContainerRef}
-                        onScroll={handleScroll}
-                        className={`${isMobile ? 'overflow-x-auto pt-4 pb-8 -mx-4 px-4 scrollbar-hide' : 'overflow-hidden px-8'}`}
-                    >
-                        <div
-                            className={isMobile ? 'flex gap-4 snap-x snap-mandatory' : 'grid gap-4 transition-all duration-500 ease-in-out'}
-                            style={isMobile ? {} : {
-                                gridTemplateColumns: `repeat(${cardsPerView}, 1fr)`,
-                            }}
-                        >
-                            {(isMobile ? categories : getCurrentCards()).map((item, index) => (
-                                <div key={item.id} className={isMobile ? 'min-w-[260px] sm:min-w-[300px] snap-center' : ''}>
-                                    <CategoryCard
-                                        item={item}
-                                        getImageUrl={getImageUrl}
-                                        index={index}
-                                        onNavigate={(name) => {
-                                            const mappedCategory = categoryMap[name] || "All";
-                                            navigate(`/completehealth?tab=${encodeURIComponent(mappedCategory)}`);
-                                        }}
-                                    />
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-
-                    {/* Pagination Dots */}
-                    {isMobile ? (
-                        <div className="flex justify-center items-center gap-2 mt-4">
-                            {categories.map((_, index) => (
-                                <button
-                                    key={index}
-                                    onClick={() => {
-                                        if (scrollContainerRef.current) {
-                                            const container = scrollContainerRef.current;
-                                            const flexWrapper = container.firstElementChild;
-                                            if (flexWrapper && flexWrapper.children[index]) {
-                                                const child = flexWrapper.children[index];
-                                                // Center the child
-                                                const scrollAmount = child.offsetLeft - (container.clientWidth / 2) + (child.offsetWidth / 2);
-                                                container.scrollTo({ left: scrollAmount, behavior: 'smooth' });
-                                            }
-                                        }
-                                    }}
-                                    className={`rounded-full transition-all duration-300 ${index === activeMobileIndex
-                                        ? 'w-6 h-2 bg-teal-700'
-                                        : 'w-2 h-2 bg-gray-300 hover:bg-gray-400'
-                                        }`}
-                                    style={{
-                                        boxShadow: index === activeMobileIndex ? '0 2px 8px rgba(45, 122, 110, 0.3)' : 'none',
-                                    }}
-                                />
-                            ))}
-                        </div>
-                    ) : (
-                        <div className="flex justify-center items-center gap-2 mt-8">
-                            {Array.from({ length: totalSlides }).map((_, index) => (
-                                <button
-                                    key={index}
-                                    onClick={() => setCurrentSlide(index)}
-                                    className={`rounded-full transition-all duration-300 ${index === currentSlide
-                                        ? 'w-8 h-3 bg-teal-700'
-                                        : 'w-3 h-3 bg-gray-300 hover:bg-gray-400'
-                                        }`}
-                                    style={{
-                                        boxShadow: index === currentSlide ? '0 2px 8px rgba(45, 122, 110, 0.3)' : 'none',
-                                    }}
-                                />
-                            ))}
-                        </div>
-                    )}
-                </div>
-            </div>
-        </section>
-    );
-};
-
-// Category Card Component
-const CategoryCard = ({ item, getImageUrl, index, onNavigate }) => {
-    const [isHovered, setIsHovered] = useState(false);
-
-    return (
-        <div
-            className="group cursor-pointer"
-            onMouseEnter={() => setIsHovered(true)}
-            onMouseLeave={() => setIsHovered(false)}
-            onClick={() => onNavigate(item.name)}
+          <Link
+            to="/completehealth"
+            className="btn fw-semibold text-white mt-3 mt-md-0 px-4 py-2"
             style={{
-                animation: `fadeInUp 0.5s ease-out ${index * 0.1}s both`,
+              background: "linear-gradient(180deg, #FFA500 0%, #FF7A00 100%)",
+              border: "none",
+              fontSize: "1rem",
+              borderRadius: "8px",
+              boxShadow: "0 3px 8px rgba(0,0,0,0.2)",
             }}
-        >
-            <div
-                className="bg-white rounded-2xl overflow-hidden shadow-md transition-all duration-300 h-full flex flex-col"
-                style={{
-                    transform: isHovered ? 'translateY(-8px)' : 'translateY(0)',
-                    boxShadow: isHovered
-                        ? '0 12px 24px rgba(0,0,0,0.15)'
-                        : '0 4px 10px rgba(0,0,0,0.08)',
-                }}
-            >
-                {/* Image Container - Fixed Height */}
-                <div className="relative overflow-hidden" style={{ height: '200px' }}>
-                    <div
-                        className="w-full h-full bg-gradient-to-br from-teal-100 to-teal-50 flex items-center justify-center transition-transform duration-300"
-                        style={{
-                            transform: isHovered ? 'scale(1.1)' : 'scale(1)',
-                        }}
-                    >
-                        {/* Placeholder Icon/Text */}
-                        <div className="text-center">
-                            <div
-                                className="w-20 h-20 mx-auto mb-2 rounded-lg flex items-center justify-center text-white text-3xl font-bold"
-                                style={{ background: 'linear-gradient(135deg, #2D7A6E 0%, #1F5F54 100%)' }}
-                            >
-                                {item.name.charAt(0)}
-                            </div>
-                            <p className="text-teal-700 font-semibold text-sm px-2">
-                                {item.name.split(' ')[0]}
-                            </p>
-                        </div>
-                    </div>
-
-                    {/* Overlay on Hover */}
-                    <div
-                        className="absolute inset-0 bg-gradient-to-t from-teal-900/20 to-transparent opacity-0 transition-opacity duration-300"
-                        style={{ opacity: isHovered ? 1 : 0 }}
-                    />
-                </div>
-
-                {/* Title Bar - Fixed Height */}
-                <div
-                    className="text-center py-4 px-3 flex items-center justify-center"
-                    style={{
-                        backgroundColor: "rgb(119, 217, 207)",
-                        minHeight: '70px',
-                    }}
-                >
-                    <h3
-                        className="font-semibold text-sm md:text-base line-clamp-2"
-                        style={{ color: "#004d4d" }}
-                    >
-                        {item.name}
-                    </h3>
-                </div>
-            </div>
-
-            <style jsx>{`
-        @keyframes fadeInUp {
-          from {
-            opacity: 0;
-            transform: translateY(20px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-
-        .line-clamp-2 {
-          display: -webkit-box;
-          -webkit-line-clamp: 2;
-          -webkit-box-orient: vertical;
-          overflow: hidden;
-        }
-      `}</style>
+          >
+            VIEW ALL
+          </Link>
         </div>
-    );
+
+        {/* Carousel */}
+        <div className="position-relative">
+          <div className="overflow-hidden">
+            <div
+              className="d-flex transition-container"
+              style={{
+                transform: `translateX(-${savingCurrent * 100}%)`,
+                transition: 'transform 0.5s ease-in-out'
+              }}
+            >
+              {chunkedCategories.map((group, index) => (
+                <div
+                  key={index}
+                  className="d-flex flex-wrap justify-content-center w-100"
+                  style={{ minWidth: '100%' }}
+                >
+                  {group.map((item, idx) => (
+                    <div
+                      key={idx}
+                      className="col-6 col-sm-6 col-md-3 col-lg-3 p-2"
+                    >
+                      <Link
+                        to={`/completehealth?tab=${encodeURIComponent(item.name)}`}
+                        className="text-decoration-none"
+                      >
+                        <div
+                          className="card border-0 rounded-4 overflow-hidden shadow-sm h-100 position-relative money-saving-card"
+                          style={{
+                            borderRadius: "14px",
+                            transition: "transform 0.3s ease, box-shadow 0.3s ease",
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.transform = "translateY(-6px)";
+                            e.currentTarget.style.boxShadow = "0 8px 20px rgba(0,0,0,0.15)";
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.transform = "translateY(0)";
+                            e.currentTarget.style.boxShadow = "0 4px 10px rgba(0,0,0,0.05)";
+                          }}
+                        >
+                          <div className="position-relative overflow-hidden rounded-top-4">
+                            <img
+                              className="img-fluid w-100 money-saving-image"
+                              src={getImageUrl(item.imagePath)}
+                              alt={item.name}
+                              style={{
+                                height: "160px",
+                                objectFit: "cover",
+                                transition: "transform 0.3s ease",
+                                borderTopLeftRadius: "14px",
+                                borderTopRightRadius: "14px",
+                              }}
+                              onMouseEnter={(e) =>
+                                (e.currentTarget.style.transform = "scale(1.05)")
+                              }
+                              onMouseLeave={(e) =>
+                                (e.currentTarget.style.transform = "scale(1)")
+                              }
+                            />
+                          </div>
+                          <div
+                            className="text-center py-2 rounded-bottom-4"
+                            style={{
+                              backgroundColor: "rgb(119, 217, 207)",
+                              color: "#004d4d",
+                              fontWeight: "600",
+                              fontSize: "0.95rem",
+                            }}
+                          >
+                            {item.name}
+                          </div>
+                        </div>
+                      </Link>
+                    </div>
+                  ))}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Carousel Navigation Dots */}
+          <div className="d-flex justify-content-center align-items-center mt-4 w-100" style={{ minHeight: "60px" }}>
+            <div className="d-flex align-items-center mx-3">
+              {chunkedCategories.map((_, index) => (
+                <span
+                  key={index}
+                  className={`rounded-circle mx-1 ${index === savingCurrent ? 'bg-primary' : 'bg-secondary'}`}
+                  style={{
+                    width: "10px",
+                    height: "10px",
+                    opacity: index === savingCurrent ? 1 : 0.5,
+                    cursor: "pointer",
+                  }}
+                  onClick={() => setSavingCurrent(index)}
+                ></span>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Responsive Styles */}
+        <style>{`
+          .transition-container {
+            display: flex;
+          }
+          
+          .money-saving-card {
+            height: 100%;
+          }
+          
+          .money-saving-image {
+            height: 160px !important;
+            object-fit: cover;
+          }
+
+          /* Desktop - 4 cards per row */
+          @media (min-width: 992px) {
+            .col-lg-3 {
+              flex: 0 0 25%;
+              max-width: 25%;
+            }
+          }
+
+          /* Tablet - 2 cards per row */
+          @media (min-width: 768px) and (max-width: 991px) {
+            .col-md-3 {
+              flex: 0 0 50%;
+              max-width: 50%;
+            }
+            
+            .money-saving-image {
+              height: 140px !important;
+            }
+          }
+
+          /* Mobile - 2 cards per row */
+          @media (max-width: 767px) {
+            .col-6 {
+              flex: 0 0 50%;
+              max-width: 50%;
+            }
+            
+            .money-saving-image {
+              height: 130px !important;
+            }
+            
+            .card {
+              margin-bottom: 10px;
+            }
+          }
+          
+          /* Small Mobile */
+          @media (max-width: 576px) {
+            .money-saving-image {
+              height: 120px !important;
+            }
+            
+            .col-6 {
+              padding: 5px;
+            }
+          }
+          
+          /* Extra small devices */
+          @media (max-width: 400px) {
+            .money-saving-image {
+              height: 110px !important;
+            }
+          }
+        `}</style>
+      </div>
+    </section>
+  );
 };
 
 export default MoneySavingPackages;

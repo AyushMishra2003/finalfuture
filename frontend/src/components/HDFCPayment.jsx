@@ -1,170 +1,152 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import './HDFCPayment.css';
+import React, { useEffect, useState } from 'react';
+import { baseUrl } from '../utils/config';
 
 const HDFCPayment = ({ orderId, amount, onSuccess, onFailure }) => {
-    const [loading, setLoading] = useState(false);
-    const [config, setConfig] = useState(null);
-    const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
-    useEffect(() => {
-        fetchConfig();
-    }, []);
+  useEffect(() => {
+    // Load HDFC SDK script
+    const script = document.createElement('script');
+    script.src = 'https://smartgateway.hdfcuat.bank.in/checkout/v1/checkout.js';
+    script.async = true;
+    document.body.appendChild(script);
 
-    const fetchConfig = async () => {
-        try {
-            const response = await axios.get('/api/v1/payment/hdfc/config');
-            setConfig(response.data.data);
-        } catch (error) {
-            console.error('Error fetching HDFC config:', error);
-            setError('Failed to load payment configuration');
-        }
+    return () => {
+      document.body.removeChild(script);
     };
+  }, []);
 
-    const initiatePayment = async () => {
-        setLoading(true);
-        setError(null);
+  const initiatePayment = async () => {
+    setLoading(true);
+    setError('');
 
-        try {
-            const token = localStorage.getItem('token');
+    try {
+      const token = localStorage.getItem('userToken') || localStorage.getItem('token');
+      const user = JSON.parse(localStorage.getItem('user') || '{}');
 
-            // Get user details
-            const userResponse = await axios.get('/api/v1/auth/me', {
-                headers: { Authorization: `Bearer ${token}` }
-            });
-            const user = userResponse.data.data;
+      // Create HDFC order
+      const response = await fetch(`${baseUrl}/api/v1/payment/hdfc/create-order`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          orderId,
+          amount,
+          customerName: user.name,
+          customerEmail: user.email,
+          customerPhone: user.phone
+        })
+      });
 
-            // Create payment order
-            const orderResponse = await axios.post(
-                '/api/v1/payment/hdfc/create-order',
-                {
-                    orderId: orderId,
-                    amount: amount,
-                    customerName: user.name,
-                    customerEmail: user.email || '',
-                    customerPhone: user.phone
-                },
-                {
-                    headers: { Authorization: `Bearer ${token}` }
-                }
-            );
+      const data = await response.json();
 
-            const { paymentUrl, paymentData, clientId } = orderResponse.data.data;
+      if (!data.success) {
+        throw new Error(data.message || 'Failed to create payment order');
+      }
 
-            // Create and submit payment form
-            createPaymentForm(paymentUrl, paymentData, clientId);
-
-        } catch (error) {
-            console.error('Payment initiation error:', error);
-            setError(error.response?.data?.message || 'Failed to initiate payment');
+      // Initialize HDFC Checkout
+      const options = {
+        merchantId: data.data.paymentData.merchantId,
+        orderId: data.data.paymentData.orderId,
+        amount: data.data.paymentData.amount,
+        currency: data.data.paymentData.currency,
+        customerName: data.data.paymentData.customerName,
+        customerEmail: data.data.paymentData.customerEmail,
+        customerPhone: data.data.paymentData.customerPhone,
+        hash: data.data.paymentData.hash,
+        returnUrl: data.data.paymentData.returnUrl,
+        cancelUrl: data.data.paymentData.cancelUrl,
+        notifyUrl: data.data.paymentData.notifyUrl,
+        handler: function (response) {
+          handlePaymentSuccess(response);
+        },
+        modal: {
+          ondismiss: function () {
             setLoading(false);
-            if (onFailure) {
-                onFailure(error.response?.data?.message || 'Payment failed');
-            }
+            if (onFailure) onFailure('Payment cancelled by user');
+          }
         }
-    };
+      };
 
-    const createPaymentForm = (paymentUrl, paymentData, clientId) => {
-        // Create form element
-        const form = document.createElement('form');
-        form.method = 'POST';
-        form.action = paymentUrl;
-        form.style.display = 'none';
+      // Open HDFC payment modal
+      if (window.HDFCCheckout) {
+        const checkout = new window.HDFCCheckout(options);
+        checkout.open();
+      } else {
+        throw new Error('HDFC SDK not loaded');
+      }
 
-        // Add form fields
-        const fields = {
-            merchantId: paymentData.merchantId,
-            orderId: paymentData.orderId,
-            amount: paymentData.amount,
-            currency: paymentData.currency,
-            customerName: paymentData.customerName,
-            customerEmail: paymentData.customerEmail,
-            customerPhone: paymentData.customerPhone,
-            returnUrl: paymentData.returnUrl,
-            cancelUrl: paymentData.cancelUrl,
-            notifyUrl: paymentData.notifyUrl,
-            hash: paymentData.hash,
-            clientId: clientId
-        };
-
-        Object.keys(fields).forEach(key => {
-            const input = document.createElement('input');
-            input.type = 'hidden';
-            input.name = key;
-            input.value = fields[key];
-            form.appendChild(input);
-        });
-
-        // Append form to body and submit
-        document.body.appendChild(form);
-        form.submit();
-    };
-
-    if (!config) {
-        return (
-            <div className="hdfc-payment-container">
-                <div className="loading-spinner">Loading payment gateway...</div>
-            </div>
-        );
+    } catch (err) {
+      console.error('Payment error:', err);
+      setError(err.message);
+      setLoading(false);
+      if (onFailure) onFailure(err.message);
     }
+  };
 
-    return (
-        <div className="hdfc-payment-container">
-            {error && (
-                <div className="payment-error">
-                    <i className="fas fa-exclamation-circle"></i>
-                    <p>{error}</p>
-                </div>
-            )}
+  const handlePaymentSuccess = async (response) => {
+    try {
+      const token = localStorage.getItem('userToken') || localStorage.getItem('token');
 
-            <div className="payment-info">
-                <div className="payment-amount">
-                    <h3>Total Amount</h3>
-                    <p className="amount">₹{amount?.toLocaleString()}</p>
-                </div>
+      // Verify payment with backend
+      const verifyResponse = await fetch(`${baseUrl}/api/v1/payment/hdfc/callback`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(response)
+      });
 
-                <div className="payment-details">
-                    <div className="detail-item">
-                        <i className="fas fa-shield-alt"></i>
-                        <span>Secure Payment by HDFC Bank</span>
-                    </div>
-                    <div className="detail-item">
-                        <i className="fas fa-lock"></i>
-                        <span>256-bit SSL Encryption</span>
-                    </div>
-                    <div className="detail-item">
-                        <i className="fas fa-credit-card"></i>
-                        <span>All Cards, UPI, Net Banking</span>
-                    </div>
-                </div>
-            </div>
+      const verifyData = await verifyResponse.json();
 
-            <button
-                onClick={initiatePayment}
-                disabled={loading}
-                className="hdfc-pay-button"
-            >
-                {loading ? (
-                    <>
-                        <span className="spinner"></span>
-                        Processing...
-                    </>
-                ) : (
-                    <>
-                        <i className="fas fa-lock"></i>
-                        Pay ₹{amount?.toLocaleString()}
-                    </>
-                )}
-            </button>
+      if (verifyData.success) {
+        if (onSuccess) onSuccess(verifyData.data);
+      } else {
+        throw new Error(verifyData.message || 'Payment verification failed');
+      }
+    } catch (err) {
+      console.error('Verification error:', err);
+      if (onFailure) onFailure(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-            <div className="payment-footer">
-                <p>
-                    <i className="fas fa-info-circle"></i>
-                    You will be redirected to HDFC SmartGateway to complete the payment
-                </p>
-            </div>
+  return (
+    <div className="hdfc-payment">
+      <button
+        onClick={initiatePayment}
+        disabled={loading}
+        className="btn btn-success btn-lg w-100"
+        style={{
+          background: '#4CAF50',
+          border: 'none',
+          padding: '12px',
+          fontSize: '16px',
+          fontWeight: '600',
+          borderRadius: '8px'
+        }}
+      >
+        {loading ? (
+          <>
+            <span className="spinner-border spinner-border-sm me-2" />
+            Processing...
+          </>
+        ) : (
+          <>Pay ₹{amount}</>
+        )}
+      </button>
+      {error && (
+        <div className="alert alert-danger mt-3" role="alert">
+          {error}
         </div>
-    );
+      )}
+    </div>
+  );
 };
 
 export default HDFCPayment;
