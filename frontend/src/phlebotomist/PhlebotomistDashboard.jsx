@@ -2,7 +2,9 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import './PhlebotomistDashboard.css';
 
-const baseUrl = 'http://localhost:5000/api/v1';
+const baseUrl = 'http://147.93.27.120:3000/api/v1';
+
+
 
 export const PhlebotomistDashboard = () => {
   const [loading, setLoading] = useState(true);
