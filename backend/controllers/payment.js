@@ -174,7 +174,7 @@ const HDFC_CONFIG = {
     API_KEY: process.env.HDFC_API_KEY || 'A9949FA93754229AB0640140B902BC',
     MERCHANT_ID: process.env.HDFC_MERCHANT_ID || 'SG2238',
     PAYMENT_PAGE_CLIENT_ID: process.env.HDFC_CLIENT_ID || 'hdfcmaster',
-    BASE_URL: process.env.HDFC_BASE_URL || 'https://smartgatewayuat.hdfcbank.com',
+    BASE_URL: process.env.HDFC_BASE_URL || 'https://smartgateway.hdfcuat.bank.in',
     RESPONSE_KEY: process.env.HDFC_RESPONSE_KEY || '776522EDCCB4734AAA9C0975FB2724',
     ENABLE_LOGGING: process.env.HDFC_ENABLE_LOGGING === 'true' || false
 };
@@ -197,72 +197,65 @@ const verifyResponseHash = (data) => {
 };
 
 /**
- * @desc    Create HDFC Payment Order
+ * @desc    Create HDFC Payment Order using Basic Auth API
  * @route   POST /api/v1/payment/hdfc/create-order
  * @access  Private
  */
 exports.createHDFCOrder = asyncHandler(async (req, res, next) => {
     const { orderId, amount, customerName, customerEmail, customerPhone } = req.body;
 
-    // Validate input
     if (!orderId || !amount) {
-        return res.status(400).json({
-            success: false,
-            message: 'Order ID and amount are required'
-        });
+        return res.status(400).json({ success: false, message: 'Order ID and amount are required' });
     }
 
-    // Get order from database
     const order = await Order.findById(orderId);
     if (!order) {
-        return res.status(404).json({
+        return res.status(404).json({ success: false, message: 'Order not found' });
+    }
+
+    try {
+        const apiKey = HDFC_CONFIG.API_KEY;
+        const authHeader = Buffer.from(`${apiKey}:`).toString('base64');
+
+        const sessionData = {
+            order_id: order._id.toString(),
+            amount: amount.toString(),
+            currency: 'INR',
+            customer_id: customerPhone || order.user.toString(),
+            customer_email: customerEmail || '',
+            customer_phone: customerPhone || '',
+            return_url: `http://localhost:3000/payment/callback?order_id=${order._id}`,
+            payment_page_client_id: HDFC_CONFIG.PAYMENT_PAGE_CLIENT_ID
+        };
+
+        const response = await axios.post(
+            `${HDFC_CONFIG.BASE_URL}/session`,
+            sessionData,
+            {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Basic ${authHeader}`,
+                    'x-merchantid': HDFC_CONFIG.MERCHANT_ID
+                }
+            }
+        );
+
+        res.status(200).json({
+            success: true,
+            data: {
+                paymentUrl: response.data.payment_links?.web || response.data.payment_links?.mobile,
+                orderId: order._id,
+                sessionData: response.data
+            }
+        });
+
+    } catch (error) {
+        res.status(500).json({
             success: false,
-            message: 'Order not found'
+            message: 'Failed to create HDFC payment session',
+            error: error.response?.data || error.message
         });
     }
-
-    // Verify order belongs to user
-    if (order.user.toString() !== req.user.id && req.user.role !== 'admin') {
-        return res.status(403).json({
-            success: false,
-            message: 'Not authorized to access this order'
-        });
-    }
-
-    // Prepare payment data
-    const paymentData = {
-        merchantId: HDFC_CONFIG.MERCHANT_ID,
-        orderId: order._id.toString(),
-        amount: amount.toString(),
-        currency: 'INR',
-        customerName: customerName || req.user.name || 'Customer',
-        customerEmail: customerEmail || req.user.email || '',
-        customerPhone: customerPhone || req.user.phone || '',
-        returnUrl: `${process.env.FRONTEND_URL}/payment/callback`,
-        cancelUrl: `${process.env.FRONTEND_URL}/payment/cancel`,
-        notifyUrl: `${process.env.BACKEND_URL}/api/v1/payment/hdfc/webhook`
-    };
-
-    // Generate hash
-    paymentData.hash = generatePaymentHash(paymentData);
-
-    // Log if enabled
-    if (HDFC_CONFIG.ENABLE_LOGGING) {
-        console.log('HDFC Payment Order Created:', {
-            orderId: paymentData.orderId,
-            amount: paymentData.amount,
-            merchantId: paymentData.merchantId
-        });
-    }
-
-    res.status(200).json({
-        success: true,
-        data: {
-            paymentUrl: `${HDFC_CONFIG.BASE_URL}/payment`,
-            paymentData: paymentData,
-            clientId: HDFC_CONFIG.PAYMENT_PAGE_CLIENT_ID
-        }
-    });
 });
 
 /**
@@ -271,99 +264,24 @@ exports.createHDFCOrder = asyncHandler(async (req, res, next) => {
  * @access  Public
  */
 exports.handleHDFCCallback = asyncHandler(async (req, res, next) => {
-    const {
-        orderId,
-        amount,
-        status,
-        transactionId,
-        hash,
-        paymentMode,
-        bankRefNo,
-        responseMessage
-    } = req.body;
+    const { order_id, orderId, status, txn_uuid, transactionId } = req.body;
+    const finalOrderId = order_id || orderId;
+    const finalTxnId = txn_uuid || transactionId;
 
-    // Log callback if enabled
-    if (HDFC_CONFIG.ENABLE_LOGGING) {
-        console.log('HDFC Payment Callback Received:', {
-            orderId,
-            status,
-            transactionId
-        });
-    }
-
-    // Verify hash
-    if (!verifyResponseHash(req.body)) {
-        return res.status(400).json({
-            success: false,
-            message: 'Invalid payment response hash'
-        });
-    }
-
-    // Find order
-    const order = await Order.findById(orderId);
-    if (!order) {
-        return res.status(404).json({
-            success: false,
-            message: 'Order not found'
-        });
-    }
-
-    // Update order based on payment status
-    if (status === 'SUCCESS' || status === 'success') {
-        order.isPaid = true;
-        order.paidAt = Date.now();
-        order.paymentMethod = 'HDFC SmartGateway';
-        order.paymentResult = {
-            id: transactionId,
-            status: status,
-            update_time: new Date().toISOString(),
-            payment_mode: paymentMode,
-            bank_ref_no: bankRefNo,
-            response_message: responseMessage
-        };
-        order.orderStatus = 'confirmed';
-
-        await order.save();
-
-        // Send order confirmation email
-        try {
-            const { sendOrderConfirmation } = require('../utils/sendEmail');
-            const user = await order.populate('user');
-            await sendOrderConfirmation(order, user.user);
-        } catch (emailError) {
-            console.error('Email sending failed:', emailError.message);
+    if (finalOrderId) {
+        const order = await Order.findById(finalOrderId);
+        if (order && (status === 'CHARGED' || status === 'success')) {
+            order.isPaid = true;
+            order.paidAt = Date.now();
+            order.paymentMethod = 'HDFC SmartGateway';
+            order.paymentResult = { id: finalTxnId, status: status, update_time: new Date().toISOString() };
+            order.orderStatus = 'confirmed';
+            await order.save();
         }
-
-        res.status(200).json({
-            success: true,
-            message: 'Payment successful',
-            data: {
-                orderId: order._id,
-                transactionId: transactionId,
-                amount: order.totalPrice,
-                status: 'success'
-            }
-        });
-    } else {
-        // Payment failed
-        order.paymentResult = {
-            id: transactionId || 'failed',
-            status: status,
-            update_time: new Date().toISOString(),
-            response_message: responseMessage || 'Payment failed'
-        };
-
-        await order.save();
-
-        res.status(400).json({
-            success: false,
-            message: responseMessage || 'Payment failed',
-            data: {
-                orderId: order._id,
-                status: status
-            }
-        });
     }
+
+    const redirectUrl = `${process.env.FRONTEND_URL}/order-confirmation/${finalOrderId || 'unknown'}`;
+    res.send(`<!DOCTYPE html><html><head><title>Payment Successful</title><style>body{font-family:Arial;text-align:center;padding:50px}.spinner{border:4px solid #f3f3f3;border-top:4px solid #4CAF50;border-radius:50%;width:40px;height:40px;animation:spin 1s linear infinite;margin:20px auto}@keyframes spin{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}</style></head><body><h2>✅ Payment Successful!</h2><div class="spinner"></div><p>Redirecting...</p><script>setTimeout(function(){window.location.href='${redirectUrl}'},1000)</script></body></html>`);
 });
 
 /**

@@ -171,31 +171,26 @@ exports.getOrderDetails = asyncHandler(async (req, res) => {
 // @route   PUT /api/v1/phlebotomist/orders/:orderId/status
 // @access  Private/Collector
 exports.updateOrderStatus = asyncHandler(async (req, res) => {
-  const { status } = req.body;
+  const { status, sampleCollected, paymentCollected } = req.body;
 
   const order = await Order.findById(req.params.orderId);
 
   if (!order) {
-    return res.status(404).json({
-      success: false,
-      error: 'Order not found'
-    });
+    return res.status(404).json({ success: false, error: 'Order not found' });
   }
 
-  // Verify authorization
   const collectorFolder = await CollectorFolder.findOne({
     phlebotomistId: req.user.id,
     _id: order.bookingDetails?.collectorFolderId
   });
 
   if (!collectorFolder) {
-    return res.status(403).json({
-      success: false,
-      error: 'Not authorized to update this order'
-    });
+    return res.status(403).json({ success: false, error: 'Not authorized' });
   }
 
-  order.orderStatus = status;
+  if (status) order.orderStatus = status;
+  if (sampleCollected !== undefined) order.sampleCollected = sampleCollected;
+  if (paymentCollected !== undefined) order.paymentCollected = paymentCollected;
 
   if (status === 'delivered') {
     order.isDelivered = true;
@@ -204,11 +199,48 @@ exports.updateOrderStatus = asyncHandler(async (req, res) => {
 
   await order.save();
 
-  res.status(200).json({
-    success: true,
-    message: 'Order status updated successfully',
-    data: order
-  });
+  res.status(200).json({ success: true, message: 'Order updated', data: order });
 });
 
-module.exports = exports;
+// @desc    Upload sample photo
+// @route   POST /api/v1/phlebotomist/orders/:orderId/sample-photo
+// @access  Private/Collector
+exports.uploadSamplePhoto = asyncHandler(async (req, res) => {
+  const order = await Order.findById(req.params.orderId);
+  if (!order) return res.status(404).json({ success: false, error: 'Order not found' });
+
+  if (!req.file) return res.status(400).json({ success: false, error: 'No photo uploaded' });
+
+  const photoUrl = `/uploads/samples/${req.file.filename}`;
+  
+  if (!order.samplePhotos) order.samplePhotos = [];
+  order.samplePhotos.push({
+    url: photoUrl,
+    uploadedAt: new Date(),
+    uploadedBy: req.user.id
+  });
+
+  await order.save();
+
+  res.status(200).json({ success: true, message: 'Photo uploaded', data: { photoUrl } });
+});
+
+// @desc    Collect payment
+// @route   POST /api/v1/phlebotomist/orders/:orderId/collect-payment
+// @access  Private/Collector
+exports.collectPayment = asyncHandler(async (req, res) => {
+  const { amount, method } = req.body;
+  const order = await Order.findById(req.params.orderId);
+  
+  if (!order) return res.status(404).json({ success: false, error: 'Order not found' });
+
+  order.paymentCollected = true;
+  order.paymentMethod = method || 'Cash';
+  order.isPaid = true;
+  order.paidAt = new Date();
+
+  await order.save();
+
+  res.status(200).json({ success: true, message: 'Payment collected', data: order });
+});
+

@@ -1,351 +1,507 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
-import {
-    MapPin, Phone, Mail, Clock, Send,
-    MessageCircle, Calendar, CheckCircle,
-    AlertCircle, ArrowRight
-} from "lucide-react";
+import { MapPin, Phone, Mail, Clock, Send, CheckCircle, MessageCircle, Calendar } from "lucide-react";
 
 const Contact = () => {
-    const [formState, setFormState] = useState({
-        name: "",
-        email: "",
-        phone: "",
-        department: "",
-        message: ""
-    });
-    const [focusedField, setFocusedField] = useState(null);
-    const [isSubmitting, setIsSubmitting] = useState(false);
-    const [isSuccess, setIsSuccess] = useState(false);
+  const [form, setForm] = useState({ name: "", email: "", phone: "", service: "", message: "" });
+  const [status, setStatus] = useState("idle");
 
-    const handleChange = (e) => {
-        setFormState({ ...formState, [e.target.name]: e.target.value });
-    };
+  const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        setIsSubmitting(true);
-        // Simulate API call
-        setTimeout(() => {
-            setIsSubmitting(false);
-            setIsSuccess(true);
-            setTimeout(() => setIsSuccess(false), 3000);
-            setFormState({ name: "", email: "", phone: "", department: "", message: "" });
-        }, 1500);
-    };
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setStatus("loading");
+    await new Promise(r => setTimeout(r, 1500));
+    setStatus("success");
+    setTimeout(() => {
+      setStatus("idle");
+      setForm({ name: "", email: "", phone: "", service: "", message: "" });
+    }, 3000);
+  };
 
-    const fadeInUp = {
-        hidden: { opacity: 0, y: 20 },
-        visible: { opacity: 1, y: 0, transition: { duration: 0.6 } }
-    };
+  return (
+    <>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap');
 
-    return (
-        <div className="min-h-screen bg-white font-sans overflow-x-hidden">
-            {/* 1. Hero Section */}
-            <section className="relative w-full h-[60vh] flex items-center justify-center bg-white overflow-hidden">
-                {/* Animated Gradient Background */}
-                <div className="absolute inset-0 bg-gradient-to-br from-teal-50 via-white to-blue-50 opacity-70"></div>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
-                {/* Abstract Medical Shapes (Animated) */}
-                <motion.div
-                    animate={{ rotate: 360 }}
-                    transition={{ duration: 50, repeat: Infinity, ease: "linear" }}
-                    className="absolute top-[-20%] left-[-10%] w-[500px] h-[500px] rounded-full border border-teal-100 opacity-30 blur-3xl"
-                />
-                <motion.div
-                    animate={{ rotate: -360 }}
-                    transition={{ duration: 60, repeat: Infinity, ease: "linear" }}
-                    className="absolute bottom-[-10%] right-[-5%] w-[600px] h-[600px] rounded-full border border-blue-100 opacity-30 blur-3xl"
-                />
+        body {
+          font-family: 'Plus Jakarta Sans', sans-serif;
+          background: #f9fafb;
+          color: #111827;
+          -webkit-font-smoothing: antialiased;
+        }
 
-                {/* Content */}
-                <div className="relative z-10 text-center px-4">
-                    <motion.div
-                        initial={{ opacity: 0, scale: 0.9 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ duration: 0.8 }}
-                    >
-                        <span className="inline-block px-4 py-1 mb-4 text-xs font-bold tracking-widest text-teal-600 uppercase bg-teal-50 rounded-full shadow-sm border border-teal-100">
-                            Future of Diagnostics
-                        </span>
-                    </motion.div>
+        /* ── TOP BAR ── */
+        .topbar {
+          background: #fff;
+          border-bottom: 1px solid #e5e7eb;
+          padding: 0 48px;
+          height: 64px;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+        }
+        .logo {
+          font-size: 16px;
+          font-weight: 700;
+          color: #111827;
+          letter-spacing: -.3px;
+        }
+        .logo span { color: #2e9d91; }
+        .topbar-tag {
+          font-size: 12px;
+          font-weight: 500;
+          color: #6b7280;
+          display: flex;
+          align-items: center;
+          gap: 6px;
+        }
+        .topbar-dot {
+          width: 7px; height: 7px;
+          background: #22c55e;
+          border-radius: 50%;
+        }
 
-                    <motion.h1
-                        initial="hidden"
-                        animate="visible"
-                        variants={fadeInUp}
-                        className="text-5xl md:text-7xl font-extrabold text-slate-800 tracking-tight mb-4"
-                    >
-                        Connect With <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-500 to-blue-600">Future Lab</span>
-                    </motion.h1>
+        /* ── PAGE WRAPPER ── */
+        .page {
+          max-width: 1160px;
+          margin: 0 auto;
+          padding: 64px 24px 80px;
+        }
 
-                    <motion.p
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ delay: 0.3, duration: 0.8 }}
-                        className="text-lg md:text-xl text-slate-500 max-w-2xl mx-auto font-light"
-                    >
-                        Advanced Diagnostics. Human Care. We’re here to guide your health journey.
-                    </motion.p>
+        /* ── PAGE HEADER ── */
+        .page-header {
+          margin-bottom: 56px;
+        }
+        .page-header-label {
+          font-size: 12px;
+          font-weight: 600;
+          color: #2e9d91;
+          letter-spacing: .1em;
+          text-transform: uppercase;
+          margin-bottom: 12px;
+        }
+        .page-header h1 {
+          font-size: clamp(28px, 4vw, 42px);
+          font-weight: 700;
+          color: #111827;
+          letter-spacing: -.5px;
+          line-height: 1.15;
+          margin-bottom: 12px;
+        }
+        .page-header p {
+          font-size: 15px;
+          color: #6b7280;
+          font-weight: 400;
+          line-height: 1.7;
+          max-width: 480px;
+        }
+
+        /* ── MAIN GRID ── */
+        .main-grid {
+          display: grid;
+          grid-template-columns: 1fr 380px;
+          gap: 32px;
+          align-items: start;
+        }
+        @media(max-width: 900px) {
+          .main-grid { grid-template-columns: 1fr; }
+        }
+
+        /* ── FORM CARD ── */
+        .form-card {
+          background: #fff;
+          border-radius: 16px;
+          border: 1px solid #e5e7eb;
+          padding: 40px;
+        }
+        .form-card h2 {
+          font-size: 18px;
+          font-weight: 700;
+          color: #111827;
+          margin-bottom: 6px;
+        }
+        .form-card p {
+          font-size: 13.5px;
+          color: #9ca3af;
+          margin-bottom: 32px;
+          font-weight: 400;
+        }
+
+        /* Fields */
+        .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+        .field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 20px; }
+        .field label {
+          font-size: 13px;
+          font-weight: 500;
+          color: #374151;
+        }
+        .field input,
+        .field select,
+        .field textarea {
+          width: 100%;
+          background: #f9fafb;
+          border: 1px solid #e5e7eb;
+          border-radius: 10px;
+          padding: 11px 14px;
+          font-family: 'Plus Jakarta Sans', sans-serif;
+          font-size: 14px;
+          font-weight: 400;
+          color: #111827;
+          outline: none;
+          transition: border-color .2s, box-shadow .2s;
+          appearance: none;
+        }
+        .field input:focus,
+        .field select:focus,
+        .field textarea:focus {
+          border-color: #2e9d91;
+          box-shadow: 0 0 0 3px rgba(46,157,145,.1);
+          background: #fff;
+        }
+        .field textarea { resize: none; }
+        .field input::placeholder,
+        .field textarea::placeholder { color: #d1d5db; }
+
+        /* Submit */
+        .btn-submit {
+          width: 100%;
+          padding: 13px;
+          border-radius: 10px;
+          border: none;
+          background: #2e9d91;
+          color: #fff;
+          font-family: 'Plus Jakarta Sans', sans-serif;
+          font-size: 14px;
+          font-weight: 600;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+          transition: background .2s, transform .1s;
+          margin-top: 8px;
+        }
+        .btn-submit:hover { background: #1d7069; }
+        .btn-submit:active { transform: scale(.99); }
+        .btn-submit.success { background: #16a34a; }
+        .btn-submit.loading { background: #4fb3a9; cursor: not-allowed; }
+        .spinner {
+          width: 16px; height: 16px;
+          border: 2px solid rgba(255,255,255,.3);
+          border-top-color: #fff;
+          border-radius: 50%;
+          animation: spin .7s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* ── RIGHT SIDEBAR ── */
+        .sidebar { display: flex; flex-direction: column; gap: 16px; }
+
+        /* Info Card */
+        .info-card {
+          background: #fff;
+          border-radius: 16px;
+          border: 1px solid #e5e7eb;
+          padding: 28px;
+        }
+        .info-card h3 {
+          font-size: 14px;
+          font-weight: 700;
+          color: #111827;
+          margin-bottom: 20px;
+        }
+        .info-row {
+          display: flex;
+          align-items: flex-start;
+          gap: 12px;
+          padding: 12px 0;
+          border-bottom: 1px solid #f3f4f6;
+        }
+        .info-row:last-child { border-bottom: none; padding-bottom: 0; }
+        .info-icon {
+          width: 36px; height: 36px;
+          min-width: 36px;
+          background: #f0faf9;
+          border-radius: 8px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: #2e9d91;
+        }
+        .info-label {
+          font-size: 11px;
+          font-weight: 600;
+          color: #9ca3af;
+          letter-spacing: .06em;
+          text-transform: uppercase;
+          margin-bottom: 3px;
+        }
+        .info-value {
+          font-size: 13.5px;
+          font-weight: 500;
+          color: #111827;
+          line-height: 1.5;
+        }
+
+        /* Hours card */
+        .hours-card {
+          background: #0d2624;
+          border-radius: 16px;
+          padding: 24px 28px;
+          display: flex;
+          align-items: center;
+          gap: 14px;
+        }
+        .hours-icon {
+          width: 40px; height: 40px; min-width: 40px;
+          background: rgba(46,157,145,.2);
+          border-radius: 10px;
+          display: flex; align-items: center; justify-content: center;
+          color: #2e9d91;
+        }
+        .hours-text { font-size: 13px; font-weight: 400; color: rgba(255,255,255,.55); line-height: 1.5; }
+        .hours-text strong { display: block; color: #fff; font-size: 14px; font-weight: 600; margin-bottom: 2px; }
+
+        /* Quick actions */
+        .quick-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .qa-btn {
+          background: #fff;
+          border: 1px solid #e5e7eb;
+          border-radius: 12px;
+          padding: 14px 12px;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 7px;
+          cursor: pointer;
+          transition: border-color .2s, box-shadow .2s, transform .15s;
+          text-decoration: none;
+        }
+        .qa-btn:hover {
+          border-color: #2e9d91;
+          box-shadow: 0 4px 16px rgba(46,157,145,.1);
+          transform: translateY(-1px);
+        }
+        .qa-icon {
+          width: 38px; height: 38px;
+          border-radius: 10px;
+          display: flex; align-items: center; justify-content: center;
+          font-size: 18px;
+        }
+        .qa-label {
+          font-size: 12px;
+          font-weight: 600;
+          color: #374151;
+          text-align: center;
+        }
+        .qa-sub {
+          font-size: 10.5px;
+          color: #9ca3af;
+          font-weight: 400;
+          text-align: center;
+        }
+
+        /* ── MAP ── */
+        .map-section {
+          margin-top: 32px;
+          border-radius: 16px;
+          overflow: hidden;
+          border: 1px solid #e5e7eb;
+          position: relative;
+          height: 300px;
+        }
+        .map-section iframe {
+          width: 100%; height: 100%; border: none;
+          filter: saturate(.85);
+        }
+        .map-pill {
+          position: absolute;
+          bottom: 16px; left: 16px;
+          background: #fff;
+          border-radius: 10px;
+          padding: 10px 14px;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          box-shadow: 0 4px 16px rgba(0,0,0,.1);
+          border: 1px solid #e5e7eb;
+        }
+        .map-pill-dot { width: 8px; height: 8px; background: #2e9d91; border-radius: 50%; flex-shrink: 0; }
+        .map-pill span { font-size: 12.5px; font-weight: 600; color: #111827; }
+        .map-directions {
+          position: absolute;
+          bottom: 16px; right: 16px;
+          background: #2e9d91;
+          color: #fff;
+          font-size: 12px;
+          font-weight: 600;
+          padding: 10px 16px;
+          border-radius: 10px;
+          text-decoration: none;
+          transition: background .2s;
+        }
+        .map-directions:hover { background: #1d7069; }
+      `}</style>
+
+      {/* Top Bar */}
+      <div className="topbar">
+        <div className="logo">Future<span>Lab</span> Diagnostics</div>
+        <div className="topbar-tag">
+          <div className="topbar-dot" />
+          Open Today · 9 AM – 10 PM
+        </div>
+      </div>
+
+      <div className="page">
+
+        {/* Header */}
+        <motion.div
+          className="page-header"
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: .5 }}
+        >
+          <div className="page-header-label">Contact Us</div>
+          <h1>How can we<br />help you today?</h1>
+          <p>Our patient care team typically responds within 2 hours. Fill in the form and we'll get back to you shortly.</p>
+        </motion.div>
+
+        {/* Main Grid */}
+        <motion.div
+          className="main-grid"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: .5, delay: .1 }}
+        >
+          {/* Form */}
+          <div className="form-card">
+            <h2>Send a Message</h2>
+            <p>We'll reply to your email within 2 business hours.</p>
+
+            <form onSubmit={handleSubmit}>
+              <div className="field-row">
+                <div className="field">
+                  <label>Full Name</label>
+                  <input type="text" name="name" placeholder="John Doe" value={form.name} onChange={handleChange} required />
                 </div>
-
-                {/* Pulse Line */}
-                <div className="absolute bottom-0 left-0 w-full h-24 overflow-hidden opacity-20">
-                    <svg viewBox="0 0 1440 320" className="w-full h-full">
-                        <path fill="#0d9488" fillOpacity="1" d="M0,160L48,170.7C96,181,192,203,288,197.3C384,192,480,160,576,149.3C672,139,768,149,864,170.7C960,192,1056,224,1152,213.3C1248,203,1344,149,1392,122.7L1440,96L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path>
-                    </svg>
+                <div className="field">
+                  <label>Email Address</label>
+                  <input type="email" name="email" placeholder="you@example.com" value={form.email} onChange={handleChange} required />
                 </div>
-            </section>
+              </div>
 
-            {/* 2. Glass Contact Card Section */}
-            <section className="relative z-20 -mt-20 px-4 pb-20 container mx-auto">
-                <div className="bg-white/80 backdrop-blur-xl border border-white/50 rounded-3xl shadow-2xl overflow-hidden grid grid-cols-1 lg:grid-cols-12 gap-0 relative">
-
-                    {/* Left: Contact Form */}
-                    <div className="lg:col-span-7 p-8 md:p-12 lg:p-16 relative">
-                        <h2 className="text-3xl font-bold text-slate-800 mb-2">Send us a Message</h2>
-                        <p className="text-slate-500 mb-8">We usually respond within 2 hours.</p>
-
-                        <form onSubmit={handleSubmit} className="space-y-6">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                {/* Name */}
-                                <div className="relative group">
-                                    <input
-                                        type="text"
-                                        name="name"
-                                        required
-                                        className="peer w-full bg-slate-50 border-b-2 border-slate-200 focus:border-teal-500 outline-none py-3 px-2 transition-all placeholder-transparent"
-                                        placeholder="Full Name"
-                                        value={formState.name}
-                                        onChange={handleChange}
-                                        onFocus={() => setFocusedField('name')}
-                                        onBlur={() => setFocusedField(null)}
-                                    />
-                                    <label className="absolute left-2 -top-3.5 text-xs text-teal-600 transition-all peer-placeholder-shown:text-base peer-placeholder-shown:text-slate-400 peer-placeholder-shown:top-3 peer-focus:-top-3.5 peer-focus:text-xs peer-focus:text-teal-600 pointer-events-none">
-                                        Full Name
-                                    </label>
-                                    {focusedField === 'name' && <motion.div layoutId="underline" className="absolute bottom-0 left-0 h-[2px] w-full bg-teal-500" />}
-                                </div>
-
-                                {/* Email */}
-                                <div className="relative group">
-                                    <input
-                                        type="email"
-                                        name="email"
-                                        required
-                                        className="peer w-full bg-slate-50 border-b-2 border-slate-200 focus:border-teal-500 outline-none py-3 px-2 transition-all placeholder-transparent"
-                                        placeholder="Email Address"
-                                        value={formState.email}
-                                        onChange={handleChange}
-                                        onFocus={() => setFocusedField('email')}
-                                        onBlur={() => setFocusedField(null)}
-                                    />
-                                    <label className="absolute left-2 -top-3.5 text-xs text-teal-600 transition-all peer-placeholder-shown:text-base peer-placeholder-shown:text-slate-400 peer-placeholder-shown:top-3 peer-focus:-top-3.5 peer-focus:text-xs peer-focus:text-teal-600 pointer-events-none">
-                                        Email Address
-                                    </label>
-                                </div>
-                            </div>
-
-                            {/* Phone */}
-                            <div className="relative group">
-                                <input
-                                    type="tel"
-                                    name="phone"
-                                    required
-                                    className="peer w-full bg-slate-50 border-b-2 border-slate-200 focus:border-teal-500 outline-none py-3 px-2 transition-all placeholder-transparent"
-                                    placeholder="Phone Number"
-                                    value={formState.phone}
-                                    onChange={handleChange}
-                                    onFocus={() => setFocusedField('phone')}
-                                    onBlur={() => setFocusedField(null)}
-                                />
-                                <label className="absolute left-2 -top-3.5 text-xs text-teal-600 transition-all peer-placeholder-shown:text-base peer-placeholder-shown:text-slate-400 peer-placeholder-shown:top-3 peer-focus:-top-3.5 peer-focus:text-xs peer-focus:text-teal-600 pointer-events-none">
-                                    Phone Number
-                                </label>
-                            </div>
-
-                            {/* Department Select */}
-                            <div className="relative group">
-                                <select
-                                    name="department"
-                                    className="peer w-full bg-slate-50 border-b-2 border-slate-200 focus:border-teal-500 outline-none py-3 px-2 transition-all text-slate-700 h-12"
-                                    value={formState.department}
-                                    onChange={handleChange}
-                                    onFocus={() => setFocusedField('department')}
-                                    onBlur={() => setFocusedField(null)}
-                                >
-                                    <option value="" disabled selected hidden></option>
-                                    <option value="booking">Test Booking</option>
-                                    <option value="collection">Home Collection</option>
-                                    <option value="corporate">Corporate Inquiry</option>
-                                    <option value="support">Customer Support</option>
-                                </select>
-                                <label className={`absolute left-2 transition-all pointer-events-none ${formState.department
-                                        ? "-top-3.5 text-xs text-teal-600"
-                                        : "top-3 text-base text-slate-400 peer-focus:-top-3.5 peer-focus:text-xs peer-focus:text-teal-600"
-                                    }`}>
-                                    Select Department
-                                </label>
-                            </div>
-
-                            {/* Message */}
-                            <div className="relative group">
-                                <textarea
-                                    name="message"
-                                    required
-                                    rows="4"
-                                    className="peer w-full bg-slate-50 border-b-2 border-slate-200 focus:border-teal-500 outline-none py-3 px-2 transition-all placeholder-transparent resize-none"
-                                    placeholder="Your Message"
-                                    value={formState.message}
-                                    onChange={handleChange}
-                                    onFocus={() => setFocusedField('message')}
-                                    onBlur={() => setFocusedField(null)}
-                                ></textarea>
-                                <label className="absolute left-2 -top-3.5 text-xs text-teal-600 transition-all peer-placeholder-shown:text-base peer-placeholder-shown:text-slate-400 peer-placeholder-shown:top-3 peer-focus:-top-3.5 peer-focus:text-xs peer-focus:text-teal-600 pointer-events-none">
-                                    Your Message
-                                </label>
-                            </div>
-
-                            {/* Submit Button */}
-                            <motion.button
-                                whileHover={{ scale: 1.02 }}
-                                whileTap={{ scale: 0.98 }}
-                                disabled={isSubmitting}
-                                className={`w-full py-4 rounded-xl text-white font-bold text-lg shadow-lg shadow-teal-500/30 flex items-center justify-center gap-2 transition-all ${isSuccess ? "bg-green-500" : "bg-gradient-to-r from-teal-500 to-blue-600 hover:shadow-teal-500/50"
-                                    }`}
-                            >
-                                {isSubmitting ? (
-                                    <motion.div
-                                        animate={{ rotate: 360 }}
-                                        transition={{ repeat: Infinity, duration: 1 }}
-                                        className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full"
-                                    />
-                                ) : isSuccess ? (
-                                    <>Sent Successfully <CheckCircle size={20} /></>
-                                ) : (
-                                    <>Send Secure Message <Send size={20} /></>
-                                )}
-                            </motion.button>
-                        </form>
-                    </div>
-
-                    {/* Right: Info Panel */}
-                    <div className="lg:col-span-5 bg-gradient-to-br from-slate-900 to-slate-800 p-8 md:p-12 text-white flex flex-col justify-between relative overflow-hidden">
-                        {/* Decor */}
-                        <div className="absolute top-0 right-0 w-64 h-64 bg-teal-500/10 rounded-full blur-3xl -mr-16 -mt-16"></div>
-
-                        <div>
-                            <h3 className="text-2xl font-bold mb-8">Contact Information</h3>
-
-                            <div className="space-y-6">
-                                {[
-                                    { icon: MapPin, title: "Headquarters", content: "Ground Floor, No:38, Sumangali Sevashram Road, near City Pearl Super Market, Chola Nagar, Cholanayakanahalli, Hebbal, Bengaluru, Karnataka 560024", delay: 0.1 },
-                                    { icon: Phone, title: "Emergency Support", content: "+91 81234 59263", delay: 0.2 },
-                                    { icon: Mail, title: "General Inquiry", content: "[EMAIL_ADDRESS]", delay: 0.3 },
-                                    { icon: Clock, title: "Working Hours", content: "Mon - Sat: 09:00 AM - 10:00 PM", delay: 0.4 },
-                                ].map((item, idx) => (
-                                    <motion.div
-                                        key={idx}
-                                        initial={{ opacity: 0, x: 20 }}
-                                        animate={{ opacity: 1, x: 0 }}
-                                        transition={{ delay: 0.2 + item.delay }}
-                                        className="flex items-start gap-4 group p-4 rounded-xl hover:bg-white/5 transition-all cursor-default"
-                                    >
-                                        <div className="p-3 bg-white/10 rounded-lg group-hover:bg-teal-500/20 group-hover:text-teal-400 transition-colors">
-                                            <item.icon size={24} />
-                                        </div>
-                                        <div>
-                                            <h4 className="text-sm text-slate-400 font-medium mb-1">{item.title}</h4>
-                                            <p className="text-lg font-semibold">{item.content}</p>
-                                        </div>
-                                    </motion.div>
-                                ))}
-                            </div>
-                        </div>
-
-                        <div className="mt-12 p-6 bg-white/5 rounded-2xl border border-white/10 backdrop-blur-sm">
-                            <h4 className="flex items-center gap-2 font-bold text-teal-400 mb-2">
-                                <AlertCircle size={18} /> Note
-                            </h4>
-                            <p className="text-sm text-slate-300 leading-relaxed">
-                                For urgent medical reports, please use our <span className="text-teal-400 underline cursor-pointer">Start Reporting</span> portal or reach out via WhatsApp for instant support.
-                            </p>
-                        </div>
-                    </div>
+              <div className="field-row">
+                <div className="field">
+                  <label>Phone Number</label>
+                  <input type="tel" name="phone" placeholder="+91 98765 43210" value={form.phone} onChange={handleChange} required />
                 </div>
-            </section>
-
-            {/* 3. Map Section */}
-            <section className="w-full h-[400px] bg-slate-100 relative grayscale hover:grayscale-0 transition-all duration-700">
-   <iframe
-            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d4118.625423745121!2d77.59385045912636!3d13.036324913658728!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3bae17007203752d%3A0xddf2692240187855!2sFUTURE%20LABS%20DIAGNOSTICS%20%26%20RESEARCH%20CENTRE!5e0!3m2!1sen!2sin!4v1768757129689!5m2!1sen!2sin"
-            className="w-100 h-[400px] map-iframe"
-            allowFullScreen
-            loading="lazy"
-            referrerPolicy="no-referrer-when-downgrade"
-          ></iframe>
-                {/* Floating Location Card */}
-                <div className="absolute bottom-6 left-6 md:bottom-10 md:left-10 bg-white p-6 rounded-xl shadow-2xl max-w-sm">
-                    <h4 className="font-bold text-slate-800 flex items-center gap-2">
-                        <MapPin size={18} className="text-teal-500" /> Future Lab Center
-                    </h4>
-                    <p className="text-sm text-slate-500 mt-2">
-                        Visit our state-of-the-art facility for walk-in tests and consultations.
-                    </p>
-                   <a
-  href="https://www.google.com/maps/dir/?api=1&destination=13.0363249,77.5938504"
-  target="_blank"
-  rel="noopener noreferrer"
-  className="mt-4 inline-flex items-center text-xs font-bold text-teal-600 uppercase tracking-wider gap-1 hover:gap-2 transition-all group"
->
-  Get Directions
-  <ArrowRight
-    size={14}
-    className="transition-transform duration-300 group-hover:translate-x-1"
-  />
-</a>
+                <div className="field">
+                  <label>Service</label>
+                  <select name="service" value={form.service} onChange={handleChange}>
+                    <option value="">Select a service</option>
+                    <option value="booking">Test Booking</option>
+                    <option value="home">Home Collection</option>
+                    <option value="corporate">Corporate Enquiry</option>
+                    <option value="support">Customer Support</option>
+                  </select>
                 </div>
-            </section>
+              </div>
 
-            {/* 4. Sticky Floating Actions (Mobile/Desktop) */}
-            <div className="fixed bottom-6 right-6 flex flex-col gap-4 z-50">
-                <motion.button
-                    whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.9 }}
-                    className="w-14 h-14 bg-green-500 rounded-full text-white shadow-lg shadow-green-500/30 flex items-center justify-center hover:bg-green-600 transition-colors relative group"
-                >
-                    <MessageCircle size={28} />
-                    <span className="absolute right-full mr-4 bg-slate-800 text-white text-xs py-1 px-3 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
-                        Chat on WhatsApp
-                    </span>
-                    <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full animate-ping"></span>
-                </motion.button>
+              <div className="field">
+                <label>Message</label>
+                <textarea name="message" rows={5} placeholder="Tell us how we can help..." value={form.message} onChange={handleChange} required />
+              </div>
 
-                <motion.button
-                    whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.9 }}
-                    className="w-14 h-14 bg-blue-600 rounded-full text-white shadow-lg shadow-blue-600/30 flex items-center justify-center hover:bg-blue-700 transition-colors relative group"
-                >
-                    <Phone size={24} />
-                    <span className="absolute right-full mr-4 bg-slate-800 text-white text-xs py-1 px-3 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
-                        Call Now
-                    </span>
-                </motion.button>
+              <button
+                type="submit"
+                className={`btn-submit${status === 'loading' ? ' loading' : status === 'success' ? ' success' : ''}`}
+                disabled={status !== 'idle'}
+              >
+                {status === 'idle' && <><Send size={15} /> Send Message</>}
+                {status === 'loading' && <><div className="spinner" /> Sending…</>}
+                {status === 'success' && <><CheckCircle size={15} /> Message Sent!</>}
+              </button>
+            </form>
+          </div>
 
-                <motion.button
-                    whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.9 }}
-                    className="w-14 h-14 bg-teal-500 rounded-full text-white shadow-lg shadow-teal-500/30 flex items-center justify-center hover:bg-teal-600 transition-colors relative group"
-                >
-                    <Calendar size={24} />
-                    <span className="absolute right-full mr-4 bg-slate-800 text-white text-xs py-1 px-3 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
-                        Book Test
-                    </span>
-                </motion.button>
+          {/* Sidebar */}
+          <div className="sidebar">
+
+            {/* Contact Info */}
+            <div className="info-card">
+              <h3>Contact Information</h3>
+              {[
+                { Icon: MapPin, label: "Address", value: "No. 38, Sumangali Sevashram Road, Chola Nagar, Hebbal, Bengaluru — 560 024" },
+                { Icon: Phone, label: "Phone",   value: "+91 81234 59263" },
+                { Icon: Mail,  label: "Email",   value: "info@futurelabdiagnostics.in" },
+              ].map(({ Icon, label, value }) => (
+                <div className="info-row" key={label}>
+                  <div className="info-icon"><Icon size={16} /></div>
+                  <div>
+                    <div className="info-label">{label}</div>
+                    <div className="info-value">{value}</div>
+                  </div>
+                </div>
+              ))}
             </div>
 
-        </div>
-    );
+            {/* Hours */}
+            <div className="hours-card">
+              <div className="hours-icon"><Clock size={18} /></div>
+              <div className="hours-text">
+                <strong>Working Hours</strong>
+                Monday – Saturday · 9:00 AM to 10:00 PM
+              </div>
+            </div>
+
+            {/* Quick Actions */}
+            <div className="quick-actions">
+              {[
+                { icon: <MessageCircle size={18} color="#25D366" />, bg: "#f0fdf4", label: "WhatsApp", sub: "Chat instantly" },
+                { icon: <Phone size={18} color="#2e9d91" />, bg: "#f0faf9", label: "Call Us", sub: "+91 81234 59263" },
+                { icon: <Calendar size={18} color="#6366f1" />, bg: "#f5f3ff", label: "Book a Test", sub: "Schedule online" },
+                { icon: <MapPin size={18} color="#f59e0b" />, bg: "#fffbeb", label: "Directions", sub: "Get directions" },
+              ].map(({ icon, bg, label, sub }) => (
+                <a href="#" className="qa-btn" key={label}>
+                  <div className="qa-icon" style={{ background: bg }}>{icon}</div>
+                  <div className="qa-label">{label}</div>
+                  <div className="qa-sub">{sub}</div>
+                </a>
+              ))}
+            </div>
+          </div>
+        </motion.div>
+
+        {/* Map */}
+        <motion.div
+          className="map-section"
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: .5, delay: .2 }}
+        >
+          <iframe
+            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d4118.625423745121!2d77.59385045912636!3d13.036324913658728!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3bae17007203752d%3A0xddf2692240187855!2sFUTURE%20LABS%20DIAGNOSTICS%20%26%20RESEARCH%20CENTRE!5e0!3m2!1sen!2sin!4v1768757129689!5m2!1sen!2sin"
+            allowFullScreen loading="lazy" referrerPolicy="no-referrer-when-downgrade"
+          />
+          <div className="map-pill">
+            <div className="map-pill-dot" />
+            <span>Future Lab Diagnostics, Hebbal</span>
+          </div>
+          <a
+            href="https://www.google.com/maps/dir/?api=1&destination=13.0363249,77.5938504"
+            target="_blank" rel="noopener noreferrer"
+            className="map-directions"
+          >
+            Get Directions →
+          </a>
+        </motion.div>
+
+      </div>
+    </>
+  );
 };
 
 export default Contact;

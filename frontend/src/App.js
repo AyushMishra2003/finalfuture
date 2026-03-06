@@ -28,6 +28,7 @@ import UserProfile from './pages/UserProfile';
 import UserOrders from './pages/UserOrders';
 import PaymentCallback from './pages/PaymentCallback';
 import PaymentPage from './pages/PaymentPage';
+import OrderConfirmation from './pages/OrderConfirmation';
 import OrderSummary from './pages/OrderSummary';
 import Contact from './pages/Contact';
 import BookingFlowDemo from './pages/BookingFlowDemo';
@@ -90,6 +91,7 @@ function App() {
           <Route path="/payment/callback" element={<PaymentCallback />} />
           <Route path="/payment" element={<PaymentPage />} />
           <Route path="/payment-demo" element={<HDFCPaymentDemo />} />
+          <Route path="/order-confirmation/:orderId" element={<OrderConfirmation />} />
           <Route path="/order-summary" element={<OrderSummary />} />
           <Route path="/booking-demo" element={<BookingFlowDemo />} />
 

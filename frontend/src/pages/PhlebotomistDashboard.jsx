@@ -293,33 +293,49 @@ const PhlebotomistDashboard = () => {
   const [loading, setLoading]             = useState(true);
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [locationAddress, setLocationAddress] = useState('');
+  const [currentLocation, setCurrentLocation] = useState(null);
+  const [samplePhotos, setSamplePhotos] = useState({});
+  const [sampleChecks, setSampleChecks] = useState({});
+  const [paymentCollected, setPaymentCollected] = useState({});
+  const [handoverStatus, setHandoverStatus] = useState({});
 
-  const baseUrl = process.env.REACT_APP_API_URL || 'http://147.93.27.120:3000/api/v1';
+  const baseUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000/api/v1';
 
   useEffect(() => { fetchDashboard(); requestLocation(); }, []);
 
   useEffect(() => {
-    if (dashboardData?.phlebotomistLocation?.latitude) {
-      fetchLocationAddress(dashboardData.phlebotomistLocation.latitude, dashboardData.phlebotomistLocation.longitude);
+    if (currentLocation?.latitude) {
+      fetchLocationAddress(currentLocation.latitude, currentLocation.longitude);
     }
-  }, [dashboardData]);
+  // eslint-disable-next-line
+  }, [currentLocation]);
 
   const fetchLocationAddress = async (lat, lon) => {
     try {
       const r = await axios.get(
-        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&zoom=18&addressdetails=1`,
-        { headers: { 'User-Agent': 'FutureLabs Phlebotomist App' } }
+        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&zoom=18&addressdetails=1`
       );
       if (r.data?.display_name) setLocationAddress(r.data.display_name);
     } catch { setLocationAddress(`${lat.toFixed(4)}, ${lon.toFixed(4)}`); }
   };
 
   const requestLocation = () => {
-    if (navigator.geolocation)
+    if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
-        (p) => updatePhlebotomistLocation(p.coords.latitude, p.coords.longitude),
-        (e) => console.error('Location error:', e)
+        (p) => {
+          const lat = p.coords.latitude;
+          const lon = p.coords.longitude;
+          console.log('Your Current Location:', { lat, lon });
+          setCurrentLocation({ latitude: lat, longitude: lon });
+          updatePhlebotomistLocation(lat, lon);
+        },
+        (e) => {
+          console.error('Location error:', e);
+          alert('Please allow location access to see your current location');
+        },
+        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
       );
+    }
   };
 
   const updatePhlebotomistLocation = async (latitude, longitude) => {
@@ -362,6 +378,40 @@ const PhlebotomistDashboard = () => {
 
   const openNavigation = (url) => window.open(url, '_blank');
 
+  const uploadSamplePhoto = async (orderId, type, file) => {
+    if (!file) return;
+    const formData = new FormData();
+    formData.append('photo', file);
+    try {
+      const token = localStorage.getItem('collectorToken');
+      await axios.post(`${baseUrl}/phlebotomist/orders/${orderId}/sample-photo`, formData, {
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'multipart/form-data' }
+      });
+      setSamplePhotos(prev => ({ ...prev, [`${orderId}-${type}`]: URL.createObjectURL(file) }));
+      alert('Photo uploaded successfully!');
+    } catch { alert('Failed to upload photo'); }
+  };
+
+  const toggleSampleCheck = (orderId, type) => {
+    setSampleChecks(prev => ({ ...prev, [`${orderId}-${type}`]: !prev[`${orderId}-${type}`] }));
+  };
+
+  const collectPayment = async (orderId, amount) => {
+    try {
+      const token = localStorage.getItem('collectorToken');
+      await axios.post(`${baseUrl}/phlebotomist/orders/${orderId}/collect-payment`, 
+        { amount, method: 'Cash' },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setPaymentCollected(prev => ({ ...prev, [orderId]: true }));
+      alert('Payment collected successfully!');
+    } catch { alert('Failed to collect payment'); }
+  };
+
+  const toggleHandover = (orderId, type) => {
+    setHandoverStatus(prev => ({ ...prev, [`${orderId}-${type}`]: !prev[`${orderId}-${type}`] }));
+  };
+
   if (loading)        return <div className="loading">Loading dashboard...</div>;
   if (!dashboardData) return <div className="error">Failed to load dashboard</div>;
 
@@ -402,7 +452,7 @@ const PhlebotomistDashboard = () => {
 
   /* ── Location bar ── */
   const LocationBar = ({ className = '' }) => (
-    phlebotomistLocation ? (
+    currentLocation ? (
       <div className={`location-bar ${className}`}>
         <span>📍</span>
         <span style={{ flex:1, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
@@ -476,18 +526,17 @@ const PhlebotomistDashboard = () => {
         <div className="detail-card">
           <div className="detail-card-header">🧪 Sample Collection</div>
           <div className="sample-grid">
-            <div className="sample-box">
-              <div className="sample-box-title">Blood Sample Pic</div>
-              <div className="sample-camera">📷</div>
-              <div className="sample-time">Collected at: --:-- AM</div>
-              <div className="sample-checkbox-row"><input type="checkbox" /><span>Random Sample</span></div>
-            </div>
-            <div className="sample-box">
-              <div className="sample-box-title">Urine Sample Pic</div>
-              <div className="sample-camera">📷</div>
-              <div className="sample-time">Collected at: --:-- AM</div>
-              <div className="sample-checkbox-row"><input type="checkbox" /><span>Not Given</span></div>
-            </div>
+            {[{t:'Blood Sample Pic',cb:'Random Sample',type:'blood'},{t:'Urine Sample Pic',cb:'Not Given',type:'urine'}].map((s,i) => (
+              <div key={i} className="sample-box">
+                <div className="sample-box-title">{s.t}</div>
+                <input type="file" accept="image/*" id={`mobile-${s.type}-${selectedOrder._id}`} style={{display:'none'}} onChange={(e)=>uploadSamplePhoto(selectedOrder._id,s.type,e.target.files[0])} />
+                <div className="sample-camera" onClick={()=>document.getElementById(`mobile-${s.type}-${selectedOrder._id}`).click()} style={{position:'relative',width:80,height:80,margin:'0 auto',border:samplePhotos[`${selectedOrder._id}-${s.type}`]?'none':'2px dashed #ccc',borderRadius:8,display:'flex',alignItems:'center',justifyContent:'center'}}>
+                  {samplePhotos[`${selectedOrder._id}-${s.type}`] ? <img src={samplePhotos[`${selectedOrder._id}-${s.type}`]} alt={s.t} style={{width:'100%',height:'100%',objectFit:'cover',borderRadius:8}} /> : '📷'}
+                </div>
+                <div className="sample-time">Collected at: {new Date().toLocaleTimeString()}</div>
+                <div className="sample-checkbox-row"><input type="checkbox" checked={sampleChecks[`${selectedOrder._id}-${s.type}`]||false} onChange={()=>toggleSampleCheck(selectedOrder._id,s.type)} /><span>{s.cb}</span></div>
+              </div>
+            ))}
           </div>
         </div>
 
@@ -495,10 +544,10 @@ const PhlebotomistDashboard = () => {
         <div className="detail-card">
           <div className="detail-card-header">💳 Payment Status</div>
           <div className="payment-list">
-            <div className="payment-row prepaid"><input type="checkbox" readOnly /><span>Prepaid</span></div>
-            <div className="payment-row pending"><input type="checkbox" defaultChecked readOnly /><span>Payment Pending Rs. {selectedOrder.totalPrice}</span></div>
-            <div className="payment-row collected"><input type="checkbox" defaultChecked readOnly /><span>Payment Collected By Phlebo Rs. {selectedOrder.totalPrice}</span></div>
-            <div className="payment-total"><span>TOTAL CASH ON HAND:</span><span>Rs. {selectedOrder.totalPrice}</span></div>
+            <div className={`payment-row ${selectedOrder.isPaid?'collected':'prepaid'}`}><input type="checkbox" checked={selectedOrder.isPaid} readOnly /><span>{selectedOrder.isPaid?'Prepaid':'Not Prepaid'}</span></div>
+            <div className={`payment-row ${!selectedOrder.isPaid&&!paymentCollected[selectedOrder._id]?'pending':'collected'}`}><input type="checkbox" checked={!selectedOrder.isPaid&&!paymentCollected[selectedOrder._id]} readOnly /><span>Payment Pending Rs. {selectedOrder.totalPrice}</span></div>
+            <div className={`payment-row ${paymentCollected[selectedOrder._id]?'collected':'pending'}`} style={{cursor:!selectedOrder.isPaid?'pointer':'default'}} onClick={()=>!selectedOrder.isPaid&&!paymentCollected[selectedOrder._id]&&collectPayment(selectedOrder._id,selectedOrder.totalPrice)}><input type="checkbox" checked={paymentCollected[selectedOrder._id]||false} onChange={()=>!selectedOrder.isPaid&&collectPayment(selectedOrder._id,selectedOrder.totalPrice)} /><span>Payment Collected By Phlebo Rs. {selectedOrder.totalPrice}</span></div>
+            <div className="payment-total"><span>TOTAL CASH ON HAND:</span><span>Rs. {paymentCollected[selectedOrder._id]?selectedOrder.totalPrice:0}</span></div>
           </div>
         </div>
 
@@ -517,8 +566,8 @@ const PhlebotomistDashboard = () => {
         <div className="detail-card modal-full">
           <div className="detail-card-header">📦 Final Handover</div>
           <div className="handover-list">
-            <button className="handover-btn"><span>✅ Sample Handover</span><span className="check-icon">✅</span></button>
-            <button className="handover-btn"><span>✅ Amount Handover to Lab</span><span className="check-icon">✅</span></button>
+            <button className="handover-btn" onClick={()=>toggleHandover(selectedOrder._id,'sample')} style={{background:handoverStatus[`${selectedOrder._id}-sample`]?'#43a047':'#e0e0e0',color:handoverStatus[`${selectedOrder._id}-sample`]?'white':'#888'}}><span>✅ Sample Handover</span><span className="check-icon">{handoverStatus[`${selectedOrder._id}-sample`]?'✅':'⭕'}</span></button>
+            <button className="handover-btn" onClick={()=>toggleHandover(selectedOrder._id,'amount')} style={{background:handoverStatus[`${selectedOrder._id}-amount`]?'#43a047':'#e0e0e0',color:handoverStatus[`${selectedOrder._id}-amount`]?'white':'#888'}}><span>✅ Amount Handover to Lab</span><span className="check-icon">{handoverStatus[`${selectedOrder._id}-amount`]?'✅':'⭕'}</span></button>
           </div>
         </div>
 
@@ -710,13 +759,16 @@ const PhlebotomistDashboard = () => {
                 <div style={{ background:'white', borderRadius:16, boxShadow:'0 2px 8px rgba(0,0,0,0.07)' }}>
                   <div style={{ padding:'12px 16px', fontSize:14, fontWeight:800, color:'#1a1a2e', borderBottom:'1px solid #f0f0f0', background:'#fafafa', borderRadius:'16px 16px 0 0' }}>🧪 Sample Collection</div>
                   <div style={{ padding:'14px 16px', display:'grid', gridTemplateColumns:'1fr 1fr', gap:12 }}>
-                    {[{t:'Blood Sample Pic',cb:'Random Sample'},{t:'Urine Sample Pic',cb:'Not Given'}].map((s,i) => (
+                    {[{t:'Blood Sample Pic',cb:'Random Sample',type:'blood'},{t:'Urine Sample Pic',cb:'Not Given',type:'urine'}].map((s,i) => (
                       <div key={i} style={{ border:'2px dashed #ddd', borderRadius:14, padding:'14px 10px', textAlign:'center' }}>
                         <div style={{ fontSize:12, fontWeight:800, color:'#333', marginBottom:8 }}>{s.t}</div>
-                        <div style={{ fontSize:32, marginBottom:6, cursor:'pointer' }}>📷</div>
-                        <div style={{ fontSize:11, color:'#888', fontWeight:600, marginBottom:8 }}>Collected at: --:-- AM</div>
+                        <input type="file" accept="image/*" id={`${s.type}-${selectedOrder._id}`} style={{display:'none'}} onChange={(e)=>uploadSamplePhoto(selectedOrder._id,s.type,e.target.files[0])} />
+                        <div style={{ fontSize:32, marginBottom:6, cursor:'pointer', position:'relative', width:80, height:80, margin:'0 auto', border:samplePhotos[`${selectedOrder._id}-${s.type}`]?'none':'2px dashed #ccc', borderRadius:8, display:'flex', alignItems:'center', justifyContent:'center' }} onClick={()=>document.getElementById(`${s.type}-${selectedOrder._id}`).click()}>
+                          {samplePhotos[`${selectedOrder._id}-${s.type}`] ? <img src={samplePhotos[`${selectedOrder._id}-${s.type}`]} alt={s.t} style={{width:'100%',height:'100%',objectFit:'cover',borderRadius:8}} /> : '📷'}
+                        </div>
+                        <div style={{ fontSize:11, color:'#888', fontWeight:600, marginBottom:8 }}>Collected at: {new Date().toLocaleTimeString()}</div>
                         <div style={{ display:'flex', alignItems:'center', gap:6, justifyContent:'center', fontSize:11, fontWeight:700, color:'#555' }}>
-                          <input type="checkbox" style={{ accentColor:'#1a73e8', width:14, height:14 }} /><span>{s.cb}</span>
+                          <input type="checkbox" checked={sampleChecks[`${selectedOrder._id}-${s.type}`]||false} onChange={()=>toggleSampleCheck(selectedOrder._id,s.type)} style={{ accentColor:'#1a73e8', width:14, height:14 }} /><span>{s.cb}</span>
                         </div>
                       </div>
                     ))}
@@ -727,11 +779,11 @@ const PhlebotomistDashboard = () => {
                 <div style={{ background:'white', borderRadius:16, boxShadow:'0 2px 8px rgba(0,0,0,0.07)' }}>
                   <div style={{ padding:'12px 16px', fontSize:14, fontWeight:800, color:'#1a1a2e', borderBottom:'1px solid #f0f0f0', background:'#fafafa', borderRadius:'16px 16px 0 0' }}>💳 Payment Status</div>
                   <div style={{ padding:'14px 16px', display:'flex', flexDirection:'column', gap:8 }}>
-                    <div style={{ display:'flex', alignItems:'center', gap:10, fontSize:13, fontWeight:700, color:'#e53935' }}><input type="checkbox" readOnly style={{ width:16, height:16 }} /><span>Prepaid</span></div>
-                    <div style={{ display:'flex', alignItems:'center', gap:10, fontSize:13, fontWeight:700, color:'#f57c00' }}><input type="checkbox" defaultChecked readOnly style={{ width:16, height:16 }} /><span>Payment Pending Rs. {selectedOrder.totalPrice}</span></div>
-                    <div style={{ display:'flex', alignItems:'center', gap:10, fontSize:13, fontWeight:700, color:'#43a047' }}><input type="checkbox" defaultChecked readOnly style={{ width:16, height:16 }} /><span>Payment Collected By Phlebo Rs. {selectedOrder.totalPrice}</span></div>
+                    <div style={{ display:'flex', alignItems:'center', gap:10, fontSize:13, fontWeight:700, color:selectedOrder.isPaid?'#43a047':'#e53935' }}><input type="checkbox" checked={selectedOrder.isPaid} readOnly style={{ width:16, height:16, accentColor:'#1a73e8' }} /><span>{selectedOrder.isPaid?'Prepaid':'Not Prepaid'}</span></div>
+                    <div style={{ display:'flex', alignItems:'center', gap:10, fontSize:13, fontWeight:700, color:!selectedOrder.isPaid&&!paymentCollected[selectedOrder._id]?'#f57c00':'#888' }}><input type="checkbox" checked={!selectedOrder.isPaid&&!paymentCollected[selectedOrder._id]} readOnly style={{ width:16, height:16, accentColor:'#1a73e8' }} /><span>Payment Pending Rs. {selectedOrder.totalPrice}</span></div>
+                    <div style={{ display:'flex', alignItems:'center', gap:10, fontSize:13, fontWeight:700, color:paymentCollected[selectedOrder._id]?'#43a047':'#888', cursor:!selectedOrder.isPaid?'pointer':'default' }} onClick={()=>!selectedOrder.isPaid&&!paymentCollected[selectedOrder._id]&&collectPayment(selectedOrder._id,selectedOrder.totalPrice)}><input type="checkbox" checked={paymentCollected[selectedOrder._id]||false} onChange={()=>!selectedOrder.isPaid&&collectPayment(selectedOrder._id,selectedOrder.totalPrice)} style={{ width:16, height:16, accentColor:'#1a73e8', cursor:'pointer' }} /><span>Payment Collected By Phlebo Rs. {selectedOrder.totalPrice}</span></div>
                     <div style={{ marginTop:6, paddingTop:10, borderTop:'1px solid #eee', fontSize:14, fontWeight:800, color:'#1a1a2e', display:'flex', justifyContent:'space-between' }}>
-                      <span>TOTAL CASH ON HAND:</span><span>Rs. {selectedOrder.totalPrice}</span>
+                      <span>TOTAL CASH ON HAND:</span><span>Rs. {paymentCollected[selectedOrder._id]?selectedOrder.totalPrice:0}</span>
                     </div>
                   </div>
                 </div>
@@ -756,9 +808,9 @@ const PhlebotomistDashboard = () => {
                 <div style={{ background:'white', borderRadius:16, boxShadow:'0 2px 8px rgba(0,0,0,0.07)' }}>
                   <div style={{ padding:'12px 16px', fontSize:14, fontWeight:800, color:'#1a1a2e', borderBottom:'1px solid #f0f0f0', background:'#fafafa', borderRadius:'16px 16px 0 0' }}>📦 Final Handover</div>
                   <div style={{ padding:'14px 16px', display:'flex', flexDirection:'column', gap:10 }}>
-                    {['✅ Sample Handover','✅ Amount Handover to Lab'].map((t,i) => (
-                      <button key={i} style={{ background:'#43a047', color:'white', border:'none', borderRadius:14, padding:'14px 16px', fontSize:14, fontWeight:800, cursor:'pointer', fontFamily:"'Nunito',sans-serif", display:'flex', alignItems:'center', justifyContent:'space-between' }}>
-                        <span>{t}</span><span>✅</span>
+                    {[{t:'✅ Sample Handover',type:'sample'},{t:'✅ Amount Handover to Lab',type:'amount'}].map((h,i) => (
+                      <button key={i} onClick={()=>toggleHandover(selectedOrder._id,h.type)} style={{ background:handoverStatus[`${selectedOrder._id}-${h.type}`]?'#43a047':'#e0e0e0', color:handoverStatus[`${selectedOrder._id}-${h.type}`]?'white':'#888', border:'none', borderRadius:14, padding:'14px 16px', fontSize:14, fontWeight:800, cursor:'pointer', fontFamily:"'Nunito',sans-serif", display:'flex', alignItems:'center', justifyContent:'space-between', transition:'all 0.2s' }}>
+                        <span>{h.t}</span><span>{handoverStatus[`${selectedOrder._id}-${h.type}`]?'✅':'⭕'}</span>
                       </button>
                     ))}
                   </div>
