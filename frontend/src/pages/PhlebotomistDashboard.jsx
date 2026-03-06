@@ -299,7 +299,7 @@ const PhlebotomistDashboard = () => {
   const [paymentCollected, setPaymentCollected] = useState({});
   const [handoverStatus, setHandoverStatus] = useState({});
 
-  const baseUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000/api/v1';
+  const baseUrl = process.env.REACT_APP_API_URL || 'http://147.93.27.120:3000/api/v1';
 
   useEffect(() => { fetchDashboard(); requestLocation(); }, []);
 
