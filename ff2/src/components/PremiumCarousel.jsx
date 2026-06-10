@@ -254,18 +254,10 @@ const PremiumCarousel = ({ items = [], onAddToCart, onViewDetails, autoPlayInter
                         max-width: 360px;
                         height: 440px;
                     }
+                    /* Hide prev/next arrows on small devices — use dots + swipe instead */
                     .carousel-nav-btn {
-                        top: auto;
-                        bottom: 14px;
-                        transform: none !important;
-                        width: 40px;
-                        height: 40px;
+                        display: none !important;
                     }
-                    .carousel-nav-btn:hover {
-                        transform: scale(1.1) !important;
-                    }
-                    .carousel-nav-prev { left: 24px; }
-                    .carousel-nav-next { right: 24px; }
                     .pagination-wrapper {
                         position: absolute;
                         bottom: 20px;

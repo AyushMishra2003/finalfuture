@@ -8,7 +8,11 @@ import MakeYourOwnPackage from "../components/MakeYourOwnPackage";
 import PromotionalCard from "../components/PromotionalCard";
 import TestimonialsSlider from "../components/TestimonialsSlider";
 import PincodeChecker from "./Pincode";
-import Carousel from "react-bootstrap/Carousel";
+import { Swiper, SwiperSlide } from "swiper/react";
+import { Autoplay, Pagination } from "swiper/modules";
+import "swiper/css";
+import "swiper/css/pagination";
+import "swiper/css/autoplay";
 import PremiumCarousel from "../components/PremiumCarousel";
 
 import MoneySavingPackages from "../components/MoneySavingPackage";
@@ -93,64 +97,64 @@ const Home = () => {
   // DetailCard Component
   const DetailCard = ({ pkg, onClose }) => {
     if (!pkg) return null;
+    const infoItems = [
+      { label: "Reports", value: pkg.details.reportTime, color: "#0ea5e9", icon: <path d="M12 8v4l3 3M12 2a10 10 0 100 20 10 10 0 000-20z" /> },
+      { label: "Sample", value: pkg.details.sampleType, color: "#ef4444", icon: <path d="M12 2.69l5.66 5.66a8 8 0 11-11.31 0z" /> },
+      { label: "Preparation", value: pkg.details.preparation, color: "#f59e0b", icon: <><circle cx="12" cy="12" r="10" /><path d="M12 16v-4M12 8h.01" /></> },
+      { label: "Certification", value: pkg.details.certification, color: "#10b981", icon: <path d="M9 12l2 2 4-4M12 2a10 10 0 100 20 10 10 0 000-20z" /> },
+    ];
     return (
-      <div className="detail-card-overlay p-3">
-        <div className="card border-0 shadow-lg detail-card h-100">
-          <div className="card-header bg-transparent border-0 d-flex justify-content-between align-items-center pt-3 px-3">
-            <h5 className="fw-bold text-primary mb-0">Package Details</h5>
-            <button
-              onClick={onClose}
-              className="btn-close-custom"
-              aria-label="Close"
-            >
-              ×
-            </button>
-
+      <div style={{ background: "#fff", borderRadius: "22px", overflow: "hidden", boxShadow: "0 24px 60px rgba(0,0,0,0.25)", maxHeight: "90vh", display: "flex", flexDirection: "column" }}>
+        {/* Header */}
+        <div style={{ padding: "22px 24px 18px", borderBottom: "1px solid #f1f5f9", display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "12px" }}>
+          <div style={{ minWidth: 0 }}>
+            <div style={{ fontSize: "0.72rem", fontWeight: 700, color: "#00A2AD", textTransform: "uppercase", letterSpacing: "1px", marginBottom: "6px" }}>
+              Package Details
+            </div>
+            <h3 style={{ fontSize: "1.2rem", fontWeight: 800, color: "#0f172a", margin: 0, lineHeight: 1.3 }}>
+              {pkg.title}
+            </h3>
           </div>
-          <div className="card-body px-3 py-2 scrollable-details">
-            <h6 className="fw-bold mb-3">{pkg.title}</h6>
+          <button
+            onClick={onClose}
+            aria-label="Close"
+            style={{ flexShrink: 0, width: "36px", height: "36px", borderRadius: "50%", border: "none", background: "#f1f5f9", color: "#64748b", fontSize: "1.4rem", lineHeight: 1, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}
+          >
+            ×
+          </button>
+        </div>
 
-            <div className="detail-item mb-2">
-              <span className="fw-bold text-secondary small d-block">Test Inclusions:</span>
-              <ul className="list-unstyled small ps-1">
-                {pkg.details.inclusions.map((item, idx) => (
-                  <li key={idx} className="mb-1"><i className="bi bi-check2-circle text-success me-2"></i>{item}</li>
-                ))}
-              </ul>
-            </div>
+        {/* Body */}
+        <div style={{ padding: "20px 24px", overflowY: "auto" }}>
+          {/* Inclusions */}
+          <div style={{ fontSize: "0.75rem", fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.6px", marginBottom: "12px" }}>
+            Test Inclusions
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: "10px", marginBottom: "22px" }}>
+            {pkg.details.inclusions.map((item, idx) => (
+              <div key={idx} style={{ display: "flex", alignItems: "center", gap: "10px", fontSize: "0.95rem", color: "#334155", fontWeight: 500 }}>
+                <span style={{ flexShrink: 0, width: "20px", height: "20px", borderRadius: "50%", background: "#d1fae5", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6L9 17l-5-5" /></svg>
+                </span>
+                {item}
+              </div>
+            ))}
+          </div>
 
-            <div className="row g-2 mb-3">
-              <div className="col-6">
-                <div className="p-2 rounded-3 bg-light-teal detail-info-box">
-                  <i className="bi bi-clock-history text-primary d-block mb-1"></i>
-                  <span className="d-block small fw-bold">Reports</span>
-                  <span className="x-small">{pkg.details.reportTime}</span>
-                </div>
+          {/* Info grid */}
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", marginBottom: "20px" }}>
+            {infoItems.map((info, idx) => (
+              <div key={idx} style={{ background: "#f8fafc", border: "1px solid #eef2f6", borderRadius: "14px", padding: "14px" }}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={info.color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginBottom: "8px" }}>
+                  {info.icon}
+                </svg>
+                <div style={{ fontSize: "0.8rem", fontWeight: 700, color: "#0f172a", marginBottom: "2px" }}>{info.label}</div>
+                <div style={{ fontSize: "0.78rem", color: "#64748b", lineHeight: 1.4 }}>{info.value}</div>
               </div>
-              <div className="col-6">
-                <div className="p-2 rounded-3 bg-light-teal detail-info-box">
-                  <i className="bi bi-droplet-fill text-danger d-block mb-1"></i>
-                  <span className="d-block small fw-bold">Sample</span>
-                  <span className="x-small">{pkg.details.sampleType}</span>
-                </div>
-              </div>
-              <div className="col-6">
-                <div className="p-2 rounded-3 bg-light-teal detail-info-box">
-                  <i className="bi bi-info-circle text-info d-block mb-1"></i>
-                  <span className="d-block small fw-bold">Prep</span>
-                  <span className="x-small text-truncate d-inline-block w-100">{pkg.details.preparation}</span>
-                </div>
-              </div>
-              <div className="col-6">
-                <div className="p-2 rounded-3 bg-light-teal detail-info-box">
-                  <i className="bi bi-patch-check-fill text-success d-block mb-1"></i>
-                  <span className="d-block small fw-bold">Cert.</span>
-                  <span className="x-small">{pkg.details.certification}</span>
-                </div>
-              </div>
-            </div>
+            ))}
+          </div>
 
-            {/* Home Collection Banner */}
+          {/* Home Collection Banner */}
             <div style={{
               background: "linear-gradient(135deg, #007A5E 0%, #00b386 100%)",
               borderRadius: "14px",
@@ -208,13 +212,16 @@ const Home = () => {
               `}</style>
             </div>
           </div>
-          <div className="card-footer bg-white border-0 p-3">
-            <button className="btn btn-primary w-100 rounded-pill shadow-sm" onClick={() => handleAddToCart(pkg.id)}>
+          {/* Footer */}
+          <div style={{ padding: "16px 24px 20px", borderTop: "1px solid #f1f5f9" }}>
+            <button
+              onClick={() => handleAddToCart(pkg.id)}
+              style={{ width: "100%", background: "linear-gradient(135deg, #007A5E 0%, #00b386 100%)", color: "#fff", border: "none", borderRadius: "50px", padding: "15px", fontSize: "1.05rem", fontWeight: 700, cursor: "pointer", boxShadow: "0 6px 18px rgba(0,122,94,0.3)" }}
+            >
               Book This Package
             </button>
           </div>
         </div>
-      </div>
     );
   };
 
@@ -488,9 +495,21 @@ const Home = () => {
       {/* Hero Section */}
       <section className="hero-section mb-4 position-relative">
         <div className="container-fluid p-0">
-          <Carousel fade interval={3000} controls={false} indicators={true}>
+          <Swiper
+            modules={[Autoplay, Pagination]}
+            spaceBetween={0}
+            slidesPerView={1}
+            loop={true}
+            autoplay={{
+              delay: 3000,
+              disableOnInteraction: false,
+              pauseOnMouseEnter: true,
+            }}
+            pagination={{ clickable: true }}
+            className="hero-swiper"
+          >
             {["banner1.png", "banner2.png", "banner3.png"].map((image, index) => (
-              <Carousel.Item key={index}>
+              <SwiperSlide key={index}>
                 <img
                   className="d-block w-100 img-fluid hero-image"
                   src={`${process.env.PUBLIC_URL}/images/banners/${image}`}
@@ -500,9 +519,9 @@ const Home = () => {
                     e.target.src = `${process.env.PUBLIC_URL}/images/banners/banner1.png`;
                   }}
                 />
-              </Carousel.Item>
+              </SwiperSlide>
             ))}
-          </Carousel>
+          </Swiper>
         </div>
 
         {/* Custom styles */}
@@ -515,22 +534,27 @@ const Home = () => {
           transition: all 0.4s ease-in-out;
         }
 
-        .hero-section .carousel-indicators {
-          margin-bottom: 1.5rem;
+        .hero-swiper {
+          padding-bottom: 0 !important;
         }
-        .hero-section .carousel-indicators button {
-          width: 24px;
-          height: 8px;
-          border-radius: 10px;
-          background-color: rgba(255, 255, 255, 0.5);
-          border: none;
-          margin: 0 5px;
+        .hero-swiper .swiper-pagination {
+          bottom: 16px !important;
+        }
+        .hero-swiper .swiper-pagination-bullet {
+          width: 12px;
+          height: 12px;
+          background-color: rgba(0, 0, 0, 0.3);
+          border: 2px solid rgba(255, 255, 255, 0.9);
+          opacity: 1;
+          margin: 0 5px !important;
           transition: all 0.4s ease;
+          box-shadow: 0 1px 4px rgba(0,0,0,0.25);
         }
-        .hero-section .carousel-indicators button.active {
-          background-color: #ffffff;
-          width: 40px;
-          box-shadow: 0 0 10px rgba(0,0,0,0.2);
+        .hero-swiper .swiper-pagination-bullet-active {
+          background-color: #007A5E;
+          width: 30px;
+          border-radius: 10px;
+          box-shadow: 0 1px 6px rgba(0,0,0,0.3);
         }
 
         /* Smaller size & rounded for mobile */

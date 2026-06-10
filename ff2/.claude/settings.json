@@ -1,0 +1,20 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm -v)",
+      "Bash(npm install *)",
+      "Bash(HOST=0.0.0.0 PORT=3000 BROWSER=none DANGEROUSLY_DISABLE_HOST_CHECK=true npm start)",
+      "Bash(break)",
+      "Bash(HOST=0.0.0.0 PORT=3000 BROWSER=none DANGEROUSLY_DISABLE_HOST_CHECK=true ./node_modules/.bin/react-scripts start)",
+      "Bash(curl -s -o /dev/null -w \"HTTP %{http_code} in %{time_total}s\\\\n\" http://localhost:3000)",
+      "Bash(curl -s -o /dev/null -w \"HTTP %{http_code} in %{time_total}s\\\\n\" --max-time 5 http://147.93.19.196:3000)",
+      "Bash(curl -s -o /dev/null -w \"HTTP %{http_code}\\\\n\" --max-time 5 http://147.93.19.196)",
+      "Read(//etc/nginx/**)",
+      "Bash(curl -s -o /dev/null -w \"HTTP %{http_code}\\\\n\" http://localhost:3000)",
+      "Bash(curl -s -o /dev/null -w \"localhost:3000 -> HTTP %{http_code}\\\\n\" http://localhost:3000)",
+      "Bash(curl -s http://localhost:3000/static/js/bundle.js)",
+      "Bash(grep -rA15 \"\\\\.mobile-footer\\\\s*{\" src/index.css)",
+      "Bash(grep -rA8 \"^#footer\" src/index.css)"
+    ]
+  }
+}

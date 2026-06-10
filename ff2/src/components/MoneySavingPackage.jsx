@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import apiService from '../utils/api';
 
@@ -48,6 +48,29 @@ const MoneySavingPackages = () => {
     }
   };
 
+  // Touch swipe support (mobile) — swipe left = next, swipe right = prev
+  const touchStartX = useRef(null);
+  const touchEndX = useRef(null);
+
+  const handleTouchStart = (e) => {
+    touchStartX.current = e.touches[0].clientX;
+    touchEndX.current = null;
+  };
+
+  const handleTouchMove = (e) => {
+    touchEndX.current = e.touches[0].clientX;
+  };
+
+  const handleTouchEnd = () => {
+    if (touchStartX.current === null || touchEndX.current === null) return;
+    const diff = touchStartX.current - touchEndX.current;
+    const threshold = 50; // min px to count as a swipe
+    if (diff > threshold) nextSavingSlide();
+    else if (diff < -threshold) prevSavingSlide();
+    touchStartX.current = null;
+    touchEndX.current = null;
+  };
+
   return (
     <section className="py-5">
       <div className="container">
@@ -79,7 +102,13 @@ const MoneySavingPackages = () => {
 
         {/* Carousel */}
         <div className="position-relative">
-          <div className="overflow-hidden">
+          <div
+            className="overflow-hidden"
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+            style={{ touchAction: 'pan-y' }}
+          >
             <div
               className="d-flex transition-container"
               style={{

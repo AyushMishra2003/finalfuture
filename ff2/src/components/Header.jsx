@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import SearchComponent from "./SearchComponent";
 import LoginSidebar from "./LoginSidebar";
 import { baseUrl } from "../utils/config";
@@ -12,6 +12,27 @@ const Header = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userName, setUserName] = useState("User");
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+  // Pages that have their own search bar — hide the header search bar there
+  const location = useLocation();
+  const hideHeaderSearch = location.pathname === "/create-package";
+
+  // Navigation links for the hamburger drawer
+  const navLinks = [
+    { label: "Home", to: "/" },
+    { label: "Health Checkups", to: "/checkups" },
+    { label: "Create Package", to: "/create-package" },
+    { label: "Special Offers", to: "/offers" },
+    { label: "Contact Us", to: "/contact" },
+    { label: "Privacy Policy", to: "/privacy-policy" },
+    { label: "Terms & Conditions", to: "/terms-and-conditions" },
+  ];
+
+  // Close the drawer whenever the route changes
+  useEffect(() => {
+    setIsMenuOpen(false);
+  }, [location.pathname]);
 
   // Check login status and fetch user details
   useEffect(() => {
@@ -204,6 +225,14 @@ const Header = () => {
           <div className="d-flex align-items-center justify-content-between flex-nowrap w-100">
             {/* Logo Section */}
             <div className="d-flex align-items-center flex-shrink-0">
+              <button
+                onClick={() => setIsMenuOpen(true)}
+                aria-label="Open menu"
+                className="d-md-inline-flex d-lg-none align-items-center justify-content-center border-0 me-2"
+                style={{ background: 'transparent', cursor: 'pointer', padding: '6px' }}
+              >
+                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#0f172a" strokeWidth="2.2" strokeLinecap="round"><path d="M3 12h18M3 6h18M3 18h18" /></svg>
+              </button>
               <Link to="/" className="logo-bounce d-inline-block">
                 {/* Using flex display for favicon and logo alignment */}
                 <div style={{ display: 'flex', alignItems: 'center' }}>
@@ -407,20 +436,29 @@ const Header = () => {
             minHeight: '58px',
           }}
         >
-          {/* Logo — left side */}
-          <Link to="/" className="logo-bounce d-inline-flex align-items-center" style={{ textDecoration: 'none' }}>
-            <img
-              src={`${process.env.PUBLIC_URL}/images/logo/favicon.jpg`}
-              alt="Favicon"
-              style={{ height: '26px', width: 'auto', marginRight: '7px' }}
-            />
-            <img
-              src={`${process.env.PUBLIC_URL}/images/logo/WhatsApp Image 2025-08-19 at 17.38.25_ee7be669.jpg`}
-              alt="FutureLabs"
-              onError={(e) => { e.target.onerror = null; e.target.src = `${process.env.PUBLIC_URL}/images/logo/favicon.jpg`; }}
-              style={{ height: '46px', width: 'auto' }}
-            />
-          </Link>
+          {/* Hamburger + Logo — left side */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <button
+              onClick={() => setIsMenuOpen(true)}
+              aria-label="Open menu"
+              style={{ border: 'none', background: 'transparent', padding: '4px', display: 'flex', alignItems: 'center', cursor: 'pointer' }}
+            >
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#1e293b" strokeWidth="2.2" strokeLinecap="round"><path d="M3 12h18M3 6h18M3 18h18" /></svg>
+            </button>
+            <Link to="/" className="logo-bounce d-inline-flex align-items-center" style={{ textDecoration: 'none' }}>
+              <img
+                src={`${process.env.PUBLIC_URL}/images/logo/favicon.jpg`}
+                alt="Favicon"
+                style={{ height: '26px', width: 'auto', marginRight: '7px' }}
+              />
+              <img
+                src={`${process.env.PUBLIC_URL}/images/logo/WhatsApp Image 2025-08-19 at 17.38.25_ee7be669.jpg`}
+                alt="FutureLabs"
+                onError={(e) => { e.target.onerror = null; e.target.src = `${process.env.PUBLIC_URL}/images/logo/favicon.jpg`; }}
+                style={{ height: '46px', width: 'auto' }}
+              />
+            </Link>
+          </div>
 
           {/* Right side — cart + login */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
@@ -512,9 +550,91 @@ const Header = () => {
 
 
       {/* Mobile Search Container - Second Navbar */}
-      <div className="search-container container-fluid d-block d-md-none">
-        <SearchComponent isMobile={true} />
-      </div>
+      {!hideHeaderSearch && (
+        <div className="search-container container-fluid d-block d-md-none">
+          <SearchComponent isMobile={true} />
+        </div>
+      )}
+
+      {/* Navigation Drawer (hamburger) */}
+      <div
+        onClick={() => setIsMenuOpen(false)}
+        style={{
+          position: 'fixed',
+          inset: 0,
+          background: 'rgba(0,0,0,0.45)',
+          backdropFilter: 'blur(2px)',
+          zIndex: 2000,
+          opacity: isMenuOpen ? 1 : 0,
+          visibility: isMenuOpen ? 'visible' : 'hidden',
+          transition: 'opacity 0.3s ease, visibility 0.3s ease',
+        }}
+      />
+      <nav
+        aria-label="Main menu"
+        style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          bottom: 0,
+          width: '82%',
+          maxWidth: '320px',
+          background: '#fff',
+          zIndex: 2001,
+          boxShadow: '4px 0 24px rgba(0,0,0,0.15)',
+          transform: isMenuOpen ? 'translateX(0)' : 'translateX(-100%)',
+          transition: 'transform 0.32s cubic-bezier(0.4, 0, 0.2, 1)',
+          display: 'flex',
+          flexDirection: 'column',
+        }}
+      >
+        {/* Drawer header */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '18px 20px', background: 'linear-gradient(135deg, #00A2AD 0%, #077a6e 100%)' }}>
+          <span style={{ fontSize: '1.3rem', fontWeight: 800, color: '#fff' }}>
+            Future<span style={{ color: '#ffd24a' }}>Labs</span><small style={{ fontSize: '0.7rem', verticalAlign: 'super' }}>24</small>
+          </span>
+          <button
+            onClick={() => setIsMenuOpen(false)}
+            aria-label="Close menu"
+            style={{ border: 'none', background: 'rgba(255,255,255,0.2)', color: '#fff', width: '34px', height: '34px', borderRadius: '50%', fontSize: '1.3rem', lineHeight: 1, cursor: 'pointer' }}
+          >
+            ×
+          </button>
+        </div>
+
+        {/* Drawer links */}
+        <div style={{ flex: 1, overflowY: 'auto', padding: '12px 0' }}>
+          {navLinks.map((link) => (
+            <Link
+              key={link.label}
+              to={link.to}
+              onClick={() => setIsMenuOpen(false)}
+              style={{ display: 'block', padding: '14px 22px', color: '#0f172a', textDecoration: 'none', fontSize: '1.02rem', fontWeight: 600, borderBottom: '1px solid #f1f5f9' }}
+            >
+              {link.label}
+            </Link>
+          ))}
+        </div>
+
+        {/* Drawer footer action */}
+        <div style={{ padding: '16px 20px', borderTop: '1px solid #f1f5f9' }}>
+          {isLoggedIn ? (
+            <button
+              onClick={() => { setIsMenuOpen(false); handleLogout(); }}
+              style={{ width: '100%', padding: '13px', borderRadius: '12px', border: 'none', background: '#fee2e2', color: '#dc2626', fontWeight: 700, cursor: 'pointer' }}
+            >
+              Logout
+            </button>
+          ) : (
+            <button
+              onClick={() => { setIsMenuOpen(false); setIsSidebarOpen(true); }}
+              style={{ width: '100%', padding: '13px', borderRadius: '12px', border: 'none', background: 'linear-gradient(135deg, #4CAF50 0%, #388E3C 100%)', color: '#fff', fontWeight: 700, cursor: 'pointer' }}
+            >
+              Login / Sign Up
+            </button>
+          )}
+        </div>
+      </nav>
 
       {/* Login Sidebar */}
       {!isLoggedIn && <LoginSidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />}

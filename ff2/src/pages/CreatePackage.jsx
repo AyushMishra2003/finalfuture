@@ -19,13 +19,10 @@ const CreatePackage = () => {
     const fetchData = async () => {
         try {
             setLoading(true);
-            const [testsResponse, categoriesResponse] = await Promise.all([
-                fetch("http://localhost:5000/api/v1/tests"),
-                fetch("http://localhost:5000/api/v1/category"),
+            const [testsData, categoriesData] = await Promise.all([
+                apiService.getTests(),
+                apiService.getCategories(),
             ]);
-
-            const testsData = await testsResponse.json();
-            const categoriesData = await categoriesResponse.json();
 
             if (testsData.success) {
                 setTests(testsData.data || []);
@@ -84,14 +81,8 @@ const CreatePackage = () => {
 
         const userId = localStorage.getItem("userId");
 
-        console.log("=== FRONTEND DEBUG ===");
-        console.log("userId from localStorage:", userId);
-        console.log("userId type:", typeof userId);
-        console.log("Number of tests to add:", selectedTests.length);
-
         if (!userId) {
             alert("Please login to add items to cart");
-            // Trigger the login sidebar
             const sidebar = document.getElementById("sidebar");
             if (sidebar) {
                 sidebar.classList.add("show");
@@ -100,27 +91,13 @@ const CreatePackage = () => {
         }
 
         try {
-            // Add all selected tests to cart
             for (const test of selectedTests) {
-                console.log("Adding test to cart:", {
-                    testId: test._id,
-                    testName: test.name,
-                    userId: userId
-                });
-
-                const response = await apiService.addToCart(userId, test._id);
-                console.log("Response from addToCart:", response);
+                await apiService.addToCart(userId, test._id);
             }
             alert("Tests added to cart successfully!");
             navigate("/cart");
         } catch (error) {
-            console.error("=== ERROR DETAILS ===");
             console.error("Error adding to cart:", error);
-            console.error("Error message:", error.message);
-            console.error("Error stack:", error.stack);
-            if (error.response) {
-                console.error("Error response:", error.response);
-            }
             alert("Error adding tests to cart. Please try again.");
         }
     };
@@ -146,292 +123,275 @@ const CreatePackage = () => {
         );
     }
 
+    const TEAL = "#00A2AD";
+
     return (
-        <div className="create-package-page">
-            {/* Hero Section */}
-            <div className="create-package-hero">
-                <div className="container">
-                    <div className="hero-content">
-                        <h1 className="hero-title">
-                            <span className="gradient-text">Create Your Custom</span>
-                            <br />
-                            Health Package
-                        </h1>
-                        <p className="hero-subtitle">
-                            Select the tests you need and save with our custom packages.
-                            <br />
-                            Build your perfect health checkup plan today!
-                        </p>
-                        <div className="hero-stats">
-                            <div className="stat-item">
-                                <div className="stat-number">{tests.length}+</div>
-                                <div className="stat-label">Available Tests</div>
-                            </div>
-                            <div className="stat-item">
-                                <div className="stat-number">{categories.length}+</div>
-                                <div className="stat-label">Categories</div>
-                            </div>
-                            <div className="stat-item">
-                                <div className="stat-number">24hrs</div>
-                                <div className="stat-label">Quick Results</div>
-                            </div>
+        <div
+            style={{
+                background: "#f1f5f9",
+                minHeight: "100vh",
+                paddingBottom: selectedTests.length > 0 ? "150px" : "90px",
+            }}
+        >
+            {/* Header */}
+            <div
+                style={{
+                    background: "#fff",
+                    padding: "16px",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "16px",
+                    boxShadow: "0 1px 4px rgba(0,0,0,0.06)",
+                }}
+            >
+                <button
+                    onClick={() => navigate(-1)}
+                    aria-label="Go back"
+                    style={{
+                        flexShrink: 0,
+                        width: "48px",
+                        height: "48px",
+                        borderRadius: "50%",
+                        border: "none",
+                        background: "#1e3a44",
+                        color: "#fff",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        cursor: "pointer",
+                    }}
+                >
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M19 12H5M12 19l-7-7 7-7" />
+                    </svg>
+                </button>
+                <h1 style={{ fontSize: "clamp(1.4rem, 5vw, 2rem)", fontWeight: 800, color: "#0f172a", margin: 0 }}>
+                    Select Investigations
+                </h1>
+            </div>
+
+            <div style={{ padding: "16px" }}>
+                {/* Search */}
+                <div style={{ position: "relative", marginBottom: "16px" }}>
+                    <input
+                        type="text"
+                        placeholder="Search here"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        style={{
+                            width: "100%",
+                            padding: "16px 52px 16px 18px",
+                            fontSize: "1.05rem",
+                            border: "1px solid #e2e8f0",
+                            borderRadius: "12px",
+                            background: "#fff",
+                            outline: "none",
+                            color: "#0f172a",
+                        }}
+                    />
+                    <span style={{ position: "absolute", right: "18px", top: "50%", transform: "translateY(-50%)", pointerEvents: "none" }}>
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <circle cx="11" cy="11" r="8" />
+                            <path d="M21 21l-4.35-4.35" />
+                        </svg>
+                    </span>
+                </div>
+
+                {/* Category chips */}
+                <div className="cp-chips">
+                    <button
+                        className={`cp-chip ${activeCategory === "All" ? "cp-chip-active" : ""}`}
+                        onClick={() => setActiveCategory("All")}
+                    >
+                        All Tests
+                    </button>
+                    {categories.map((category) => (
+                        <button
+                            key={category._id}
+                            className={`cp-chip ${activeCategory === category.name ? "cp-chip-active" : ""}`}
+                            onClick={() => setActiveCategory(category.name)}
+                        >
+                            {category.name}
+                        </button>
+                    ))}
+                </div>
+
+                {/* Test list */}
+                <div style={{ marginTop: "20px", display: "flex", flexDirection: "column", gap: "16px" }}>
+                    {filteredTests.length === 0 ? (
+                        <div style={{ textAlign: "center", padding: "60px 20px", color: "#64748b" }}>
+                            <p style={{ fontSize: "1.1rem", margin: 0 }}>No tests found</p>
                         </div>
-                    </div>
+                    ) : (
+                        filteredTests.map((test) => {
+                            const selected = isTestSelected(test._id);
+                            return (
+                                <div
+                                    key={test._id}
+                                    onClick={() => handleTestToggle(test)}
+                                    style={{
+                                        background: "#fff",
+                                        borderRadius: "16px",
+                                        padding: "20px",
+                                        display: "flex",
+                                        alignItems: "center",
+                                        justifyContent: "space-between",
+                                        gap: "16px",
+                                        cursor: "pointer",
+                                        border: selected ? `2px solid ${TEAL}` : "2px solid transparent",
+                                        boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
+                                        transition: "border-color 0.2s ease",
+                                    }}
+                                >
+                                    <div style={{ minWidth: 0 }}>
+                                        <div style={{ fontSize: "1.25rem", fontWeight: 800, color: "#0f172a", marginBottom: "6px" }}>
+                                            {test.name}
+                                        </div>
+                                        <div style={{ fontSize: "0.95rem", fontWeight: 600, color: TEAL, marginBottom: "8px" }}>
+                                            {test.validFor || "Valid for Both"}
+                                        </div>
+                                        <div style={{ display: "flex", alignItems: "baseline", gap: "10px" }}>
+                                            <span style={{ fontSize: "1.15rem", fontWeight: 800, color: TEAL }}>
+                                                ₹ {test.price}
+                                            </span>
+                                            {test.originalPrice && test.originalPrice > test.price && (
+                                                <span style={{ fontSize: "1rem", color: "#94a3b8", textDecoration: "line-through" }}>
+                                                    ₹ {test.originalPrice}
+                                                </span>
+                                            )}
+                                        </div>
+
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                navigate(`/product?id=${test._id}&category=${encodeURIComponent(test.category || "")}`);
+                                            }}
+                                            style={{
+                                                marginTop: "14px",
+                                                background: "transparent",
+                                                border: `1.5px solid ${TEAL}`,
+                                                color: TEAL,
+                                                fontWeight: 700,
+                                                fontSize: "0.9rem",
+                                                padding: "8px 20px",
+                                                borderRadius: "30px",
+                                                cursor: "pointer",
+                                            }}
+                                        >
+                                            View Details
+                                        </button>
+                                    </div>
+
+                                    {/* Checkbox / tick */}
+                                    <div
+                                        style={{
+                                            flexShrink: 0,
+                                            width: "32px",
+                                            height: "32px",
+                                            borderRadius: "8px",
+                                            border: selected ? `2px solid ${TEAL}` : "2px solid #cbd5e1",
+                                            background: selected ? TEAL : "#fff",
+                                            display: "flex",
+                                            alignItems: "center",
+                                            justifyContent: "center",
+                                            transition: "all 0.2s ease",
+                                        }}
+                                    >
+                                        {selected && (
+                                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                                                <path d="M20 6L9 17l-5-5" />
+                                            </svg>
+                                        )}
+                                    </div>
+                                </div>
+                            );
+                        })
+                    )}
                 </div>
             </div>
 
-            <div className="container create-package-container">
-                <div className="package-builder-layout">
-                    {/* Left Side - Test Selection */}
-                    <div className="tests-section">
-                        {/* Search and Filter */}
-                        <div className="filter-section">
-                            <div className="search-box">
-                                <i className="fas fa-search"></i>
-                                <input
-                                    type="text"
-                                    placeholder="Search tests..."
-                                    value={searchQuery}
-                                    onChange={(e) => setSearchQuery(e.target.value)}
-                                />
-                            </div>
-
-                            <div className="category-filters">
-                                <button
-                                    className={`category-chip ${activeCategory === "All" ? "active" : ""
-                                        }`}
-                                    onClick={() => setActiveCategory("All")}
-                                >
-                                    <i className="fas fa-th"></i> All Tests
-                                </button>
-                                {categories.map((category) => (
-                                    <button
-                                        key={category._id}
-                                        className={`category-chip ${activeCategory === category.name ? "active" : ""
-                                            }`}
-                                        onClick={() => setActiveCategory(category.name)}
-                                    >
-                                        {category.name}
-                                    </button>
-                                ))}
-                            </div>
+            {/* Sticky proceed bar */}
+            {selectedTests.length > 0 && (
+                <div className="cp-proceed-bar">
+                    <div>
+                        <div style={{ fontSize: "0.85rem", color: "#64748b" }}>
+                            {selectedTests.length} {selectedTests.length === 1 ? "test" : "tests"} selected
+                            {getDiscount() > 0 && ` · ${getDiscount()}% off`}
                         </div>
-
-                        {/* Tests Grid */}
-                        <div className="tests-grid">
-                            {filteredTests.length === 0 ? (
-                                <div className="no-tests">
-                                    <i className="fas fa-flask"></i>
-                                    <p>No tests found</p>
-                                </div>
-                            ) : (
-                                filteredTests.map((test) => (
-                                    <div
-                                        key={test._id}
-                                        className={`test-card ${isTestSelected(test._id) ? "selected" : ""
-                                            }`}
-                                        onClick={() => handleTestToggle(test)}
-                                    >
-                                        <div className="test-card-header">
-                                            <div className="test-checkbox">
-                                                <input
-                                                    type="checkbox"
-                                                    checked={isTestSelected(test._id)}
-                                                    onChange={() => { }}
-                                                    onClick={(e) => e.stopPropagation()}
-                                                />
-                                                <span className="checkmark">
-                                                    <i className="fas fa-check"></i>
-                                                </span>
-                                            </div>
-                                            <div className="test-category-badge">{test.category}</div>
-                                        </div>
-
-                                        <div className="test-card-body">
-                                            <h3 className="test-name">{test.name}</h3>
-                                            <p className="test-description">
-                                                {test.description?.substring(0, 80)}
-                                                {test.description?.length > 80 ? "..." : ""}
-                                            </p>
-
-                                            <div className="test-meta">
-                                                {test.totalTests && (
-                                                    <span className="meta-item">
-                                                        <i className="fas fa-vial"></i> {test.totalTests}{" "}
-                                                        parameters
-                                                    </span>
-                                                )}
-                                                {test.reportsIn && (
-                                                    <span className="meta-item">
-                                                        <i className="far fa-clock"></i> {test.reportsIn}
-                                                    </span>
-                                                )}
-                                            </div>
-
-                                            <div className="test-features">
-                                                {test.homeSampleCollection && (
-                                                    <span className="feature-badge">
-                                                        <i className="fas fa-home"></i> Home Collection
-                                                    </span>
-                                                )}
-                                                {test.fastingRequired && (
-                                                    <span className="feature-badge fasting">
-                                                        <i className="fas fa-utensils"></i> Fasting Required
-                                                    </span>
-                                                )}
-                                            </div>
-                                        </div>
-
-                                        <div className="test-card-footer">
-                                            <div className="test-pricing">
-                                                <div className="current-price">₹{test.price}</div>
-                                                {test.originalPrice && test.originalPrice > test.price && (
-                                                    <div className="original-price">
-                                                        ₹{test.originalPrice}
-                                                    </div>
-                                                )}
-                                            </div>
-                                            {test.discountPercentage > 0 && (
-                                                <div className="discount-badge">
-                                                    {test.discountPercentage}% OFF
-                                                </div>
-                                            )}
-                                        </div>
-                                    </div>
-                                ))
+                        <div style={{ fontSize: "1.4rem", fontWeight: 800, color: "#0f172a" }}>
+                            ₹ {getTotalPrice()}
+                            {getTotalOriginalPrice() > getTotalPrice() && (
+                                <span style={{ fontSize: "0.95rem", color: "#94a3b8", textDecoration: "line-through", marginLeft: "8px", fontWeight: 500 }}>
+                                    ₹ {getTotalOriginalPrice()}
+                                </span>
                             )}
                         </div>
                     </div>
-
-                    {/* Right Side - Selected Package Summary */}
-                    <div className="package-summary-section">
-                        <div className="package-summary-sticky">
-                            <div className="package-summary-card">
-                                <div className="summary-header">
-                                    <h2>Your Custom Package</h2>
-                                    <p>
-                                        {selectedTests.length}{" "}
-                                        {selectedTests.length === 1 ? "test" : "tests"} selected
-                                    </p>
-                                </div>
-
-                                <div className="selected-tests-list">
-                                    {selectedTests.length === 0 ? (
-                                        <div className="empty-selection">
-                                            <i className="fas fa-clipboard-list"></i>
-                                            <p>No tests selected yet</p>
-                                            <span>Click on tests to add them to your package</span>
-                                        </div>
-                                    ) : (
-                                        selectedTests.map((test) => (
-                                            <div key={test._id} className="selected-test-item">
-                                                <div className="selected-test-info">
-                                                    <h4>{test.name}</h4>
-                                                    <span className="selected-test-category">
-                                                        {test.category}
-                                                    </span>
-                                                </div>
-                                                <div className="selected-test-actions">
-                                                    <span className="selected-test-price">
-                                                        ₹{test.price}
-                                                    </span>
-                                                    <button
-                                                        className="remove-test-btn"
-                                                        onClick={() => handleTestToggle(test)}
-                                                    >
-                                                        <i className="fas fa-times"></i>
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        ))
-                                    )}
-                                </div>
-
-                                {selectedTests.length > 0 && (
-                                    <>
-                                        <div className="summary-divider"></div>
-
-                                        <div className="price-breakdown">
-                                            <div className="price-row">
-                                                <span>Subtotal</span>
-                                                <span>₹{getTotalOriginalPrice()}</span>
-                                            </div>
-                                            {getDiscount() > 0 && (
-                                                <div className="price-row discount">
-                                                    <span>Package Discount ({getDiscount()}%)</span>
-                                                    <span>
-                                                        -₹{getTotalOriginalPrice() - getTotalPrice()}
-                                                    </span>
-                                                </div>
-                                            )}
-                                            <div className="price-row total">
-                                                <span>Total Amount</span>
-                                                <span>₹{getTotalPrice()}</span>
-                                            </div>
-                                        </div>
-
-                                        <div className="package-benefits">
-                                            <h4>Package Benefits</h4>
-                                            <ul>
-                                                <li>
-                                                    <i className="fas fa-check-circle"></i> Home Sample
-                                                    Collection
-                                                </li>
-                                                <li>
-                                                    <i className="fas fa-check-circle"></i> Quick Report
-                                                    Delivery
-                                                </li>
-                                                <li>
-                                                    <i className="fas fa-check-circle"></i> Expert
-                                                    Consultation
-                                                </li>
-                                                {getDiscount() > 0 && (
-                                                    <li>
-                                                        <i className="fas fa-check-circle"></i> Save{" "}
-                                                        {getDiscount()}% on Package
-                                                    </li>
-                                                )}
-                                            </ul>
-                                        </div>
-
-                                        <button
-                                            className="proceed-btn"
-                                            onClick={handleProceedToCart}
-                                        >
-                                            <i className="fas fa-shopping-cart"></i>
-                                            Add to Cart & Proceed
-                                        </button>
-
-                                        <button
-                                            className="clear-btn"
-                                            onClick={() => setSelectedTests([])}
-                                        >
-                                            <i className="fas fa-trash-alt"></i>
-                                            Clear Selection
-                                        </button>
-                                    </>
-                                )}
-                            </div>
-
-                            {/* Trust Indicators */}
-                            <div className="trust-indicators">
-                                <div className="trust-item">
-                                    <i className="fas fa-shield-alt"></i>
-                                    <span>100% Safe & Secure</span>
-                                </div>
-                                <div className="trust-item">
-                                    <i className="fas fa-certificate"></i>
-                                    <span>NABL Certified Labs</span>
-                                </div>
-                                <div className="trust-item">
-                                    <i className="fas fa-user-md"></i>
-                                    <span>Expert Doctors</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                    <button
+                        onClick={handleProceedToCart}
+                        style={{
+                            background: TEAL,
+                            color: "#fff",
+                            border: "none",
+                            borderRadius: "12px",
+                            padding: "14px 28px",
+                            fontSize: "1.05rem",
+                            fontWeight: 700,
+                            cursor: "pointer",
+                            whiteSpace: "nowrap",
+                        }}
+                    >
+                        Add to Cart
+                    </button>
                 </div>
-            </div>
+            )}
+
+            <style>{`
+                .cp-chips {
+                    display: flex;
+                    gap: 12px;
+                    overflow-x: auto;
+                    padding-bottom: 4px;
+                    -ms-overflow-style: none;
+                    scrollbar-width: none;
+                }
+                .cp-chips::-webkit-scrollbar { display: none; }
+                .cp-chip {
+                    flex-shrink: 0;
+                    padding: 12px 24px;
+                    border-radius: 30px;
+                    border: 1.5px solid #cbd5e1;
+                    background: #fff;
+                    color: #334155;
+                    font-size: 1.05rem;
+                    font-weight: 600;
+                    cursor: pointer;
+                    white-space: nowrap;
+                    transition: all 0.2s ease;
+                }
+                .cp-chip-active {
+                    background: ${TEAL};
+                    border-color: ${TEAL};
+                    color: #fff;
+                }
+                .cp-proceed-bar {
+                    position: fixed;
+                    left: 0;
+                    right: 0;
+                    bottom: 70px;
+                    z-index: 1000;
+                    background: #fff;
+                    box-shadow: 0 -4px 16px rgba(0,0,0,0.1);
+                    padding: 14px 18px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    gap: 16px;
+                }
+                @media (min-width: 768px) {
+                    .cp-proceed-bar { bottom: 0; }
+                }
+            `}</style>
         </div>
     );
 };

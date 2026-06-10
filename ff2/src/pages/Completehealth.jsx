@@ -1076,60 +1076,6 @@ const Completehealth = () => {
           <div style={{ flex: 1, overflowY: "auto", padding: "24px" }}>
             {activeTest && (
               <>
-                {/* Title Block */}
-                <div style={{ marginBottom: "24px" }}>
-                  <div style={{ display: "flex", gap: "10px", marginBottom: "12px" }}>
-                    <span style={{ fontSize: "12px", fontWeight: "600", color: "#3b82f6", background: "#eff6ff", padding: "4px 8px", borderRadius: "6px" }}>
-                      {activeTest.category}
-                    </span>
-                    {activeTest.popular && (
-                      <span style={{ fontSize: "12px", fontWeight: "600", color: "#d97706", background: "#fef3c7", padding: "4px 8px", borderRadius: "6px" }}>
-                        Most Popular
-                      </span>
-                    )}
-                  </div>
-                  <h1 style={{ fontSize: "24px", fontWeight: "800", color: "#1e293b", marginBottom: "12px", lineHeight: "1.3" }}>
-                    {activeTest.title}
-                  </h1>
-                  <p style={{ fontSize: "15px", color: "#64748b", lineHeight: "1.6" }}>
-                    {activeTest.description}
-                  </p>
-                </div>
-
-                {/* Info Grid */}
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", marginBottom: "24px" }}>
-                  <div style={{ background: "#f8fafc", padding: "16px", borderRadius: "12px", border: "1px solid #e2e8f0" }}>
-                    <Clock size={20} color="#3b82f6" style={{ marginBottom: "8px" }} />
-                    <div style={{ fontSize: "12px", color: "#64748b", marginBottom: "4px" }}>Report Time</div>
-                    <div style={{ fontSize: "14px", fontWeight: "600", color: "#0f172a" }}>{activeTest.reportTime}</div>
-                  </div>
-                  <div style={{ background: "#f8fafc", padding: "16px", borderRadius: "12px", border: "1px solid #e2e8f0" }}>
-                    <Beaker size={20} color="#8b5cf6" style={{ marginBottom: "8px" }} />
-                    <div style={{ fontSize: "12px", color: "#64748b", marginBottom: "4px" }}>Sample Type</div>
-                    <div style={{ fontSize: "14px", fontWeight: "600", color: "#0f172a" }}>{activeTest.sampleType}</div>
-                  </div>
-                  <div style={{ background: "#f8fafc", padding: "16px", borderRadius: "12px", border: "1px solid #e2e8f0" }}>
-                    <Activity size={20} color="#ef4444" style={{ marginBottom: "8px" }} />
-                    <div style={{ fontSize: "12px", color: "#64748b", marginBottom: "4px" }}>Fasting</div>
-                    <div style={{ fontSize: "14px", fontWeight: "600", color: "#0f172a" }}>{activeTest.fasting}</div>
-                  </div>
-                  <div style={{ background: "#f8fafc", padding: "16px", borderRadius: "12px", border: "1px solid #e2e8f0" }}>
-                    <Award size={20} color="#f59e0b" style={{ marginBottom: "8px" }} />
-                    <div style={{ fontSize: "12px", color: "#64748b", marginBottom: "4px" }}>Certified</div>
-                    <div style={{ fontSize: "14px", fontWeight: "600", color: "#0f172a" }}>NABL Labs</div>
-                  </div>
-                </div>
-
-                {/* Sections */}
-                <div style={{ marginBottom: "30px" }}>
-                  <h3 style={{ fontSize: "16px", fontWeight: "700", color: "#1e293b", marginBottom: "16px", display: "flex", alignItems: "center", gap: "8px" }}>
-                    <Info size={18} color="#3b82f6" /> Why is this test needed?
-                  </h3>
-                  <p style={{ fontSize: "14px", color: "#475569", lineHeight: "1.6", background: "#eff6ff", padding: "16px", borderRadius: "12px" }}>
-                    {activeTest.whyNeeded}
-                  </p>
-                </div>
-
                 <div style={{ marginBottom: "30px" }}>
                   <h3 style={{ fontSize: "16px", fontWeight: "700", color: "#1e293b", marginBottom: "16px", display: "flex", alignItems: "center", gap: "8px" }}>
                     <FileText size={18} color="#10b981" /> Tests Included ({activeTest.testCount})
@@ -1308,32 +1254,6 @@ const Completehealth = () => {
                                     }} />
                                     {test.name}
                                   </div>
-
-                                  {/* Description */}
-                                  <div style={{
-                                    fontSize: "13px",
-                                    color: "#475569",
-                                    lineHeight: "1.5",
-                                    marginBottom: "8px",
-                                    paddingLeft: "14px"
-                                  }}>
-                                    <strong style={{ color: "#64748b" }}>What it measures:</strong> {test.description}
-                                  </div>
-
-                                  {/* Importance */}
-                                  <div style={{
-                                    fontSize: "13px",
-                                    color: "#334155",
-                                    lineHeight: "1.5",
-                                    paddingLeft: "14px",
-                                    borderLeft: `3px solid ${categoryData.color}`,
-                                    background: "white",
-                                    padding: "8px 12px",
-                                    borderRadius: "6px",
-                                    marginTop: "8px"
-                                  }}>
-                                    <strong style={{ color: categoryData.color }}>Why it matters:</strong> {test.importance}
-                                  </div>
                                 </div>
                               ))}
                             </div>
@@ -1344,38 +1264,6 @@ const Completehealth = () => {
                   </div>
                 </div>
 
-                <div style={{ marginBottom: "30px" }}>
-                  <h3 style={{ fontSize: "16px", fontWeight: "700", color: "#1e293b", marginBottom: "16px", display: "flex", alignItems: "center", gap: "8px" }}>
-                    <CoffeeIcon /> Preparation
-                  </h3>
-                  <ul style={{ padding: "0", margin: "0", listStyle: "none" }}>
-                    {activeTest.preparation?.map((step, i) => (
-                      <li key={i} style={{
-                        display: "flex",
-                        gap: "12px",
-                        marginBottom: "12px",
-                        fontSize: "14px",
-                        color: "#475569",
-                        lineHeight: "1.5"
-                      }}>
-                        <span style={{
-                          background: "#e2e8f0",
-                          color: "#64748b",
-                          width: "24px",
-                          height: "24px",
-                          borderRadius: "50%",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          fontSize: "12px",
-                          fontWeight: "700",
-                          flexShrink: 0
-                        }}>{i + 1}</span>
-                        {step}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
               </>
             )}
           </div>
