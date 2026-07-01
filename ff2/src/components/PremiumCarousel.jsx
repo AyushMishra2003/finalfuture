@@ -75,8 +75,6 @@ const PremiumCarousel = ({ items = [], onAddToCart, onViewDetails, autoPlayInter
         <div
             className="premium-carousel-container w-100 position-relative d-flex justify-content-center align-items-center rounded-5 my-4"
             style={{ height: "600px", overflow: "hidden", perspective: "1200px" }}
-            onMouseEnter={() => setIsPaused(true)}
-            onMouseLeave={() => setIsPaused(false)}
             onTouchStart={handleTouchStart}
             onTouchMove={handleTouchMove}
             onTouchEnd={handleTouchEnd}

@@ -300,7 +300,7 @@ export const mockData = {
         preparation: "10-12 hours fasting required",
         sampleType: "Blood & Urine",
         reportTime: "24-48 Hours",
-        certification: "NABL Accredited",
+        certification: "NABL Certified Lab",
         homeCollection: "Free Home Sample Collection",
         detailedInclusions: {
           "Complete Blood Count (CBC)": ["Haemoglobin", "PCV", "RBC Count", "Total WBC Count", "Differential Count", "Platelet Count"],
@@ -349,7 +349,7 @@ export const mockData = {
         preparation: "Fasting mandatory",
         sampleType: "Blood",
         reportTime: "24 Hours",
-        certification: "NABL Accredited",
+        certification: "NABL Certified Lab",
         homeCollection: "Free Home Collection",
         detailedInclusions: {
           "Lipid Profile": ["Total Cholesterol", "Triglycerides", "HDL", "LDL", "VLDL"],
@@ -372,7 +372,7 @@ export const mockData = {
         preparation: "Fasting required",
         sampleType: "Blood & Urine",
         reportTime: "12-24 Hours",
-        certification: "NABL Accredited",
+        certification: "NABL Certified Lab",
         homeCollection: "Available"
       }
     },
@@ -389,7 +389,7 @@ export const mockData = {
         preparation: "Fasting required",
         sampleType: "Blood & Urine",
         reportTime: "24-48 Hours",
-        certification: "NABL Accredited",
+        certification: "NABL Certified Lab",
         homeCollection: "Free"
       }
     },
@@ -406,7 +406,7 @@ export const mockData = {
         preparation: "Fasting required",
         sampleType: "Blood",
         reportTime: "24 Hours",
-        certification: "NABL Accredited",
+        certification: "NABL Certified Lab",
         homeCollection: "Available"
       }
     }

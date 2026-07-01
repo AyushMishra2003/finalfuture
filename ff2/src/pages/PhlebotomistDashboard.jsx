@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { API_V1 } from '../utils/config';
+import { showToast } from '../utils/toast';
 
 const styles = `
   @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap');
@@ -299,7 +301,7 @@ const PhlebotomistDashboard = () => {
   const [paymentCollected, setPaymentCollected] = useState({});
   const [handoverStatus, setHandoverStatus] = useState({});
 
-  const baseUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000/api/v1';
+  const baseUrl = API_V1;
 
   useEffect(() => { fetchDashboard(); requestLocation(); }, []);
 
@@ -364,16 +366,16 @@ const PhlebotomistDashboard = () => {
       const token = localStorage.getItem('collectorToken');
       const r = await axios.get(`${baseUrl}/phlebotomist/orders/${orderId}`, { headers: { Authorization: `Bearer ${token}` } });
       setSelectedOrder(r.data.data);
-    } catch { alert('Failed to load order details'); }
+    } catch { showToast('Failed to load order details', 'error'); }
   };
 
   const updateOrderStatus = async (orderId, status) => {
     try {
       const token = localStorage.getItem('collectorToken');
       await axios.put(`${baseUrl}/phlebotomist/orders/${orderId}/status`, { status }, { headers: { Authorization: `Bearer ${token}` } });
-      alert('Status updated successfully!');
+      showToast('Status updated');
       fetchDashboard(); setSelectedOrder(null);
-    } catch { alert('Failed to update status'); }
+    } catch { showToast('Failed to update status', 'error'); }
   };
 
   const openNavigation = (url) => window.open(url, '_blank');
@@ -388,8 +390,8 @@ const PhlebotomistDashboard = () => {
         headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'multipart/form-data' }
       });
       setSamplePhotos(prev => ({ ...prev, [`${orderId}-${type}`]: URL.createObjectURL(file) }));
-      alert('Photo uploaded successfully!');
-    } catch { alert('Failed to upload photo'); }
+      showToast('Photo uploaded');
+    } catch { showToast('Failed to upload photo', 'error'); }
   };
 
   const toggleSampleCheck = (orderId, type) => {
@@ -399,13 +401,19 @@ const PhlebotomistDashboard = () => {
   const collectPayment = async (orderId, amount) => {
     try {
       const token = localStorage.getItem('collectorToken');
-      await axios.post(`${baseUrl}/phlebotomist/orders/${orderId}/collect-payment`, 
+      await axios.post(`${baseUrl}/phlebotomist/orders/${orderId}/collect-payment`,
         { amount, method: 'Cash' },
         { headers: { Authorization: `Bearer ${token}` } }
       );
       setPaymentCollected(prev => ({ ...prev, [orderId]: true }));
-      alert('Payment collected successfully!');
-    } catch { alert('Failed to collect payment'); }
+      showToast('Payment collected');
+    } catch { showToast('Failed to collect payment', 'error'); }
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('collectorToken');
+    showToast('Logged out');
+    window.location.href = '/#/phlebotomist/login';
   };
 
   const toggleHandover = (orderId, type) => {
@@ -589,6 +597,18 @@ const PhlebotomistDashboard = () => {
       <style>{styles}</style>
       <div className="phlebotomist-dashboard">
 
+        {/* Top-right actions (works on mobile + desktop) */}
+        <div style={{ position: 'fixed', top: 12, right: 12, zIndex: 200, display: 'flex', gap: 8 }}>
+          <button onClick={fetchDashboard} title="Refresh"
+            style={{ background: '#fff', border: '1px solid #d1d5db', borderRadius: 10, padding: '8px 14px', fontWeight: 600, cursor: 'pointer', fontSize: 13, boxShadow: '0 2px 8px rgba(0,0,0,.1)' }}>
+            🔄 Refresh
+          </button>
+          <button onClick={handleLogout} title="Logout"
+            style={{ background: '#dc2626', color: '#fff', border: 'none', borderRadius: 10, padding: '8px 16px', fontWeight: 600, cursor: 'pointer', fontSize: 13, boxShadow: '0 2px 8px rgba(220,38,38,.25)' }}>
+            Logout
+          </button>
+        </div>
+
         {/* ── DESKTOP NAVBAR ── */}
         {/* <div className="top-navbar">
           <div className="navbar-brand">
@@ -639,7 +659,7 @@ const PhlebotomistDashboard = () => {
           <div className="orders-section">
             <h2 className="section-title">📦 Assigned Orders (Sorted by Distance)</h2>
             {orders.length === 0
-              ? <div className="empty-state">No orders assigned yet</div>
+              ? <div className="empty-state">📭 No orders assigned yet.<br />New collection requests will appear here automatically — tap 🔄 Refresh to check.</div>
               : orders.map(o => <OrderCard key={o._id} order={o} />)
             }
           </div>
@@ -665,7 +685,7 @@ const PhlebotomistDashboard = () => {
           <div className="orders-section">
             <h2 className="section-title">📦 Assigned Orders <span style={{ color:'#888', fontWeight:600, fontSize:14 }}>(Sorted by Distance)</span></h2>
             {orders.length === 0
-              ? <div className="empty-state">No orders assigned yet</div>
+              ? <div className="empty-state">📭 No orders assigned yet.<br />New collection requests will appear here automatically — tap 🔄 Refresh to check.</div>
               : <div className="orders-grid-desktop">{orders.map(o => <OrderCard key={o._id} order={o} />)}</div>
             }
           </div>

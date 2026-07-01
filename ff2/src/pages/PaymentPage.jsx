@@ -8,6 +8,7 @@ import {
 import PaymentSuccess from '../components/PaymentSuccess';
 import PaymentMethodCard from '../components/PaymentMethodCard';
 import HDFCPaymentModal from '../components/HDFCPaymentModal';
+import { API_V1 } from '../utils/config';
 
 const PaymentPage = () => {
     const location = useLocation();
@@ -58,7 +59,7 @@ const PaymentPage = () => {
         }
         try {
             const token = localStorage.getItem('userToken') || localStorage.getItem('token');
-            const res = await fetch('http://localhost:5000/api/v1/orders', {
+            const res = await fetch(`${API_V1}/orders`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'Authorization': token ? `Bearer ${token}` : '' },
                 body: JSON.stringify({
@@ -85,7 +86,7 @@ const PaymentPage = () => {
         }
         try {
             const token = localStorage.getItem('userToken') || localStorage.getItem('token');
-            const res = await fetch('http://localhost:5000/api/v1/orders', {
+            const res = await fetch(`${API_V1}/orders`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'Authorization': token ? `Bearer ${token}` : '' },
                 body: JSON.stringify({ orderItems: items.map(i => ({ name: i.name, price: i.price, quantity: 1, itemId: i._id || i.id })), shippingAddress: { address: 'Test', city: 'Bangalore', postalCode: '560001', country: 'India' }, location: userLocation, paymentMethod: 'Cash on Delivery', itemsPrice: finalAmount, taxPrice: 0, shippingPrice: 0, totalPrice: finalAmount, isPaid: false, orderStatus: 'processing', userId: localStorage.getItem('userId') || '000000000000000000000000' })

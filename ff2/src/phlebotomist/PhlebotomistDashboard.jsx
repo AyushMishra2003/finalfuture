@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import './PhlebotomistDashboard.css';
+import { API_V1 } from '../utils/config';
 
-const baseUrl = 'http://localhost:5000/api/v1';
+const baseUrl = API_V1;
 
 
 

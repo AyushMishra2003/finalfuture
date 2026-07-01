@@ -3,6 +3,7 @@ import { Link, useLocation } from "react-router-dom";
 import SearchComponent from "./SearchComponent";
 import LoginSidebar from "./LoginSidebar";
 import { baseUrl } from "../utils/config";
+import { getCartCount } from "../utils/cart";
 import "./Header.css";
 
 const Header = () => {
@@ -16,7 +17,9 @@ const Header = () => {
 
   // Pages that have their own search bar — hide the header search bar there
   const location = useLocation();
-  const hideHeaderSearch = location.pathname === "/create-package";
+  const hideHeaderSearch =
+    location.pathname === "/create-package" ||
+    location.pathname === "/completehealth";
 
   // Navigation links for the hamburger drawer
   const navLinks = [
@@ -69,7 +72,13 @@ const Header = () => {
 
     checkLoginStatus();
     window.addEventListener("storage", checkLoginStatus);
-    return () => window.removeEventListener("storage", checkLoginStatus);
+    // Allow other pages (e.g. cart checkout) to open the login panel
+    const openLogin = () => setIsSidebarOpen(true);
+    window.addEventListener("open-login", openLogin);
+    return () => {
+      window.removeEventListener("storage", checkLoginStatus);
+      window.removeEventListener("open-login", openLogin);
+    };
   }, []);
 
   const handleLogout = () => {
@@ -84,8 +93,7 @@ const Header = () => {
   // Cart count effect
   useEffect(() => {
     const updateCartCount = () => {
-      const cart = JSON.parse(localStorage.getItem("cart")) || [];
-      const newCount = cart.length;
+      const newCount = getCartCount();
 
       // Trigger pulse animation when cart count increases
       if (newCount > cartCount) {
@@ -98,7 +106,11 @@ const Header = () => {
 
     updateCartCount();
     window.addEventListener("storage", updateCartCount);
-    return () => window.removeEventListener("storage", updateCartCount);
+    window.addEventListener("cartUpdated", updateCartCount);
+    return () => {
+      window.removeEventListener("storage", updateCartCount);
+      window.removeEventListener("cartUpdated", updateCartCount);
+    };
   }, [cartCount]);
 
   // Scroll effect for header
@@ -185,6 +197,28 @@ const Header = () => {
           animation: logoBounce 0.5s ease;
         }
 
+        /* New brand wordmark logo — own class so legacy ".logo" rules don't distort it */
+        .brand-logo {
+          height: 38px;
+          width: auto;
+          max-width: 230px;
+          object-fit: contain;
+          display: block;
+          transition: transform 0.3s ease;
+        }
+        @media (max-width: 768px) {
+          .brand-logo {
+            height: 30px;
+            max-width: 150px;
+          }
+        }
+        @media (max-width: 380px) {
+          .brand-logo {
+            height: 26px;
+            max-width: 130px;
+          }
+        }
+
         @keyframes logoBounce {
           0%, 100% { transform: translateY(0); }
           25% { transform: translateY(-10px); }
@@ -248,17 +282,12 @@ const Header = () => {
                     }}
                   />
                   <img
-                    src="/images/logo/WhatsApp Image 2025-08-19 at 17.38.25_ee7be669.jpg"
-                    alt="FutureLabs"
-                    className="logo"
+                    src="/images/logo/futurelabs24-logo.png"
+                    alt="Future Labs 24.com"
+                    className="brand-logo"
                     onError={(e) => {
                       e.target.onerror = null;
                       e.target.src = "/images/logo/favicon.jpg";
-                    }}
-                    style={{
-                      height: "40px",
-                      width: "auto",
-                      transition: "transform 0.3s ease"
                     }}
                   />
                 </div>
@@ -269,9 +298,11 @@ const Header = () => {
             {/* Home + Search + Contact Us */}
             <div className="d-flex align-items-center justify-content-center gap-3 flex-grow-1 px-xl-5" style={{ maxWidth: "800px", margin: "0 auto" }}>
               {/* Search Component */}
-              <div className="flex-grow-1 w-100">
-                <SearchComponent />
-              </div>
+              {!hideHeaderSearch && (
+                <div className="flex-grow-1 w-100">
+                  <SearchComponent />
+                </div>
+              )}
 
               {/* Home Button */}
               <Link
@@ -447,15 +478,10 @@ const Header = () => {
             </button>
             <Link to="/" className="logo-bounce d-inline-flex align-items-center" style={{ textDecoration: 'none' }}>
               <img
-                src={`${process.env.PUBLIC_URL}/images/logo/favicon.jpg`}
-                alt="Favicon"
-                style={{ height: '26px', width: 'auto', marginRight: '7px' }}
-              />
-              <img
-                src={`${process.env.PUBLIC_URL}/images/logo/WhatsApp Image 2025-08-19 at 17.38.25_ee7be669.jpg`}
-                alt="FutureLabs"
+                src={`${process.env.PUBLIC_URL}/images/logo/futurelabs24-logo.png`}
+                alt="Future Labs 24.com"
+                className="brand-logo"
                 onError={(e) => { e.target.onerror = null; e.target.src = `${process.env.PUBLIC_URL}/images/logo/favicon.jpg`; }}
-                style={{ height: '46px', width: 'auto' }}
               />
             </Link>
           </div>

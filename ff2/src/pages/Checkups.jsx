@@ -5,6 +5,8 @@ import apiService from "../utils/api";
 import PatientSelectionModal from "../components/PatientSelectionModal";
 import AppointmentTimeModal from "../components/AppointmentTimeModal";
 import LocationSelectionModal from "../components/LocationSelectionModal";
+import { addToCart as addToCartService } from "../utils/cart";
+import { showToast } from "../utils/toast";
 
 const Checkups = () => {
   const [tabs, setTabs] = useState([]);
@@ -78,21 +80,10 @@ const Checkups = () => {
     window.history.pushState({}, "", newUrl);
   };
 
+  // Add to Cart = simple add. Appointment/patient/location are chosen at checkout.
   const handleAddToCartClick = (test) => {
-    // Check if item already in cart
-    const currentCart = JSON.parse(localStorage.getItem('cart') || '[]');
-    const existingItem = currentCart.find(
-      (item) => item.id === test._id || item._id === test._id
-    );
-
-    if (existingItem) {
-      alert("Item is already in your cart!");
-      return;
-    }
-
-    // Open patient selection modal
-    setSelectedTest(test);
-    setIsPatientModalOpen(true);
+    addToCartService(test);
+    showToast(`${test.name} added to cart`);
   };
 
   if (loading && tabs.length === 0) {

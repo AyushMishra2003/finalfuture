@@ -39,6 +39,8 @@ import apiService from "../utils/api";
 import PatientSelectionModal from "../components/PatientSelectionModal";
 import AppointmentTimeModal from "../components/AppointmentTimeModal";
 import LocationSelectionModal from "../components/LocationSelectionModal";
+import { addToCart as addToCartService } from "../utils/cart";
+import { showToast as toast } from "../utils/toast";
 
 const Completehealth = () => {
   // State
@@ -365,7 +367,7 @@ const Completehealth = () => {
   const stats = [
     { label: "Tests Available", value: "150+", icon: Beaker, color: "#3b82f6" },
     { label: "Avg Report Time", value: "12 Hrs", icon: Clock, color: "#10b981" },
-    { label: "Labs Certified", value: "100% NABL", icon: Award, color: "#f59e0b" },
+    { label: "NABL Certified Lab", value: "100%", icon: Award, color: "#f59e0b" },
     { label: "Happy Patients", value: "50k+", icon: Heart, color: "#ef4444" },
   ];
 
@@ -562,9 +564,18 @@ const Completehealth = () => {
     document.body.style.overflow = 'auto';
   };
 
+  // Add to Cart = simple add. Patient/appointment/location are chosen at checkout.
   const handleBookTest = (test) => {
-    setSelectedTestForBooking(test);
-    setIsPatientModalOpen(true);
+    const name = test.title || test.name || test.testName || "Test";
+    addToCartService({
+      _id: test.id || test._id,
+      name,
+      price: test.price,
+      originalPrice: test.mrp || test.originalPrice,
+      category: test.category,
+      description: test.description,
+    });
+    toast(`${name} added to cart`);
   };
 
   // Toggle test category expansion
@@ -687,7 +698,7 @@ const Completehealth = () => {
                 <span style={{ color: "#cbd5e1" }}>|</span>
                 <Home size={18} color="#f59e0b" /> Free Home Collection
                 <span style={{ color: "#cbd5e1" }}>|</span>
-                <Award size={18} color="#6366f1" /> NABL Certified
+                <Award size={18} color="#6366f1" /> NABL Certified Lab
               </p>
             </div>
 
@@ -695,33 +706,36 @@ const Completehealth = () => {
 
             {/* Search Bar */}
             <div style={{
-              position: "relative",
+              display: "flex",
+              alignItems: "center",
+              gap: "12px",
               maxWidth: "600px",
               margin: "0 auto",
-              boxShadow: "0 10px 25px -5px rgba(59, 130, 246, 0.15)"
+              padding: "0 18px",
+              background: "white",
+              borderRadius: "16px",
+              border: "2px solid white",
+              boxShadow: "0 10px 25px -5px rgba(59, 130, 246, 0.15)",
+              transition: "border-color 0.2s ease"
             }}>
-              <Search
-                size={20}
-                color="#94a3b8"
-                style={{ position: "absolute", left: "15px", top: "50%", transform: "translateY(-50%)" }}
-              />
+              <Search size={20} color="#94a3b8" style={{ flexShrink: 0 }} />
               <input
                 type="text"
                 placeholder="Search checks, tests, or organs..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 style={{
-                  width: "100%",
-                  padding: "16px 16px 16px 50px",
-                  borderRadius: "16px",
-                  border: "2px solid white",
-                  fontSize: "16px",
+                  flex: 1,
+                  minWidth: 0,
+                  padding: "15px 0",
+                  border: "none",
                   outline: "none",
-                  transition: "all 0.3s",
-                  background: "white"
+                  background: "transparent",
+                  fontSize: "16px",
+                  color: "#0f172a"
                 }}
-                onFocus={(e) => e.target.style.borderColor = "#3b82f6"}
-                onBlur={(e) => e.target.style.borderColor = "white"}
+                onFocus={(e) => { e.currentTarget.parentElement.style.borderColor = "#3b82f6"; }}
+                onBlur={(e) => { e.currentTarget.parentElement.style.borderColor = "white"; }}
               />
             </div>
           </div>
@@ -1454,9 +1468,10 @@ const Completehealth = () => {
 
             {/* Heading */}
             <div style={{ textAlign: "center", marginBottom: "28px", position: "relative", zIndex: 1 }}>
-              <p style={{ color: "rgba(255,255,255,0.7)", fontSize: "0.78rem", fontWeight: 600, letterSpacing: "1.2px", textTransform: "uppercase", marginBottom: "6px" }}>
+              {/* Use a div (not <p>) so the global "p { color !important }" rule can't override it */}
+              <div style={{ color: "#ffd24a", fontSize: "0.78rem", fontWeight: 700, letterSpacing: "1.4px", textTransform: "uppercase", marginBottom: "8px" }}>
                 Why Choose FutureLabs
-              </p>
+              </div>
               <h2 style={{ color: "#fff", fontSize: "clamp(1.2rem, 3vw, 1.7rem)", fontWeight: 800, margin: 0 }}>
                 Trusted by Thousands Across India
               </h2>
@@ -1471,30 +1486,40 @@ const Completehealth = () => {
               zIndex: 1
             }}>
               {[
-                { icon: Beaker,  color: "#93c5fd", bg: "rgba(59,130,246,0.2)",  value: "150+",      label: "Tests Available" },
-                { icon: Clock,   color: "#6ee7b7", bg: "rgba(16,185,129,0.2)",  value: "12 Hrs",    label: "Avg Report Time" },
-                { icon: Award,   color: "#fde68a", bg: "rgba(245,158,11,0.2)",  value: "100% NABL", label: "Labs Certified" },
-                { icon: Heart,   color: "#fca5a5", bg: "rgba(239,68,68,0.2)",   value: "50k+",      label: "Happy Patients" },
+                { icon: Clock,  value: "12 Hrs",    label: "Avg Report Time" },
+                { icon: Award,  value: "100%", label: "NABL Certified Lab" },
+                { icon: Heart,  value: "50k+",      label: "Happy Patients" },
               ].map((stat, idx) => (
                 <div key={idx} style={{
-                  background: stat.bg,
+                  background: "rgba(255,255,255,0.1)",
                   backdropFilter: "blur(10px)",
-                  border: "1px solid rgba(255,255,255,0.18)",
+                  border: "1px solid rgba(255,255,255,0.2)",
                   borderRadius: "18px",
-                  padding: "20px 16px",
+                  padding: "22px 16px",
                   display: "flex",
                   flexDirection: "column",
                   alignItems: "center",
                   textAlign: "center",
-                  transition: "transform 0.2s ease",
+                  transition: "transform 0.2s ease, background 0.2s ease",
                   cursor: "default"
                 }}
-                  onMouseEnter={e => e.currentTarget.style.transform = "translateY(-4px)"}
-                  onMouseLeave={e => e.currentTarget.style.transform = "translateY(0)"}
+                  onMouseEnter={e => { e.currentTarget.style.transform = "translateY(-4px)"; e.currentTarget.style.background = "rgba(255,255,255,0.16)"; }}
+                  onMouseLeave={e => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.background = "rgba(255,255,255,0.1)"; }}
                 >
-                  <stat.icon size={28} color={stat.color} style={{ marginBottom: "10px" }} aria-hidden="true" />
-                  <div style={{ fontSize: "1.4rem", fontWeight: 800, color: "#fff", lineHeight: 1.1 }}>{stat.value}</div>
-                  <div style={{ fontSize: "0.75rem", color: "rgba(255,255,255,0.75)", fontWeight: 500, marginTop: "4px" }}>{stat.label}</div>
+                  <div style={{
+                    width: "52px",
+                    height: "52px",
+                    borderRadius: "14px",
+                    background: "rgba(255,255,255,0.15)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    marginBottom: "12px"
+                  }}>
+                    <stat.icon size={26} color="#ffd24a" aria-hidden="true" />
+                  </div>
+                  <div style={{ fontSize: "1.45rem", fontWeight: 800, color: "#fff", lineHeight: 1.1 }}>{stat.value}</div>
+                  <div style={{ fontSize: "0.78rem", color: "rgba(255,255,255,0.88)", fontWeight: 500, marginTop: "5px" }}>{stat.label}</div>
                 </div>
               ))}
             </div>

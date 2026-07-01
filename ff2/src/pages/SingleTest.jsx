@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import apiService from "../utils/api";
 import { baseUrl } from "../utils/config";
+import { addToCart as addToCartService } from "../utils/cart";
+import { showToast } from "../utils/toast";
 
 const SingleTest = () => {
   const [testData, setTestData] = useState([]);
@@ -33,31 +35,9 @@ const SingleTest = () => {
     fetchData();
   }, []);
 
-  const addToCart = async (testId) => {
-    const userId = localStorage.getItem("userId");
-
-    if (!userId) {
-      alert("Please login to add items to cart");
-      // Trigger the login sidebar
-      const sidebar = document.getElementById("sidebar");
-      if (sidebar) {
-        sidebar.classList.add("show");
-      }
-      return;
-    }
-
-    try {
-      const response = await apiService.addToCart(userId, testId);
-
-      if (response.success) {
-        alert("Item added to cart successfully!");
-      } else {
-        alert(response.error || "Failed to add item to cart");
-      }
-    } catch (error) {
-      console.error("Error adding to cart:", error);
-      alert("Error adding item to cart. Please try again.");
-    }
+  const addToCart = (test) => {
+    addToCartService(test);
+    showToast(`${test.name} added to cart`);
   };
 
   if (loading) {
@@ -202,7 +182,7 @@ const SingleTest = () => {
                       </Link>
                       <button
                         className="btn btn-primary"
-                        onClick={() => addToCart(test._id)}
+                        onClick={() => addToCart(test)}
                       >
                         Add to Cart
                       </button>

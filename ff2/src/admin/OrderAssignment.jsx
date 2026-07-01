@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { API_V1 } from '../utils/config';
 
 const styles = `
   @import url('https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:wght@400;500;600&display=swap');
@@ -339,7 +340,7 @@ const OrderAssignment = () => {
   const [activeTab, setActiveTab] = useState('unassigned');
   const [currentPage, setCurrentPage] = useState(1);
 
-  const baseUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000/api/v1';
+  const baseUrl = API_V1;
 
   useEffect(() => {
     fetchOrders();

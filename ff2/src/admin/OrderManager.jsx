@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import "./AdminDashboard.css";
+import { API_V1 } from "../utils/config";
 
 const OrderManager = () => {
   const [orders, setOrders] = useState([]);
@@ -18,7 +19,7 @@ const OrderManager = () => {
 
   const fetchOrders = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/api/v1/orders');
+      const response = await axios.get(`${API_V1}/orders`);
       
       if (response.data.success) {
         // Add readable address for each order
@@ -87,7 +88,7 @@ const OrderManager = () => {
   const handleStatusChange = async (orderId, newStatus) => {
     try {
       await axios.put(
-        `http://localhost:5000/api/v1/orders/${orderId}/status`,
+        `${API_V1}/orders/${orderId}/status`,
         { status: newStatus }
       );
       fetchOrders();
@@ -107,7 +108,7 @@ const OrderManager = () => {
     setLoadingCollectors(true);
     
     try {
-      const response = await fetch('http://localhost:5000/api/v1/admin/collector-folders');
+      const response = await fetch(`${API_V1}/admin/collector-folders`);
       const data = await response.json();
       
       console.log('Collectors API response:', data);
@@ -131,7 +132,7 @@ const OrderManager = () => {
   const assignCollector = async (collectorId) => {
     try {
       await axios.put(
-        `http://localhost:5000/api/v1/orders/${selectedOrder._id}`,
+        `${API_V1}/orders/${selectedOrder._id}`,
         { assignedCollector: collectorId }
       );
       

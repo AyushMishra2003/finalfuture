@@ -11,10 +11,12 @@ export const getImagePath = (imagePath) => {
   return `${PUBLIC_URL}/${cleanPath}`;
 };
 
-// API Configuration
-// export const baseUrl = "http://localhost:5000";
-// export const baseUrl = "http://localhost:5000";
-export const baseUrl = "https://api.futurelabs24.com";
+// API Configuration — single global source of truth for the backend URL.
+// Override at build time with REACT_APP_API_URL if needed.
+export const baseUrl = process.env.REACT_APP_API_URL || "http://147.93.19.196:5001";
+
+// Full API v1 base. Most backend endpoints live under `/api/v1`.
+export const API_V1 = `${baseUrl}/api/v1`;
 
 export const API_ENDPOINTS = {
   // Main banners

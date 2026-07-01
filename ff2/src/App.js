@@ -1,5 +1,6 @@
-import React from 'react';
-import { Routes, Route } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { loadAccountCart } from './utils/cart';
 
 // Import page components
 import Home from './pages/Home';
@@ -23,9 +24,12 @@ import CreatePackage from './pages/CreatePackage';
 import SendOtpTest from './pages/SendOtpTest';
 import SendOtpBhashSMSTest from './pages/SendOtpBhashSMSTest';
 import SpecialOffers from './pages/SpecialOffers';
+import TodaysOffers from './pages/TodaysOffers';
 
 import UserProfile from './pages/UserProfile';
 import UserOrders from './pages/UserOrders';
+import ResetPassword from './pages/ResetPassword';
+import Dashboard from './pages/Dashboard';
 import PaymentCallback from './pages/PaymentCallback';
 import PaymentPage from './pages/PaymentPage';
 import OrderConfirmation from './pages/OrderConfirmation';
@@ -53,9 +57,16 @@ import { Search, CheckCircle, AlertTriangle } from "react-feather";
 
 
 function App() {
-  const location = window.location;
+  // Use the router location (works with HashRouter — window.location.pathname is always "/")
+  const location = useLocation();
   const isAdminRoute = location.pathname.startsWith('/admin');
   const isPhlebotomistRoute = location.pathname.startsWith('/phlebotomist');
+
+  // On startup, if a session exists, pull the saved cart from the account and
+  // merge it into the local cart so it follows the user across devices/tabs.
+  useEffect(() => {
+    loadAccountCart();
+  }, []);
 
   return (
     <div className="App">
@@ -67,6 +78,7 @@ function App() {
           <Route path="/checkups" element={<Checkups />} />
           <Route path="/money-saving-packages" element={<MoneySavingPackages />} />
           <Route path="/offers" element={<SpecialOffers />} />
+          <Route path="/offer" element={<TodaysOffers />} />
           <Route path="/completehealth" element={<Completehealth />} />
           <Route path="/package" element={<Package />} />
           <Route path="/create-package" element={<CreatePackage />} />
@@ -85,8 +97,10 @@ function App() {
           <Route path="/contact" element={<Contact />} />
 
           {/* User Routes */}
-          <Route path="/profile" element={<UserProfile />} />
-          <Route path="/orders" element={<UserOrders />} />
+          <Route path="/dashboard" element={<Dashboard defaultTab="overview" />} />
+          <Route path="/profile" element={<Dashboard defaultTab="profile" />} />
+          <Route path="/orders" element={<Dashboard defaultTab="orders" />} />
+          <Route path="/reset-password/:token" element={<ResetPassword />} />
 
           <Route path="/payment/callback" element={<PaymentCallback />} />
           <Route path="/payment" element={<PaymentPage />} />
@@ -101,6 +115,7 @@ function App() {
           <Route path="/admin/*" element={<AdminAuthWrapper><AdminDashboard /></AdminAuthWrapper>} />
 
           {/* Phlebotomist Routes */}
+          <Route path="/phlebotomist" element={<Navigate to="/phlebotomist/login" replace />} />
           <Route path="/phlebotomist/login" element={<PhlebotomistLogin />} />
           <Route path="/phlebotomist/dashboard" element={<PhlebotomistAuthWrapper><PhlebotomistDashboard /></PhlebotomistAuthWrapper>} />
 

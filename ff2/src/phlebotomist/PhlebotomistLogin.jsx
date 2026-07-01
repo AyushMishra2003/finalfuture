@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import './PhlebotomistLogin.css';
+import { API_V1 } from '../utils/config';
 
 const PhlebotomistLogin = () => {
     const navigate = useNavigate();
@@ -25,7 +26,7 @@ const PhlebotomistLogin = () => {
         setLoading(true);
 
         try {
-            const response = await axios.post('http://localhost:5000/api/v1/collector/login', {
+            const response = await axios.post(`${API_V1}/collector/login`, {
                 phone: formData.phone,
                 password: formData.password
             });

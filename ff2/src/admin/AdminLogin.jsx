@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate, Navigate } from "react-router-dom";
+import { baseUrl } from "../utils/config";
 import "./AdminDashboard.css";
 
 const AdminLogin = () => {
@@ -25,25 +26,31 @@ const AdminLogin = () => {
     });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError("");
 
-    // Simulate API call
-    setTimeout(() => {
-      if (
-        credentials.username === "admin" &&
-        credentials.password === "admin123"
-      ) {
-        // Successful login - redirect to admin dashboard
-        localStorage.setItem("adminToken", "admin-token-123");
+    try {
+      // Authenticate against the backend and store a REAL admin JWT
+      const res = await fetch(`${baseUrl}/api/v1/auth/admin/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(credentials),
+      });
+      const data = await res.json();
+      if (data.success && data.token) {
+        localStorage.setItem("adminToken", data.token);
+        localStorage.setItem("adminName", (data.data && data.data.name) || "Admin");
         navigate("/admin/dashboard");
       } else {
-        setError("Invalid username or password");
+        setError(data.error || "Invalid username or password");
       }
+    } catch (err) {
+      setError("Login failed. Please try again.");
+    } finally {
       setLoading(false);
-    }, 1000);
+    }
   };
 
   return (

@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useSearchParams, useNavigate, Link } from "react-router-dom";
+import { addToCart as addToCartService } from "../utils/cart";
+import { showToast } from "../utils/toast";
 import {
   AlertTriangle,
   ArrowLeft,
@@ -90,9 +92,11 @@ const Product = () => {
     const fetchProduct = async () => {
       setLoading(true);
       try {
-        // First try to find in special offers (shared mock data)
+        // First try to find in special offers (shared mock data).
+        // Use a strict string compare — parseInt() on a Mongo ObjectId like
+        // "5d7a514b..." returns 5 and would wrongly match special-offer id 5.
         const specialOffer = mockData.specialOffers?.find(
-          (p) => p.id === parseInt(productId) || p.id === productId
+          (p) => String(p.id) === String(productId)
         );
 
         if (specialOffer) {
@@ -104,7 +108,7 @@ const Product = () => {
             reviews: 1247,
             details: {
               ...specialOffer.details,
-              certification: specialOffer.details.certification || "NABL Certified",
+              certification: specialOffer.details.certification || "NABL Certified Lab",
               // Ensure inclusions is an array
               inclusions: Array.isArray(specialOffer.details.inclusions)
                 ? specialOffer.details.inclusions
@@ -119,17 +123,44 @@ const Product = () => {
         if (productId) {
           const response = await apiService.getTestById(productId);
           if (response.success) {
+            const d = response.data;
+            // Normalize the API test shape (name/includes/reportsIn/...) into the
+            // shape this page renders (title/details.inclusions/string prices/...).
+            const inclusions =
+              Array.isArray(d.includes) && d.includes.length
+                ? d.includes
+                : Array.isArray(d.details?.inclusions)
+                ? d.details.inclusions
+                : [];
             setProduct({
-              ...response.data,
-              image: response.data.image || response.data.imageUrl || response.data.imagePath,
-              rating: 4.5,
-              reviews: 850,
-              oldPrice: response.data.originalPrice || `₹${parseInt(response.data.price) + 500}`,
+              ...d,
+              title: d.title || d.name,
+              image: d.image || d.imageUrl || d.imagePath,
+              tests: d.totalTests
+                ? `${d.totalTests} ${d.totalTests === 1 ? "Test" : "Tests"}`
+                : inclusions.length
+                ? `${inclusions.length} Tests`
+                : "",
+              rating: d.ratings || d.rating || 4.5,
+              reviews: d.numOfReviews || d.reviews || 0,
+              price: typeof d.price === "number" ? `₹${d.price}` : d.price,
+              oldPrice: d.originalPrice ? `₹${d.originalPrice}` : "",
+              discount: d.discountPercentage ? `${d.discountPercentage}% OFF` : "",
               details: {
-                ...response.data.details,
-                inclusions: response.data.details?.inclusions || ["Complete Blood Count", "Consultation"],
-                homeCollection: "Available"
-              }
+                ...d.details,
+                inclusions,
+                certification: d.details?.certification || "NABL Certified Lab",
+                homeCollection:
+                  d.homeSampleCollection === false ? "Not Available" : "Available",
+                reportTime: d.reportsIn || d.details?.reportTime || "24-48 Hours",
+                sampleType: d.sampleType || d.details?.sampleType || "Blood Sample",
+                preparation:
+                  d.preparation ||
+                  d.details?.preparation ||
+                  (d.fastingRequired
+                    ? "Fasting required before sample collection."
+                    : "No special preparation required."),
+              },
             });
           } else {
             // Fallback to mock single tests if API fails
@@ -202,27 +233,36 @@ const Product = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Parallax effect value
-  const parallaxOffset = scrollY * 0.5;
-
-  // Calculate blur based on scroll
-  const blurAmount = Math.min(scrollY / 50, 10);
-
+  // Add to Cart = simple add. Patient/appointment/location are collected later
+  // at checkout (not here), matching the standard lab-booking flow.
   const handleAddToCartClick = () => {
     if (!product) return;
+    const toNum = (v) =>
+      typeof v === 'number' ? v : parseInt(String(v || '').replace(/[^\d]/g, ''), 10) || 0;
+    addToCartService({
+      ...product,
+      id: product.id || product._id,
+      name: product.name || product.title,
+      price: toNum(product.price),
+      originalPrice: product.oldPrice ? toNum(product.oldPrice) : undefined,
+    });
+    showToast(`${product.name || product.title} added to cart`);
+  };
 
-    const currentCart = JSON.parse(localStorage.getItem('cart') || '[]');
-    const existingItemIndex = currentCart.findIndex(
-      (item) => item.id === product.id || item._id === product.id
-    );
-
-    if (existingItemIndex > -1) {
-      alert("Item is already in your cart!");
-      return;
-    }
-
-    // Open patient selection modal
-    setIsPatientModalOpen(true);
+  // Buy Now — quick add to the cart and jump straight to checkout.
+  const handleBuyNow = () => {
+    if (!product) return;
+    const toNum = (v) =>
+      typeof v === 'number' ? v : parseInt(String(v || '').replace(/[^\d]/g, ''), 10) || 0;
+    addToCartService({
+      ...product,
+      id: product.id || product._id,
+      name: product.name || product.title,
+      price: toNum(product.price),
+      originalPrice: product.oldPrice ? toNum(product.oldPrice) : undefined,
+    });
+    showToast('Added to cart — proceeding to checkout');
+    navigate('/cart');
   };
 
   const handlePatientSelectionNext = (selectedPatients) => {
@@ -369,14 +409,9 @@ const Product = () => {
           </div>
         </div>
 
-        {/* Hero Section with Parallax and Blur Effect */}
+        {/* Hero Section */}
         <div
-          className="relative bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50 pt-20 pb-16 md:pb-32 px-4 sm:px-6 lg:px-8 overflow-hidden transition-all duration-300"
-          style={{
-            transform: `translateY(${parallaxOffset}px)`,
-            filter: `blur(${blurAmount}px)`,
-            opacity: Math.max(0.3, 1 - scrollY / 800)
-          }}
+          className="relative bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50 pt-20 pb-16 md:pb-32 px-4 sm:px-6 lg:px-8 overflow-hidden"
         >
           {/* Decorative Blobs */}
           <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-br from-emerald-200/30 to-teal-200/30 rounded-full blur-3xl"></div>
@@ -393,10 +428,10 @@ const Product = () => {
               </button>
               <ChevronRight size={14} />
               <button
-                onClick={() => navigate('/offers')}
-                className="hover:text-emerald-600 transition-colors"
+                onClick={() => navigate(-1)}
+                className="hover:text-emerald-600 transition-colors capitalize"
               >
-                special offers
+                {product.category || 'Special Offers'}
               </button>
               <ChevronRight size={14} />
               <span className="font-medium text-gray-900">{product.title}</span>
@@ -428,56 +463,78 @@ const Product = () => {
                 </div>
 
                 <div className="flex flex-wrap gap-3 mb-8">
-                  <span className="inline-flex items-center px-4 py-2 rounded-full text-sm font-bold bg-emerald-600 text-white shadow-lg shadow-emerald-600/20">
-                    <TestTube size={16} className="mr-2" />
-                    {product.tests}
-                  </span>
-                  <span className="inline-flex items-center px-4 py-2 rounded-full text-sm font-bold bg-white text-sky-600 shadow-lg">
-                    <ShieldCheck size={16} className="mr-2" />
-                    {product.details.certification}
-                  </span>
-                  <span className="inline-flex items-center px-4 py-2 rounded-full text-sm font-bold bg-white text-orange-600 shadow-lg">
-                    <Zap size={16} className="mr-2" />
-                    {product.discount}
-                  </span>
+                  {product.tests && (
+                    <span className="inline-flex items-center px-4 py-2 rounded-full text-sm font-bold bg-emerald-600 text-white shadow-lg shadow-emerald-600/20">
+                      <TestTube size={16} className="mr-2" />
+                      {product.tests}
+                    </span>
+                  )}
+                  {product.details.certification && (
+                    <span className="inline-flex items-center px-4 py-2 rounded-full text-sm font-bold bg-white text-sky-600 shadow-lg">
+                      <ShieldCheck size={16} className="mr-2" />
+                      {product.details.certification}
+                    </span>
+                  )}
+                  {product.discount && (
+                    <span className="inline-flex items-center px-4 py-2 rounded-full text-sm font-bold bg-white text-orange-600 shadow-lg">
+                      <Zap size={16} className="mr-2" />
+                      {product.discount}
+                    </span>
+                  )}
                 </div>
 
                 <div className="flex items-baseline gap-4 mb-8">
                   <span className="text-6xl font-black text-emerald-600">{product.price}</span>
-                  <span className="text-2xl text-gray-400 line-through">{product.oldPrice}</span>
+                  {product.oldPrice && (
+                    <span className="text-2xl text-gray-400 line-through">{product.oldPrice}</span>
+                  )}
                 </div>
 
-                <div className="flex gap-3">
+                <div className="flex items-stretch gap-3">
+                  {/* Primary CTAs */}
                   <button
                     id="add-to-cart-btn"
                     onClick={handleAddToCartClick}
-                    className="flex-1 py-3 px-6 md:py-4 md:px-8 bg-gradient-to-r from-emerald-600 to-teal-600 text-white rounded-xl md:rounded-2xl font-bold text-base md:text-lg shadow-xl shadow-emerald-600/30 hover:shadow-emerald-600/40 hover:scale-105 transition-all duration-300 flex items-center justify-center gap-2 md:gap-3"
+                    className={`flex-1 h-14 px-3 md:px-6 rounded-2xl font-bold text-sm md:text-lg whitespace-nowrap shadow-lg transition-colors duration-200 flex items-center justify-center gap-1.5 md:gap-2 ${cartCount > 0
+                      ? 'bg-emerald-50 text-emerald-700 border-2 border-emerald-600 shadow-emerald-600/10'
+                      : 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-emerald-600/25 hover:from-emerald-700 hover:to-teal-700'
+                      }`}
                   >
-                    <ShoppingCart size={20} className="md:w-6 md:h-6" />
-                    {cartCount > 0 ? `Added (${cartCount})` : 'Add to Cart'}
+                    {cartCount > 0 ? <CheckCircle size={20} /> : <ShoppingCart size={20} />}
+                    {cartCount > 0 ? 'Added' : 'Add to Cart'}
                   </button>
 
                   <button
+                    onClick={handleBuyNow}
+                    className="flex-1 h-14 px-3 md:px-6 bg-gray-900 text-white rounded-2xl font-bold text-sm md:text-lg whitespace-nowrap shadow-lg shadow-gray-900/20 hover:bg-gray-800 transition-colors duration-200 flex items-center justify-center"
+                  >
+                    Buy Now
+                  </button>
+
+                  {/* Secondary icon actions — consistent square buttons */}
+                  <button
                     onClick={() => setLiked(!liked)}
-                    className={`p-4 rounded-2xl font-bold shadow-xl transition-all duration-300 ${liked
-                      ? 'bg-rose-100 text-rose-600 scale-105'
-                      : 'bg-white text-gray-400 hover:bg-gray-50'
+                    aria-label="Save"
+                    className={`w-12 md:w-14 h-14 shrink-0 rounded-2xl border flex items-center justify-center transition-colors duration-200 ${liked
+                      ? 'bg-rose-50 border-rose-200 text-rose-600'
+                      : 'bg-white border-gray-200 text-gray-400 hover:text-gray-600 hover:border-gray-300'
                       }`}
                   >
-                    <Heart size={24} className={liked ? 'fill-rose-600' : ''} />
+                    <Heart size={22} className={liked ? 'fill-rose-600' : ''} />
                   </button>
 
                   <button
                     onClick={handleShare}
-                    className="p-4 bg-white rounded-2xl font-bold shadow-xl text-gray-600 hover:bg-gray-50 transition-all duration-300 hover:scale-105"
+                    aria-label="Share"
+                    className="w-12 md:w-14 h-14 shrink-0 rounded-2xl border border-gray-200 bg-white text-gray-500 hover:text-gray-700 hover:border-gray-300 flex items-center justify-center transition-colors duration-200"
                   >
-                    <Share2 size={24} />
+                    <Share2 size={22} />
                   </button>
                 </div>
               </div>
 
-              {/* Hero Image - Hidden on mobile when scrolling */}
-              <div className={`relative transition-all duration-500 ${scrollY > 100 ? 'lg:block hidden' : 'block'}`}>
+              {/* Hero Image */}
+              <div className="relative">
                 <div className="absolute inset-0 bg-gradient-to-br from-emerald-400/20 to-teal-400/20 rounded-[3rem] blur-2xl"></div>
                 <div className="relative bg-white rounded-[3rem] shadow-2xl p-8 overflow-hidden">
                   <img
@@ -487,16 +544,6 @@ const Product = () => {
                     className={`w-full h-auto object-cover rounded-2xl transition-all duration-700 ${imageLoaded ? 'opacity-100 scale-100' : 'opacity-0 scale-95'
                       }`}
                   />
-                  {product.discount && (
-                    <div className="absolute top-12 right-12">
-                      <div className="relative">
-                        <div className="absolute inset-0 bg-orange-500 rounded-full blur-xl opacity-50"></div>
-                        <span className="relative block bg-gradient-to-br from-orange-500 to-red-500 text-white text-lg font-black px-6 py-3 rounded-full shadow-2xl">
-                          {product.discount}
-                        </span>
-                      </div>
-                    </div>
-                  )}
                 </div>
               </div>
             </div>
@@ -590,12 +637,16 @@ const Product = () => {
               <div className="bg-gradient-to-br from-emerald-50 to-teal-50 rounded-3xl p-10 border-2 border-emerald-200">
                 <Activity className="text-emerald-600 mb-4" size={32} />
                 <h3 className="text-2xl font-bold text-gray-900 mb-4">Comprehensive Health Screening</h3>
-                <p className="text-gray-700 leading-relaxed">Get a complete picture of your health with 98 essential tests covering all major health parameters.</p>
+                <p className="text-gray-700 leading-relaxed">
+                  {product.details.inclusions && product.details.inclusions.length
+                    ? `Get a clear picture of your health with ${product.details.inclusions.length} essential ${product.details.inclusions.length === 1 ? "parameter" : "parameters"} covering this screening.`
+                    : "Get a clear picture of your health with essential parameters covering this screening."}
+                </p>
               </div>
               <div className="bg-gradient-to-br from-blue-50 to-cyan-50 rounded-3xl p-10 border-2 border-blue-200">
                 <ShieldCheck className="text-blue-600 mb-4" size={32} />
                 <h3 className="text-2xl font-bold text-gray-900 mb-4">NABL Certified Lab</h3>
-                <p className="text-gray-700 leading-relaxed">All tests performed in NABL accredited labs ensuring highest quality and accuracy standards.</p>
+                <p className="text-gray-700 leading-relaxed">All tests performed in our NABL Certified Lab ensuring highest quality and accuracy standards.</p>
               </div>
             </div>
           </section>

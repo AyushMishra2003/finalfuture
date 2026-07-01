@@ -2,8 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { baseUrl } from "../utils/config";
 
-// Fallback configuration in case baseUrl is not properly imported
-const API_BASE_URL = baseUrl || "http://localhost:5000";
+const API_BASE_URL = baseUrl;
 
 const SearchComponent = ({ isMobile = false }) => {
   const [searchTerm, setSearchTerm] = useState("");

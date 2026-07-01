@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useSearchParams, Link } from "react-router-dom";
 import apiService from "../utils/api";
+import { addToCart as addToCartService } from "../utils/cart";
+import { showToast } from "../utils/toast";
 
 const WomanCare = () => {
   const [tabs, setTabs] = useState([]);
@@ -63,25 +65,9 @@ const WomanCare = () => {
     window.history.pushState({}, "", newUrl);
   };
 
-  const addToCart = async (testId) => {
-    const userId = localStorage.getItem("userId") || "temp-user-id";
-    if (!userId) {
-      alert("Please login to add items to cart");
-      return;
-    }
-
-    try {
-      const response = await apiService.addToCart(userId, testId);
-
-      if (response.success) {
-        alert("Item added to cart successfully!");
-      } else {
-        alert(response.message || "Failed to add item to cart");
-      }
-    } catch (error) {
-      console.error("Error adding to cart:", error);
-      alert("Error adding item to cart");
-    }
+  const addToCart = (test) => {
+    addToCartService(test);
+    showToast(`${test.name} added to cart`);
   };
 
   if (loading && tabs.length === 0) {
@@ -173,7 +159,7 @@ const WomanCare = () => {
                         </Link>
                         <button
                           className="btn btn-primary"
-                          onClick={() => addToCart(test._id)}
+                          onClick={() => addToCart(test)}
                         >
                           Add to Cart
                         </button>

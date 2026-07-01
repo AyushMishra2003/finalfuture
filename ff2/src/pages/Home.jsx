@@ -2,6 +2,8 @@ import React, { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ShoppingCart, Search, CheckCircle, AlertTriangle } from "lucide-react";
 import apiService from "../utils/api";
+import { addToCart as addToCartService } from "../utils/cart";
+import { showToast } from "../utils/toast";
 import { USE_MOCK_DATA, getImagePath } from "../utils/config";
 import { mockData } from "../utils/mockData";
 import MakeYourOwnPackage from "../components/MakeYourOwnPackage";
@@ -215,7 +217,7 @@ const Home = () => {
           {/* Footer */}
           <div style={{ padding: "16px 24px 20px", borderTop: "1px solid #f1f5f9" }}>
             <button
-              onClick={() => handleAddToCart(pkg.id)}
+              onClick={() => handleAddToCart(pkg)}
               style={{ width: "100%", background: "linear-gradient(135deg, #007A5E 0%, #00b386 100%)", color: "#fff", border: "none", borderRadius: "50px", padding: "15px", fontSize: "1.05rem", fontWeight: 700, cursor: "pointer", boxShadow: "0 6px 18px rgba(0,122,94,0.3)" }}
             >
               Book This Package
@@ -335,40 +337,25 @@ const Home = () => {
     }
   };
 
-  const handleAddToCart = async (testId) => {
-    let userId = localStorage.getItem("userId");
-
-    // Clear legacy mock data if present
-    if (userId && userId.toString().startsWith('mock-')) {
-      localStorage.removeItem('userId');
-      localStorage.removeItem('token');
-      localStorage.removeItem('userToken');
-      userId = null;
-    }
-
-    if (!userId) {
-      alert("Please login to add items to cart");
-      // Trigger the login sidebar
-      const sidebar = document.getElementById("sidebar");
-      if (sidebar) {
-        sidebar.classList.add("show");
-      }
-      return;
-    }
-
-    try {
-      // Add item to cart using API
-      const response = await apiService.addToCart(userId, testId);
-
-      if (response.success) {
-        alert("Item added to cart successfully!");
-      } else {
-        setError(response.error || "Failed to add item to cart");
-      }
-    } catch (error) {
-      console.error("Error adding to cart:", error);
-      setError("Error adding item to cart. Please try again.");
-    }
+  // Simple add — works for guests too. Appointment/patient chosen at checkout.
+  const handleAddToCart = (pkg) => {
+    if (!pkg) return;
+    const price =
+      typeof pkg.price === 'number'
+        ? pkg.price
+        : parseInt(String(pkg.price || '').replace(/[^\d]/g, ''), 10) || 0;
+    const originalPrice = pkg.oldPrice
+      ? parseInt(String(pkg.oldPrice).replace(/[^\d]/g, ''), 10) || undefined
+      : undefined;
+    addToCartService({
+      _id: pkg.id || pkg._id,
+      name: pkg.title || pkg.name,
+      price,
+      originalPrice,
+      category: 'Health Package',
+      description: pkg.tests ? `${pkg.tests} included` : pkg.description,
+    });
+    showToast(`${pkg.title || pkg.name} added to cart`);
   };
   const chunkedCategories = [];
   for (let i = 0; i < categories.length; i += 4) {
@@ -807,26 +794,13 @@ const Home = () => {
             onAddToCart={(item) => {
               const pkg = packages.find(p => p.id === item.id);
               if (pkg) {
-                // Check if item already exists in cart
-                const existingCart = JSON.parse(localStorage.getItem("cart")) || [];
-                const existingItemIndex = existingCart.findIndex(cartItem => cartItem._id === pkg.id);
-
-                if (existingItemIndex !== -1) {
-                  alert("This package is already in your cart!");
-                  return;
-                }
-
-                // Open patient selection modal
-                setSelectedPackageForBooking(pkg);
-                setIsPatientModalOpen(true);
+                // Simple add — patient/appointment/location chosen at checkout
+                handleAddToCart(pkg);
               }
             }}
             onViewDetails={(item) => {
-              const pkg = packages.find(p => p.id === item.id);
-              if (pkg) {
-                setSelectedPackage(pkg);
-                setShowDetails(true);
-              }
+              // Navigate to the full product detail page (instead of a modal)
+              navigate(`/product?id=${item.id}`);
             }}
           />
 

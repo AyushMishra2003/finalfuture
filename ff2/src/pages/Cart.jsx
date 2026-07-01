@@ -1,15 +1,34 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Trash2, ShoppingBag, ArrowRight, CheckCircle, Home, User, Calendar, MapPin, Clock, Shield, Zap, Star, Package } from "lucide-react";
+import { Trash2, ShoppingBag, ArrowRight, CheckCircle, Home, User, Calendar, MapPin, Clock, Shield, Zap, Star, Package, Plus, Minus } from "lucide-react";
 import axios from 'axios';
 import { baseUrl } from "../utils/config";
 import HDFCPayment from '../components/HDFCPayment';
+import PatientSelectionModal from "../components/PatientSelectionModal";
+import AppointmentTimeModal from "../components/AppointmentTimeModal";
+import LocationSelectionModal from "../components/LocationSelectionModal";
+import { showToast } from "../utils/toast";
+import {
+  getCart,
+  loadAccountCart,
+  onCartChange,
+  removeFromCart,
+  incrementQuantity,
+  decrementQuantity,
+  clearCart,
+  cartTotals,
+} from "../utils/cart";
 
 const Cart = () => {
-  const [cartItems, setCartItems] = useState([]);
+  const [cartItems, setCartItems] = useState(getCart());
   const [loading, setLoading] = useState(true);
   const [showPayment, setShowPayment] = useState(false);
   const [currentOrder, setCurrentOrder] = useState(null);
+  const [isPatientModalOpen, setIsPatientModalOpen] = useState(false);
+  const [isAppointmentModalOpen, setIsAppointmentModalOpen] = useState(false);
+  const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
+  const [selectedPatients, setSelectedPatients] = useState([]);
+  const [appointmentDetails, setAppointmentDetails] = useState(null);
   const navigate = useNavigate();
 
   const userId = localStorage.getItem("userId");
@@ -23,66 +42,65 @@ const Cart = () => {
       navigate('/login');
       return;
     }
-    fetchCartItems();
+    // Pull the account cart (if logged in) and merge into local, then render.
+    (async () => {
+      await loadAccountCart();
+      setCartItems(getCart());
+      setLoading(false);
+    })();
+    // Stay in sync with live changes (quantity steppers, other tabs, badge).
+    const unsubscribe = onCartChange(setCartItems);
+    return unsubscribe;
   }, []);
 
-  const fetchCartItems = async () => {
-    try {
-      setLoading(true);
-      const token = localStorage.getItem('userToken');
-      if (token) {
-        const response = await axios.get(`${baseUrl}/api/v1/orders/myorders`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-      }
-      const mockCart = JSON.parse(localStorage.getItem("cart")) || [];
-      setCartItems(mockCart);
-    } catch (error) {
-      const mockCart = JSON.parse(localStorage.getItem("cart")) || [];
-      setCartItems(mockCart);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const handleRemoveItem = (cartId) => removeFromCart(cartId);
 
-  const handleRemoveItem = (itemId) => {
-    const updatedCart = cartItems.filter((item) => item._id !== itemId);
-    setCartItems(updatedCart);
-    localStorage.setItem("cart", JSON.stringify(updatedCart));
-    window.dispatchEvent(new Event("storage"));
-  };
+  const totals = cartTotals(cartItems);
+  const calculateSubtotal = () => totals.subtotal;
+  const calculateOriginalTotal = () => totals.mrp;
+  const calculateSavings = () => totals.savings;
 
-  const calculateSubtotal = () => cartItems.reduce((total, item) => total + (item.price || 0), 0);
-  const calculateOriginalTotal = () => cartItems.reduce((total, item) => total + (item.originalPrice || item.price || 0), 0);
-  const calculateSavings = () => calculateOriginalTotal() - calculateSubtotal();
-
-  const handleCheckout = async () => {
-    if (cartItems.length === 0) { alert("Your cart is empty!"); return; }
+  // Checkout = collect booking details (patient → appointment → location) THEN
+  // place the order. (Add-to-cart no longer asks for these.)
+  const handleCheckout = () => {
+    if (cartItems.length === 0) { showToast("Your cart is empty", "error"); return; }
     const token = localStorage.getItem('userToken') || localStorage.getItem('token');
     if (!token) {
-      navigate('/payment', { state: { orderId: null, amount: calculateSubtotal(), items: cartItems, totalMRP: calculateOriginalTotal(), discount: calculateSavings(), isGuest: true } });
+      showToast("Please login to place your order", "info");
+      window.dispatchEvent(new Event('open-login'));
       return;
     }
+    setIsPatientModalOpen(true);
+  };
+
+  // Final step — create the order with the chosen patient/appointment/location.
+  const placeOrder = async (booking) => {
+    setIsLocationModalOpen(false);
+    const token = localStorage.getItem('userToken') || localStorage.getItem('token');
+    const loc = booking?.location || {};
+    const orderData = {
+      orderItems: cartItems.map(item => ({ name: item.name, quantity: item.quantity || 1, price: item.price, itemId: item._id || item.id })),
+      shippingAddress: {
+        address: loc.address || '',
+        city: loc.city || '',
+        postalCode: loc.pincode || '',
+        country: 'India'
+      },
+      location: loc.latitude ? { latitude: loc.latitude, longitude: loc.longitude } : undefined,
+      patients: booking?.patients,
+      appointment: { date: booking?.date, time: booking?.time, location: loc },
+      itemsPrice: calculateSubtotal(), taxPrice: 0, shippingPrice: 0, totalPrice: calculateSubtotal(), paymentMethod: 'HDFC'
+    };
     try {
-      let userLocation = null;
-      if (navigator.geolocation) {
-        try {
-          const position = await new Promise((resolve, reject) => navigator.geolocation.getCurrentPosition(resolve, reject));
-          userLocation = { latitude: position.coords.latitude, longitude: position.coords.longitude, accuracy: position.coords.accuracy };
-        } catch (error) {}
-      }
-      const orderData = {
-        orderItems: cartItems.map(item => ({ name: item.name, quantity: 1, price: item.price, itemId: item._id })),
-        shippingAddress: { address: cartItems[0]?.appointment?.location?.address || 'Test Address', city: cartItems[0]?.appointment?.location?.city || 'Bangalore', postalCode: cartItems[0]?.appointment?.location?.pincode || '560001', country: 'India' },
-        location: userLocation, itemsPrice: calculateSubtotal(), taxPrice: 0, shippingPrice: 0, totalPrice: calculateSubtotal(), paymentMethod: 'HDFC'
-      };
       const response = await axios.post(`${baseUrl}/api/v1/orders`, orderData, { headers: { Authorization: `Bearer ${token}` } });
       if (response.data.success) {
         setCurrentOrder(response.data.data);
-        navigate('/payment', { state: { orderId: response.data.data._id, amount: response.data.data.totalPrice, items: cartItems, totalMRP: calculateOriginalTotal(), discount: calculateSavings(), isGuest: false } });
+        navigate('/payment', { state: { orderId: response.data.data._id, amount: response.data.data.totalPrice, items: cartItems, booking, totalMRP: calculateOriginalTotal(), discount: calculateSavings(), isGuest: false } });
+      } else {
+        showToast("Could not create order. Please try again.", "error");
       }
     } catch (error) {
-      navigate('/payment', { state: { orderId: null, amount: calculateSubtotal(), items: cartItems, totalMRP: calculateOriginalTotal(), discount: calculateSavings(), isGuest: true } });
+      showToast("Could not create order. Please try again.", "error");
     }
   };
 
@@ -147,7 +165,7 @@ const Cart = () => {
               <HDFCPayment
                 orderId={currentOrder._id}
                 amount={currentOrder.totalPrice}
-                onSuccess={() => { setCartItems([]); localStorage.removeItem("cart"); window.dispatchEvent(new Event("storage")); }}
+                onSuccess={() => clearCart()}
                 onFailure={(err) => alert(`Payment Failed: ${err}`)}
               />
             </div>
@@ -177,14 +195,14 @@ const Cart = () => {
                 <div className="items-col">
                   <div className="items-header">
                     <span className="items-count">{cartItems.length} Tests Selected</span>
-                    <button className="clear-btn" onClick={() => { setCartItems([]); localStorage.setItem("cart", JSON.stringify([])); window.dispatchEvent(new Event("storage")); }}>
+                    <button className="clear-btn" onClick={() => clearCart()}>
                       <Trash2 size={14} /> Clear All
                     </button>
                   </div>
 
                   <div className="items-list">
                     {cartItems.map((item, index) => (
-                      <div key={`${item._id || 'item'}-${index}`} className="item-card">
+                      <div key={item.cartId || `${item._id || item.id || 'item'}-${index}`} className="item-card">
                         <div className="item-top">
                           <div className="item-badge">{index + 1}</div>
                           <div className="item-main">
@@ -204,15 +222,36 @@ const Cart = () => {
                           </div>
                           <div className="item-right">
                             <div className="price-block">
-                              <span className="price-current">₹{item.price}</span>
+                              <span className="price-current">₹{(item.price || 0) * (item.quantity || 1)}</span>
+                              {item.quantity > 1 && (
+                                <span className="price-unit">₹{item.price} × {item.quantity}</span>
+                              )}
                               {item.originalPrice && item.originalPrice > item.price && (
-                                <span className="price-original">₹{item.originalPrice}</span>
+                                <span className="price-original">₹{(item.originalPrice) * (item.quantity || 1)}</span>
                               )}
                               {item.discountPercentage > 0 && (
                                 <span className="price-discount">{item.discountPercentage}% OFF</span>
                               )}
                             </div>
-                            <button className="remove-btn" onClick={() => handleRemoveItem(item._id)} title="Remove">
+                            <div className="qty-stepper">
+                              <button
+                                className="qty-btn"
+                                onClick={() => decrementQuantity(item.cartId)}
+                                disabled={(item.quantity || 1) <= 1}
+                                title="Decrease"
+                              >
+                                <Minus size={14} />
+                              </button>
+                              <span className="qty-val">{item.quantity || 1}</span>
+                              <button
+                                className="qty-btn"
+                                onClick={() => incrementQuantity(item.cartId)}
+                                title="Increase"
+                              >
+                                <Plus size={14} />
+                              </button>
+                            </div>
+                            <button className="remove-btn" onClick={() => handleRemoveItem(item.cartId)} title="Remove">
                               <Trash2 size={16} />
                             </button>
                           </div>
@@ -306,7 +345,7 @@ const Cart = () => {
                         { icon: <Home size={15} />, text: 'Free home sample collection' },
                         { icon: <Zap size={15} />, text: 'Fast digital report delivery' },
                         { icon: <User size={15} />, text: 'Expert doctor consultation' },
-                        { icon: <Shield size={15} />, text: 'NABL certified labs' },
+                        { icon: <Shield size={15} />, text: 'NABL Certified Lab' },
                       ].map((p, i) => (
                         <div key={i} className="perk-item">
                           <div className="perk-icon">{p.icon}</div>
@@ -322,6 +361,34 @@ const Cart = () => {
           </div>
         )}
       </div>
+
+      {/* Checkout booking flow: patient → appointment → location → place order */}
+      <PatientSelectionModal
+        isOpen={isPatientModalOpen}
+        onClose={() => setIsPatientModalOpen(false)}
+        onNext={(patients) => {
+          setSelectedPatients(patients);
+          setIsPatientModalOpen(false);
+          setIsAppointmentModalOpen(true);
+        }}
+      />
+      <AppointmentTimeModal
+        isOpen={isAppointmentModalOpen}
+        selectedPatients={selectedPatients}
+        onClose={() => setIsAppointmentModalOpen(false)}
+        onNext={(appt) => {
+          setAppointmentDetails(appt);
+          setIsAppointmentModalOpen(false);
+          setIsLocationModalOpen(true);
+        }}
+      />
+      <LocationSelectionModal
+        isOpen={isLocationModalOpen}
+        selectedPatients={selectedPatients}
+        appointmentDetails={appointmentDetails}
+        onClose={() => setIsLocationModalOpen(false)}
+        onConfirm={(finalBooking) => placeOrder(finalBooking)}
+      />
     </>
   );
 };
@@ -528,6 +595,23 @@ const styles = `
     display: inline-block; font-size: 11px; font-weight: 600;
     background: #fef3c7; color: #d97706; padding: 2px 7px; border-radius: 5px; margin-top: 3px;
   }
+  .price-unit { display: block; font-size: 11px; color: #9ca3af; margin-top: 2px; }
+
+  /* Quantity stepper */
+  .qty-stepper {
+    display: flex; align-items: center; gap: 8px;
+    background: #f4f6fb; border: 1.5px solid #e8ecf4;
+    border-radius: 10px; padding: 4px;
+  }
+  .qty-btn {
+    width: 28px; height: 28px; border-radius: 8px;
+    background: #fff; border: 1px solid #e8ecf4; color: #2e9d91;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; transition: all 0.15s;
+  }
+  .qty-btn:hover:not(:disabled) { background: #e8f7f6; border-color: #2e9d91; }
+  .qty-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .qty-val { min-width: 18px; text-align: center; font-size: 14px; font-weight: 700; color: #1a1d2e; }
   .remove-btn {
     width: 34px; height: 34px; border-radius: 10px;
     background: #fff; border: 1.5px solid #fee2e2;

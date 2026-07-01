@@ -52,7 +52,7 @@ const PackageDetails = () => {
             reportTime: "24-48 Hours",
             sampleType: "Blood & Urine",
             homeCollection: true,
-            certification: "NABL Accredited",
+            certification: "NABL Certified Lab",
             preparation: [
               "10-12 hours fasting required before sample collection",
               "Avoid alcohol 24 hours before the test",
@@ -126,7 +126,7 @@ const PackageDetails = () => {
               "Free Home Sample Collection",
               "Digital Report via Email & App",
               "Expert Doctor Consultation Available",
-              "NABL Certified Laboratory",
+              "NABL Certified Lab",
               "24/7 Customer Support"
             ]
           });
@@ -369,7 +369,10 @@ const PackageDetails = () => {
                 </div>
                 <div className="card-body p-4">
                   <div className="row g-3">
-                    {packageData.features.map((feature, index) => (
+                    {[
+                      ...packageData.features,
+                      ...(packageData.features.some((f) => /NABL/i.test(f)) ? [] : ["NABL Certified Lab"]),
+                    ].map((feature, index) => (
                       <div key={index} className="col-md-6">
                         <div className="d-flex align-items-center p-3 rounded-3 bg-light">
                           <CheckCircle size={20} className="text-success me-3 flex-shrink-0" />
@@ -456,7 +459,7 @@ const PackageDetails = () => {
                       <div className="col-4">
                         <div className="trust-badge">
                           <CheckCircle size={24} className="text-success mb-1" />
-                          <div className="x-small">NABL Certified</div>
+                          <div className="x-small">NABL Certified Lab</div>
                         </div>
                       </div>
                       <div className="col-4">

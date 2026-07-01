@@ -2,6 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { HashRouter } from 'react-router-dom';
 import App from './App';
+import { installAuthInterceptors } from './utils/authInterceptor';
 
 // Import Bootstrap CSS
 import 'bootstrap/dist/css/bootstrap.min.css';
@@ -16,6 +17,9 @@ import './lyfsyle.css';
 import './react-custom.css';
 import './react-fixes.css';
 import './mobile-responsive.css'; // Mobile responsiveness fixes
+
+// Attach the correct auth token to every API request (admin/collector/customer)
+installAuthInterceptors();
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
