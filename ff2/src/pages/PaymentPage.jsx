@@ -14,7 +14,7 @@ const PaymentPage = () => {
     const location = useLocation();
     const navigate = useNavigate();
 
-    const { orderId, amount, items = [], totalMRP, discount: passedDiscount } = location.state || {};
+    const { orderId, amount, items = [], totalMRP, discount: passedDiscount, homeVisitCharge = 0 } = location.state || {};
 
     const [activeMethod, setActiveMethod] = useState(null);
     const [loading, setLoading] = useState(false);
@@ -97,7 +97,7 @@ const PaymentPage = () => {
         } catch { alert('Failed. Try again.'); setLoading(false); setPaymentStatus('idle'); }
     };
 
-    const handlePaymentComplete = () => navigate('/order-summary', { state: { orderId, items, totalMRP, discount: passedDiscount, amount: finalAmount, paymentMethod: activeMethod === 'upi' ? 'UPI' : activeMethod === 'card' ? 'Card' : activeMethod === 'netbanking' ? 'Net Banking' : activeMethod === 'wallet' ? 'Wallet' : 'Cash on Delivery' } });
+    const handlePaymentComplete = () => navigate('/order-summary', { state: { orderId, items, totalMRP, discount: passedDiscount, homeVisitCharge, amount: finalAmount, paymentMethod: activeMethod === 'upi' ? 'UPI' : activeMethod === 'card' ? 'Card' : activeMethod === 'netbanking' ? 'Net Banking' : activeMethod === 'wallet' ? 'Wallet' : 'Cash on Delivery' } });
     const handlePaymentSuccess = () => { setPaymentStatus('success'); localStorage.removeItem('cart'); window.dispatchEvent(new Event('storage')); };
     const handlePaymentFailure = (err) => { alert('Payment failed: ' + err); setShowHDFCModal(false); };
 

@@ -183,5 +183,8 @@ export const cartTotals = (items = readLocal()) => {
     (t, it) => t + (it.originalPrice || it.price || 0) * (it.quantity || 1),
     0
   );
-  return { subtotal, mrp, savings: Math.max(0, mrp - subtotal) };
+  const savings = Math.max(0, mrp - subtotal);
+  // Add a home-visit charge for low-value bookings (payable subtotal < ₹1200).
+  const homeVisitCharge = subtotal > 0 && subtotal < 1200 ? 200 : 0;
+  return { subtotal, mrp, savings, homeVisitCharge, total: subtotal + homeVisitCharge };
 };

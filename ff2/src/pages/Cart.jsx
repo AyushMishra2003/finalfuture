@@ -59,6 +59,8 @@ const Cart = () => {
   const calculateSubtotal = () => totals.subtotal;
   const calculateOriginalTotal = () => totals.mrp;
   const calculateSavings = () => totals.savings;
+  const homeVisitCharge = totals.homeVisitCharge;
+  const calculateTotal = () => totals.total;
 
   // Checkout = collect booking details (patient → appointment → location) THEN
   // place the order. (Add-to-cart no longer asks for these.)
@@ -89,13 +91,13 @@ const Cart = () => {
       location: loc.latitude ? { latitude: loc.latitude, longitude: loc.longitude } : undefined,
       patients: booking?.patients,
       appointment: { date: booking?.date, time: booking?.time, location: loc },
-      itemsPrice: calculateSubtotal(), taxPrice: 0, shippingPrice: 0, totalPrice: calculateSubtotal(), paymentMethod: 'HDFC'
+      itemsPrice: calculateSubtotal(), taxPrice: 0, shippingPrice: homeVisitCharge, totalPrice: calculateTotal(), paymentMethod: 'HDFC'
     };
     try {
       const response = await axios.post(`${baseUrl}/api/v1/orders`, orderData, { headers: { Authorization: `Bearer ${token}` } });
       if (response.data.success) {
         setCurrentOrder(response.data.data);
-        navigate('/payment', { state: { orderId: response.data.data._id, amount: response.data.data.totalPrice, items: cartItems, booking, totalMRP: calculateOriginalTotal(), discount: calculateSavings(), isGuest: false } });
+        navigate('/payment', { state: { orderId: response.data.data._id, amount: response.data.data.totalPrice, items: cartItems, booking, totalMRP: calculateOriginalTotal(), discount: calculateSavings(), homeVisitCharge, isGuest: false } });
       } else {
         showToast("Could not create order. Please try again.", "error");
       }
@@ -314,10 +316,16 @@ const Cart = () => {
                         <span>Tax</span>
                         <span className="free-label">₹0</span>
                       </div>
+                      {homeVisitCharge > 0 && (
+                        <div className="summary-line">
+                          <span>Home Visit Charge</span>
+                          <span>₹{homeVisitCharge}</span>
+                        </div>
+                      )}
                       <div className="summary-divider" />
                       <div className="summary-line total">
                         <span>Total Payable</span>
-                        <span>₹{calculateSubtotal()}</span>
+                        <span>₹{calculateTotal()}</span>
                       </div>
                     </div>
 

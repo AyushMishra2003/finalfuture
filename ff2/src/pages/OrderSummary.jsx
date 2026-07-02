@@ -13,7 +13,7 @@ const OrderSummary = () => {
 
     if (!orderData) return null;
 
-    const { orderId, items = [], totalMRP, discount, amount, paymentMethod } = orderData;
+    const { orderId, items = [], totalMRP, discount, amount, paymentMethod, homeVisitCharge = 0 } = orderData;
 
     const groupedByPatient = items.reduce((acc, item) => {
         const patientName = item.patient?.name || 'Unknown';
@@ -171,6 +171,12 @@ const OrderSummary = () => {
                                             <div className="os-total-row os-discount-row">
                                                 <span>Discounts Applied</span>
                                                 <span className="os-discount-val">−₹{discount}</span>
+                                            </div>
+                                        )}
+                                        {homeVisitCharge > 0 && (
+                                            <div className="os-total-row">
+                                                <span>Home Visit Charge</span>
+                                                <span>₹{homeVisitCharge}</span>
                                             </div>
                                         )}
                                         <div className="os-total-divider" />
